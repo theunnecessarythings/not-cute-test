@@ -1,156 +1,502 @@
 const std = @import("std");
 
-// Although this function looks imperative, it does not perform the build
-// directly and instead it mutates the build graph (`b`) that will be then
-// executed by an external runner. The functions in `std.Build` implement a DSL
-// for defining build steps and express dependencies between them, allowing the
-// build runner to parallelize the build automatically (and the cache system to
-// know when a step doesn't need to be re-run).
 pub fn build(b: *std.Build) void {
-    // Standard target options allow the person running `zig build` to choose
-    // what target to build for. Here we do not override the defaults, which
-    // means any target is allowed, and the default is native. Other options
-    // for restricting supported target set are available.
     const target = b.standardTargetOptions(.{});
-    // Standard optimization options allow the person running `zig build` to select
-    // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall. Here we do not
-    // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
-    // It's also possible to define more custom flags to toggle optional features
-    // of this build script using `b.option()`. All defined flags (including
-    // target and optimize options) will be listed when running `zig build --help`
-    // in this directory.
 
-    // This creates a module, which represents a collection of source files alongside
-    // some compilation options, such as optimization mode and linked system libraries.
-    // Zig modules are the preferred way of making Zig code available to consumers.
-    // addModule defines a module that we intend to make available for importing
-    // to our consumers. We must give it a name because a Zig package can expose
-    // multiple modules and consumers will need to be able to specify which
-    // module they want to access.
-    const mod = b.addModule("not_cute_test", .{
-        // The root source file is the "entry point" of this module. Users of
-        // this module will only be able to access public declarations contained
-        // in this file, which means that if you have declarations that you
-        // intend to expose to consumers that were defined in other files part
-        // of this module, you will have to make sure to re-export them from
-        // the root file.
+    const enable_mlir_tools = b.option(bool, "mlir-tools", "Run external MLIR verifier tests") orelse false;
+    const assume_mlir_tools_present = b.option(bool, "assume-mlir-tools-present", "Assume cute-opt/mlir-opt/FileCheck are available when verifier tests request them") orelse false;
+    const cute_opt_path = b.option([]const u8, "cute-opt", "Path to cute-opt") orelse "cute-opt";
+    const mlir_opt_path = b.option([]const u8, "mlir-opt", "Path to mlir-opt") orelse "mlir-opt";
+    const filecheck_path = b.option([]const u8, "filecheck", "Path to FileCheck") orelse "FileCheck";
+    const cutlass_python_path = b.option([]const u8, "cutlass-python", "Python executable with nvidia-cutlass-dsl/cutlass installed") orelse "python3";
+    const cutlass_bridge_script = b.option([]const u8, "cutlass-bridge-script", "Path to tools/cutlass_mlir_bridge.py") orelse "tools/cutlass_mlir_bridge.py";
+    const cutlass_pipeline = b.option([]const u8, "cutlass-pipeline", "CUTLASS MLIR pass pipeline for parser-aligned verify-cutlass fixtures") orelse "builtin.module(canonicalize)";
+
+    const build_options = b.addOptions();
+    build_options.addOption(bool, "enable_mlir_tools", enable_mlir_tools);
+    build_options.addOption(bool, "assume_mlir_tools_present", assume_mlir_tools_present);
+    build_options.addOption([]const u8, "cute_opt_path", cute_opt_path);
+    build_options.addOption([]const u8, "mlir_opt_path", mlir_opt_path);
+    build_options.addOption([]const u8, "filecheck_path", filecheck_path);
+
+    const mod = b.addModule("not_cute", .{
         .root_source_file = b.path("src/root.zig"),
-        // Later on we'll use this module as the root module of a test executable
-        // which requires us to specify a target.
         .target = target,
+        .optimize = optimize,
     });
+    mod.addOptions("build_options", build_options);
 
-    // Here we define an executable. An executable needs to have a root module
-    // which needs to expose a `main` function. While we could add a main function
-    // to the module defined above, it's sometimes preferable to split business
-    // logic and the CLI into two separate modules.
-    //
-    // If your goal is to create a Zig library for others to use, consider if
-    // it might benefit from also exposing a CLI tool. A parser library for a
-    // data serialization format could also bundle a CLI syntax checker, for example.
-    //
-    // If instead your goal is to create an executable, consider if users might
-    // be interested in also being able to embed the core functionality of your
-    // program in their own executable in order to avoid the overhead involved in
-    // subprocessing your CLI tool.
-    //
-    // If neither case applies to you, feel free to delete the declaration you
-    // don't need and to put everything under a single module.
-    const exe = b.addExecutable(.{
-        .name = "not_cute_test",
-        .root_module = b.createModule(.{
-            // b.createModule defines a new module just like b.addModule but,
-            // unlike b.addModule, it does not expose the module to consumers of
-            // this package, which is why in this case we don't have to give it a name.
-            .root_source_file = b.path("src/main.zig"),
-            // Target and optimization levels must be explicitly wired in when
-            // defining an executable or library (in the root module), and you
-            // can also hardcode a specific target for an executable or library
-            // definition if desireable (e.g. firmware for embedded devices).
+    const lib = b.addLibrary(.{
+        .name = "not_cute",
+        .root_module = mod,
+        .linkage = .static,
+    });
+    b.installArtifact(lib);
+
+    const cli_mod = b.createModule(.{
+        .root_source_file = b.path("src/mlir_harness_cli.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    cli_mod.addOptions("build_options", build_options);
+    const cli = b.addExecutable(.{
+        .name = "not-cute-mlir-harness",
+        .root_module = cli_mod,
+    });
+    const install_cli = b.addInstallArtifact(cli, .{});
+    const harness_step = b.step("harness", "Build and install the MLIR harness CLI");
+    harness_step.dependOn(&install_cli.step);
+
+    const runtime_plan_cli_mod = b.createModule(.{
+        .root_source_file = b.path("src/runtime_plan_cli.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_plan_cli_mod.addOptions("build_options", build_options);
+    const runtime_plan_cli = b.addExecutable(.{
+        .name = "not-cute-runtime-plan",
+        .root_module = runtime_plan_cli_mod,
+    });
+    const install_runtime_plan_cli = b.addInstallArtifact(runtime_plan_cli, .{});
+    const runtime_plan_step = b.step("runtime-plan", "Build and install the runtime/export planning CLI");
+    runtime_plan_step.dependOn(&install_runtime_plan_cli.step);
+
+    const examples_cli_mod = b.createModule(.{
+        .root_source_file = b.path("src/examples_cli.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    examples_cli_mod.addOptions("build_options", build_options);
+    const examples_cli = b.addExecutable(.{
+        .name = "not-cute-examples",
+        .root_module = examples_cli_mod,
+    });
+    const install_examples_cli = b.addInstallArtifact(examples_cli, .{});
+    const examples_step = b.step("examples", "Build and install example CLI and standalone examples");
+    examples_step.dependOn(&install_examples_cli.step);
+
+    const cutlass_bridge_cli_mod = b.createModule(.{
+        .root_source_file = b.path("src/cutlass_bridge_cli.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    cutlass_bridge_cli_mod.addOptions("build_options", build_options);
+    const cutlass_bridge_cli = b.addExecutable(.{
+        .name = "not-cute-cutlass-bridge",
+        .root_module = cutlass_bridge_cli_mod,
+    });
+    const install_cutlass_bridge_cli = b.addInstallArtifact(cutlass_bridge_cli, .{});
+    const cutlass_bridge_step = b.step("cutlass-bridge", "Build and install the CUTLASS MLIR bridge CLI");
+    cutlass_bridge_step.dependOn(&install_cutlass_bridge_cli.step);
+
+    const cutlass_fixtures_cli_mod = b.createModule(.{
+        .root_source_file = b.path("src/cutlass_fixtures_cli.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    cutlass_fixtures_cli_mod.addOptions("build_options", build_options);
+    const cutlass_fixtures_cli = b.addExecutable(.{
+        .name = "not-cute-cutlass-fixtures",
+        .root_module = cutlass_fixtures_cli_mod,
+    });
+    const install_cutlass_fixtures_cli = b.addInstallArtifact(cutlass_fixtures_cli, .{});
+    const cutlass_fixtures_step = b.step("cutlass-fixtures", "Build and install the CUTLASS parser fixture CLI");
+    cutlass_fixtures_step.dependOn(&install_cutlass_fixtures_cli.step);
+
+    const cutlass_emit_cli_mod = b.createModule(.{
+        .root_source_file = b.path("src/cutlass_emit_cli.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    cutlass_emit_cli_mod.addOptions("build_options", build_options);
+    const cutlass_emit_cli = b.addExecutable(.{
+        .name = "not-cute-cutlass-emission",
+        .root_module = cutlass_emit_cli_mod,
+    });
+    const install_cutlass_emit_cli = b.addInstallArtifact(cutlass_emit_cli, .{});
+    const cutlass_emission_step = b.step("cutlass-emission", "Build and install the CUTLASS parser-aligned emission CLI");
+    cutlass_emission_step.dependOn(&install_cutlass_emit_cli.step);
+
+    const cutlass_routed_cli_mod = b.createModule(.{
+        .root_source_file = b.path("src/cutlass_routed_cli.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    cutlass_routed_cli_mod.addOptions("build_options", build_options);
+    const cutlass_routed_cli = b.addExecutable(.{
+        .name = "not-cute-cutlass-routed",
+        .root_module = cutlass_routed_cli_mod,
+    });
+    const install_cutlass_routed_cli = b.addInstallArtifact(cutlass_routed_cli, .{});
+    const cutlass_routed_step = b.step("cutlass-routed", "Build and install the routed CUTLASS emission CLI");
+    cutlass_routed_step.dependOn(&install_cutlass_routed_cli.step);
+
+    const tiled_emit_cli_mod = b.createModule(.{
+        .root_source_file = b.path("src/tiled_emit_cli.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    tiled_emit_cli_mod.addOptions("build_options", build_options);
+    const tiled_emit_cli = b.addExecutable(.{
+        .name = "not-cute-cutlass-full-tiled",
+        .root_module = tiled_emit_cli_mod,
+    });
+    const install_tiled_emit_cli = b.addInstallArtifact(tiled_emit_cli, .{});
+    const cutlass_full_tiled_step = b.step("cutlass-full-tiled", "Build and install the full tiled copy/MMA CUTLASS fixture CLI");
+    cutlass_full_tiled_step.dependOn(&install_tiled_emit_cli.step);
+
+    const api_audit_cli_mod = b.createModule(.{
+        .root_source_file = b.path("src/api_audit_cli.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    api_audit_cli_mod.addOptions("build_options", build_options);
+    const api_audit_cli = b.addExecutable(.{
+        .name = "not-cute-api-audit",
+        .root_module = api_audit_cli_mod,
+    });
+    const install_api_audit_cli = b.addInstallArtifact(api_audit_cli, .{});
+    const api_audit_step = b.step("api-audit", "Build and install the API/architecture audit CLI");
+    api_audit_step.dependOn(&install_api_audit_cli.step);
+
+    const execution_cli_mod = b.createModule(.{
+        .root_source_file = b.path("src/execution_cli.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    execution_cli_mod.addOptions("build_options", build_options);
+    const execution_cli = b.addExecutable(.{
+        .name = "not-cute-exec",
+        .root_module = execution_cli_mod,
+    });
+    const install_execution_cli = b.addInstallArtifact(execution_cli, .{});
+    const exec_step = b.step("exec", "Build and install the CUDA execution wiring CLI");
+    exec_step.dependOn(&install_execution_cli.step);
+
+    const compile_pipeline_cli_mod = b.createModule(.{
+        .root_source_file = b.path("src/compile_pipeline_cli.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    compile_pipeline_cli_mod.addOptions("build_options", build_options);
+    const compile_pipeline_cli = b.addExecutable(.{
+        .name = "not-cute-compile-pipeline",
+        .root_module = compile_pipeline_cli_mod,
+    });
+    const install_compile_pipeline_cli = b.addInstallArtifact(compile_pipeline_cli, .{});
+    const compile_pipeline_step = b.step("compile-pipeline", "Build and install the CUTLASS compile-pipeline planning CLI");
+    compile_pipeline_step.dependOn(&install_compile_pipeline_cli.step);
+
+    const pipeline_verify_cli_mod = b.createModule(.{
+        .root_source_file = b.path("src/pipeline_verify_cli.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    pipeline_verify_cli_mod.addOptions("build_options", build_options);
+    const pipeline_verify_cli = b.addExecutable(.{
+        .name = "not-cute-pipeline-verify",
+        .root_module = pipeline_verify_cli_mod,
+    });
+    const install_pipeline_verify_cli = b.addInstallArtifact(pipeline_verify_cli, .{});
+    const pipeline_verify_step = b.step("pipeline-verify", "Build and install the sharded CUTLASS verifier CLI");
+    pipeline_verify_step.dependOn(&install_pipeline_verify_cli.step);
+
+    const integration_audit_cli_mod = b.createModule(.{
+        .root_source_file = b.path("src/integration_audit_cli.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    integration_audit_cli_mod.addOptions("build_options", build_options);
+    const integration_audit_cli = b.addExecutable(.{
+        .name = "not-cute-audit",
+        .root_module = integration_audit_cli_mod,
+    });
+    const install_integration_audit_cli = b.addInstallArtifact(integration_audit_cli, .{});
+    const audit_step = b.step("audit", "Build and install the integration audit CLI");
+    audit_step.dependOn(&install_integration_audit_cli.step);
+
+    const example_sources = [_][]const u8{
+        "examples/layout_demo.zig",
+        "examples/tensor_demo.zig",
+        "examples/copy_demo.zig",
+        "examples/mma_demo.zig",
+        "examples/gemm_skeleton.zig",
+    };
+    const example_names = [_][]const u8{
+        "layout_demo",
+        "tensor_demo",
+        "copy_demo",
+        "mma_demo",
+        "gemm_skeleton",
+    };
+    for (example_sources, example_names) |source, name| {
+        const ex_mod = b.createModule(.{
+            .root_source_file = b.path(source),
             .target = target,
             .optimize = optimize,
-            // List of modules available for import in source files part of the
-            // root module.
-            .imports = &.{
-                // Here "not_cute_test" is the name you will use in your source code to
-                // import this module (e.g. `@import("not_cute_test")`). The name is
-                // repeated because you are allowed to rename your imports, which
-                // can be extremely useful in case of collisions (which can happen
-                // importing modules from different packages).
-                .{ .name = "not_cute_test", .module = mod },
-            },
-        }),
-    });
-
-    // This declares intent for the executable to be installed into the
-    // install prefix when running `zig build` (i.e. when executing the default
-    // step). By default the install prefix is `zig-out/` but can be overridden
-    // by passing `--prefix` or `-p`.
-    b.installArtifact(exe);
-
-    // This creates a top level step. Top level steps have a name and can be
-    // invoked by name when running `zig build` (e.g. `zig build run`).
-    // This will evaluate the `run` step rather than the default step.
-    // For a top level step to actually do something, it must depend on other
-    // steps (e.g. a Run step, as we will see in a moment).
-    const run_step = b.step("run", "Run the app");
-
-    // This creates a RunArtifact step in the build graph. A RunArtifact step
-    // invokes an executable compiled by Zig. Steps will only be executed by the
-    // runner if invoked directly by the user (in the case of top level steps)
-    // or if another step depends on it, so it's up to you to define when and
-    // how this Run step will be executed. In our case we want to run it when
-    // the user runs `zig build run`, so we create a dependency link.
-    const run_cmd = b.addRunArtifact(exe);
-    run_step.dependOn(&run_cmd.step);
-
-    // By making the run step depend on the default step, it will be run from the
-    // installation directory rather than directly from within the cache directory.
-    run_cmd.step.dependOn(b.getInstallStep());
-
-    // This allows the user to pass arguments to the application in the build
-    // command itself, like this: `zig build run -- arg1 arg2 etc`
-    if (b.args) |args| {
-        run_cmd.addArgs(args);
+        });
+        ex_mod.addOptions("build_options", build_options);
+        ex_mod.addImport("not_cute", mod);
+        const ex = b.addExecutable(.{ .name = name, .root_module = ex_mod });
+        examples_step.dependOn(&b.addInstallArtifact(ex, .{}).step);
     }
 
-    // Creates an executable that will run `test` blocks from the provided module.
-    // Here `mod` needs to define a target, which is why earlier we made sure to
-    // set the releative field.
-    const mod_tests = b.addTest(.{
-        .root_module = mod,
+    const test_mod = b.createModule(.{
+        .root_source_file = b.path("src/root.zig"),
+        .target = target,
+        .optimize = optimize,
     });
+    test_mod.addOptions("build_options", build_options);
+    const unit_tests = b.addTest(.{ .root_module = test_mod });
+    const run_unit_tests = b.addRunArtifact(unit_tests);
 
-    // A run step that will run the test executable.
-    const run_mod_tests = b.addRunArtifact(mod_tests);
+    const test_step = b.step("test", "Run not-cute unit tests");
+    test_step.dependOn(&run_unit_tests.step);
+    const verify_mlir_step = b.step("verify-mlir", "Run external cute-opt verifier checks over generated golden MLIR");
+    const verifier_cases = [_][]const u8{
+        "src/testdata/golden/layout_case.mlir",
+        "src/testdata/golden/tensor_case.mlir",
+        "src/testdata/golden/copy_case.mlir",
+        "src/testdata/golden/mma_case.mlir",
+    };
+    for (verifier_cases) |case_path| {
+        const run_verify = b.addSystemCommand(&.{ cute_opt_path, "--verify-diagnostics", case_path });
+        verify_mlir_step.dependOn(&run_verify.step);
+    }
 
-    // Creates an executable that will run `test` blocks from the executable's
-    // root module. Note that test executables only test one module at a time,
-    // hence why we have to create two separate ones.
-    const exe_tests = b.addTest(.{
-        .root_module = exe.root_module,
+    const verify_cutlass_step = b.step("verify-cutlass", "Run CUTLASS DSL bridge verifier over parser-aligned fixtures");
+    const cutlass_cases = [_][]const u8{
+        "testdata/cutlass/builtin_case.mlir",
+        "testdata/cutlass/layout_case.mlir",
+        "testdata/cutlass/identity_tensor_case.mlir",
+        "testdata/cutlass/memref_load_case.mlir",
+        "testdata/cutlass/cutlass_emit_tensor_scalar.mlir",
+        "testdata/cutlass/cutlass_emit_tensor_vector.mlir",
+        "testdata/cutlass/cutlass_emit_copy_atom.mlir",
+        "testdata/cutlass/cutlass_emit_tiled_copy.mlir",
+        "testdata/cutlass/cutlass_emit_mma_atom.mlir",
+        "testdata/cutlass/cutlass_routed_tensor_vector.mlir",
+        "testdata/cutlass/cutlass_routed_copy_atom.mlir",
+        "testdata/cutlass/cutlass_routed_mma_atom.mlir",
+        "testdata/cutlass/tiled_emit_full_tiled_copy.mlir",
+        "testdata/cutlass/tiled_emit_full_tiled_mma.mlir",
+    };
+    for (cutlass_cases) |case_path| {
+        const run_bridge_verify = b.addSystemCommand(&.{
+            cutlass_python_path,
+            cutlass_bridge_script,
+            "verify",
+            "--input",
+            case_path,
+            "--pipeline",
+            cutlass_pipeline,
+            "--enable-verifier",
+        });
+        verify_cutlass_step.dependOn(&run_bridge_verify.step);
+    }
+    const run_bridge_negative = b.addSystemCommand(&.{
+        cutlass_python_path,
+        cutlass_bridge_script,
+        "expect-fail",
+        "--input",
+        "testdata/cutlass/negative_fake_tensor.mlir",
+        "--expected",
+        "unknown  type `tensor` in dialect `cute`",
     });
+    verify_cutlass_step.dependOn(&run_bridge_negative.step);
 
-    // A run step that will run the second test executable.
-    const run_exe_tests = b.addRunArtifact(exe_tests);
+    const verify_cutlass_tensor_step = b.step("verify-cutlass-tensor", "Run CUTLASS parser checks for tensor/default examples");
+    for ([_][]const u8{
+        "testdata/cutlass/memref_load_case.mlir",
+        "testdata/cutlass/cutlass_routed_tensor_vector.mlir",
+        "testdata/golden/tensor_case.mlir",
+        "testdata/golden/examples/tensor_demo.mlir",
+    }) |case_path| {
+        const run = b.addSystemCommand(&.{ cutlass_python_path, cutlass_bridge_script, "verify", "--input", case_path, "--pipeline", cutlass_pipeline, "--enable-verifier" });
+        verify_cutlass_tensor_step.dependOn(&run.step);
+    }
 
-    // A top level step for running all tests. dependOn can be called multiple
-    // times and since the two run steps do not depend on one another, this will
-    // make the two of them run in parallel.
-    const test_step = b.step("test", "Run tests");
-    test_step.dependOn(&run_mod_tests.step);
-    test_step.dependOn(&run_exe_tests.step);
+    const verify_cutlass_copy_step = b.step("verify-cutlass-copy", "Run CUTLASS parser checks for copy examples");
+    for ([_][]const u8{
+        "testdata/cutlass/cutlass_routed_copy_atom.mlir",
+        "testdata/cutlass/tiled_emit_full_tiled_copy.mlir",
+        "testdata/golden/copy_case.mlir",
+        "testdata/golden/examples/copy_demo.mlir",
+    }) |case_path| {
+        const run = b.addSystemCommand(&.{ cutlass_python_path, cutlass_bridge_script, "verify", "--input", case_path, "--pipeline", cutlass_pipeline, "--enable-verifier" });
+        verify_cutlass_copy_step.dependOn(&run.step);
+    }
 
-    // Just like flags, top level steps are also listed in the `--help` menu.
-    //
-    // The Zig build system is entirely implemented in userland, which means
-    // that it cannot hook into private compiler APIs. All compilation work
-    // orchestrated by the build system will result in other Zig compiler
-    // subcommands being invoked with the right flags defined. You can observe
-    // these invocations when one fails (or you pass a flag to increase
-    // verbosity) to validate assumptions and diagnose problems.
-    //
-    // Lastly, the Zig build system is relatively simple and self-contained,
-    // and reading its source code will allow you to master it.
+    const verify_cutlass_mma_step = b.step("verify-cutlass-mma", "Run CUTLASS parser checks for MMA/GEMM examples");
+    for ([_][]const u8{
+        "testdata/cutlass/cutlass_routed_mma_atom.mlir",
+        "testdata/cutlass/tiled_emit_full_tiled_mma.mlir",
+        "testdata/golden/mma_case.mlir",
+        "testdata/golden/examples/mma_demo.mlir",
+        "testdata/golden/examples/gemm_skeleton.mlir",
+    }) |case_path| {
+        const run = b.addSystemCommand(&.{ cutlass_python_path, cutlass_bridge_script, "verify", "--input", case_path, "--pipeline", cutlass_pipeline, "--enable-verifier" });
+        verify_cutlass_mma_step.dependOn(&run.step);
+    }
+
+    const verify_cutlass_negative_step = b.step("verify-cutlass-negative", "Run expected-failure CUTLASS parser checks");
+    verify_cutlass_negative_step.dependOn(&run_bridge_negative.step);
+
+    const verify_cutlass_parse_step = b.step("verify-cutlass-parse", "Run CUTLASS parser-only checks by shard");
+    for ([_][]const u8{
+        "testdata/cutlass/layout_case.mlir",
+        "testdata/cutlass/identity_tensor_case.mlir",
+        "testdata/cutlass/memref_load_case.mlir",
+        "testdata/cutlass/cutlass_routed_tensor_vector.mlir",
+        "testdata/cutlass/cutlass_routed_copy_atom.mlir",
+        "testdata/cutlass/cutlass_routed_mma_atom.mlir",
+        "testdata/cutlass/tiled_emit_full_tiled_copy.mlir",
+        "testdata/cutlass/tiled_emit_full_tiled_mma.mlir",
+        "testdata/cutlass/kernel_tiled_copy.mlir",
+    }) |case_path| {
+        const run = b.addSystemCommand(&.{ cutlass_python_path, cutlass_bridge_script, "parse", "--input", case_path });
+        verify_cutlass_parse_step.dependOn(&run.step);
+    }
+
+    const verify_cutlass_pipeline_step = b.step("verify-cutlass-pipeline", "Run sharded CUTLASS canonicalization/pipeline checks");
+    for ([_][]const u8{
+        "testdata/cutlass/cutlass_routed_tensor_vector.mlir",
+        "testdata/cutlass/cutlass_routed_copy_atom.mlir",
+        "testdata/cutlass/cutlass_routed_mma_atom.mlir",
+        "testdata/cutlass/tiled_emit_full_tiled_copy.mlir",
+        "testdata/cutlass/tiled_emit_full_tiled_mma.mlir",
+    }) |case_path| {
+        const run = b.addSystemCommand(&.{ cutlass_python_path, cutlass_bridge_script, "verify", "--input", case_path, "--pipeline", "builtin.module(canonicalize)", "--enable-verifier" });
+        verify_cutlass_pipeline_step.dependOn(&run.step);
+    }
+
+    const verify_cutlass_kernel_cubin_step = b.step("verify-cutlass-kernel-cubin", "Run cute-to-nvvm over a kernel-shaped CUTLASS fixture and require a dumped CUBIN");
+    const run_kernel_cubin = b.addSystemCommand(&.{
+        cutlass_python_path,
+        cutlass_bridge_script,
+        "compile-artifact",
+        "--input",
+        "testdata/cutlass/kernel_tiled_copy.mlir",
+        "--work-dir",
+        "zig-cache/not-cute-artifacts/kernel_tiled_copy",
+        "--function",
+        "tiled_copy_kernel",
+        "--pipeline",
+        "builtin.module(cute-to-nvvm{cubin-format=bin cubin-chip='sm_90' dump-cubin-path='zig-cache/not-cute-artifacts/kernel_tiled_copy/tiled_copy_kernel' preserve-line-info=true})",
+        "--enable-verifier",
+        "--expect-cubin",
+    });
+    verify_cutlass_kernel_cubin_step.dependOn(&run_kernel_cubin.step);
+
+    const compile_artifact_plan_step = b.step("compile-artifact-plan", "Build compile pipeline CLI and print artifact plan command");
+    compile_artifact_plan_step.dependOn(&install_compile_pipeline_cli.step);
+
+    const kernel_builders_cli_mod = b.createModule(.{
+        .root_source_file = b.path("src/kernel_builders_cli.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    kernel_builders_cli_mod.addOptions("build_options", build_options);
+    const kernel_builders_cli = b.addExecutable(.{
+        .name = "not-cute-kernel-builders",
+        .root_module = kernel_builders_cli_mod,
+    });
+    const install_kernel_builders_cli = b.addInstallArtifact(kernel_builders_cli, .{});
+    const kernel_builders_step = b.step("kernel-builders", "Build and install kernel builder CLI");
+    kernel_builders_step.dependOn(&install_kernel_builders_cli.step);
+
+    const memory_model_cli_mod = b.createModule(.{
+        .root_source_file = b.path("src/memory_model_cli.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    memory_model_cli_mod.addOptions("build_options", build_options);
+    const memory_model_cli = b.addExecutable(.{
+        .name = "not-cute-memory-model",
+        .root_module = memory_model_cli_mod,
+    });
+    const install_memory_model_cli = b.addInstallArtifact(memory_model_cli, .{});
+    const memory_model_step = b.step("memory-model", "Build and install memory model CLI");
+    memory_model_step.dependOn(&install_memory_model_cli.step);
+
+    const verify_kernel_builders_parse_step = b.step("verify-kernel-builders-parse", "Run CUTLASS parser checks for generated kernel-builder fixtures");
+    for ([_][]const u8{
+        "testdata/cutlass/kernel_builders/copy_kernel.mlir",
+        "testdata/cutlass/kernel_builders/vector_copy_kernel.mlir",
+        "testdata/cutlass/kernel_builders/tiled_copy_kernel.mlir",
+        "testdata/cutlass/kernel_builders/mma_microkernel.mlir",
+        "testdata/cutlass/kernel_builders/gemm_mainloop.mlir",
+        "testdata/cutlass/kernel_builders/epilogue_kernel.mlir",
+        "testdata/cutlass/kernel_builders/sm80_gemm_kernel.mlir",
+        "testdata/cutlass/kernel_builders/sm90_tma_wgmma_kernel.mlir",
+        "testdata/cutlass/kernel_builders/sm100_tcgen05_kernel.mlir",
+    }) |case_path| {
+        const run = b.addSystemCommand(&.{ cutlass_python_path, cutlass_bridge_script, "parse", "--input", case_path });
+        verify_kernel_builders_parse_step.dependOn(&run.step);
+    }
+
+    const upstream_parity_cli_mod = b.createModule(.{
+        .root_source_file = b.path("src/upstream_parity_cli.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    upstream_parity_cli_mod.addOptions("build_options", build_options);
+    const upstream_parity_cli = b.addExecutable(.{
+        .name = "not-cute-upstream-parity",
+        .root_module = upstream_parity_cli_mod,
+    });
+    const install_upstream_parity_cli = b.addInstallArtifact(upstream_parity_cli, .{});
+    const upstream_parity_step = b.step("upstream-parity", "Build and install upstream CuTeDSL example parity CLI");
+    upstream_parity_step.dependOn(&install_upstream_parity_cli.step);
+
+    const upstream_example_sources = [_][]const u8{
+        "examples/upstream/hello_world.zig",
+        "examples/upstream/print_values.zig",
+        "examples/upstream/data_types.zig",
+        "examples/upstream/layout_algebra.zig",
+        "examples/upstream/tensor.zig",
+        "examples/upstream/tensorssa.zig",
+        "examples/upstream/elementwise_add.zig",
+        "examples/upstream/cuda_graphs.zig",
+        "examples/upstream/ffi_tensor.zig",
+    };
+    const upstream_example_names = [_][]const u8{
+        "upstream_hello_world",
+        "upstream_print_values",
+        "upstream_data_types",
+        "upstream_layout_algebra",
+        "upstream_tensor",
+        "upstream_tensorssa",
+        "upstream_elementwise_add",
+        "upstream_cuda_graphs",
+        "upstream_ffi_tensor",
+    };
+    for (upstream_example_sources, upstream_example_names) |source, name| {
+        const ex_mod = b.createModule(.{
+            .root_source_file = b.path(source),
+            .target = target,
+            .optimize = optimize,
+        });
+        ex_mod.addOptions("build_options", build_options);
+        ex_mod.addImport("not_cute", mod);
+        const ex = b.addExecutable(.{ .name = name, .root_module = ex_mod });
+        upstream_parity_step.dependOn(&b.addInstallArtifact(ex, .{}).step);
+    }
+
+    const verify_upstream_parity_parse_step = b.step("verify-upstream-parity-parse", "Run CUTLASS parser checks for upstream parity golden MLIR");
+    for ([_][]const u8{
+        "testdata/golden/upstream/hello_world.mlir",
+        "testdata/golden/upstream/print_values.mlir",
+        "testdata/golden/upstream/data_types.mlir",
+        "testdata/golden/upstream/layout_algebra.mlir",
+        "testdata/golden/upstream/tensor.mlir",
+        "testdata/golden/upstream/tensorssa.mlir",
+        "testdata/golden/upstream/elementwise_add.mlir",
+        "testdata/golden/upstream/cuda_graphs.mlir",
+        "testdata/golden/upstream/ffi_tensor.mlir",
+    }) |case_path| {
+        const run = b.addSystemCommand(&.{ cutlass_python_path, cutlass_bridge_script, "parse", "--input", case_path });
+        verify_upstream_parity_parse_step.dependOn(&run.step);
+    }
 }

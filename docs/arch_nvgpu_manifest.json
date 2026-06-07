@@ -1,0 +1,5966 @@
+[
+  {
+    "module": "arch.clc",
+    "rel": "cute/arch/clc.py",
+    "name": "issue_clc_query",
+    "line": 23,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "mbar_ptr",
+      "clc_response_ptr",
+      "multicast",
+      "loc",
+      "ip"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.clc",
+    "rel": "cute/arch/clc.py",
+    "name": "clc_response",
+    "line": 60,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "result_addr",
+      "loc",
+      "ip"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.elect",
+    "rel": "cute/arch/elect.py",
+    "name": "make_warp_uniform",
+    "line": 24,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "value"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.elect",
+    "rel": "cute/arch/elect.py",
+    "name": "IfOpRegion",
+    "line": 46,
+    "kind": "other",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.elect",
+    "rel": "cute/arch/elect.py",
+    "name": "elect_one",
+    "line": 79,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.mbar",
+    "rel": "cute/arch/mbar.py",
+    "name": "mbarrier_init",
+    "line": 27,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "mbar_ptr",
+      "cnt"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.mbar",
+    "rel": "cute/arch/mbar.py",
+    "name": "mbarrier_init_fence",
+    "line": 67,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.mbar",
+    "rel": "cute/arch/mbar.py",
+    "name": "mbarrier_arrive_and_expect_tx",
+    "line": 79,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "mbar_ptr",
+      "bytes",
+      "peer_cta_rank_in_cluster"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.mbar",
+    "rel": "cute/arch/mbar.py",
+    "name": "mbarrier_expect_tx",
+    "line": 148,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "mbar_ptr",
+      "bytes",
+      "peer_cta_rank_in_cluster"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.mbar",
+    "rel": "cute/arch/mbar.py",
+    "name": "mbarrier_wait",
+    "line": 215,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "mbar_ptr",
+      "phase"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.mbar",
+    "rel": "cute/arch/mbar.py",
+    "name": "mbarrier_try_wait",
+    "line": 246,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "mbar_ptr",
+      "phase"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.mbar",
+    "rel": "cute/arch/mbar.py",
+    "name": "mbarrier_conditional_try_wait",
+    "line": 277,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "cond",
+      "mbar_ptr",
+      "phase"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.mbar",
+    "rel": "cute/arch/mbar.py",
+    "name": "mbarrier_arrive",
+    "line": 309,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "mbar_ptr",
+      "peer_cta_rank_in_cluster",
+      "arrive_count"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.mbar",
+    "rel": "cute/arch/mbar.py",
+    "name": "cp_async_mbarrier_arrive_noinc",
+    "line": 355,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "mbar_ptr"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.numeric_conversion",
+    "rel": "cute/arch/numeric_conversion.py",
+    "name": "cvt_i8_bf16_intrinsic",
+    "line": 39,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "vec_i8",
+      "length"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.numeric_conversion",
+    "rel": "cute/arch/numeric_conversion.py",
+    "name": "cvt_i4_bf16_intrinsic",
+    "line": 150,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "vec_i4",
+      "length"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.numeric_conversion",
+    "rel": "cute/arch/numeric_conversion.py",
+    "name": "sext_unpacked_i4_i8_intrinsic",
+    "line": 252,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "vec_unpacked_i4",
+      "length"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "lane_idx",
+    "line": 232,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "warp_idx",
+    "line": 242,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "physical_warp_id",
+    "line": 259,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "thread_idx",
+    "line": 271,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "block_dim",
+    "line": 285,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "block_idx",
+    "line": 299,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "grid_dim",
+    "line": 313,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cluster_idx",
+    "line": 327,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cluster_dim",
+    "line": 341,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "block_in_cluster_idx",
+    "line": 355,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "block_in_cluster_dim",
+    "line": 369,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cluster_size",
+    "line": 383,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "block_idx_in_cluster",
+    "line": 393,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "dynamic_smem_size",
+    "line": 403,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "shuffle_sync_op",
+    "line": 425,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "value",
+      "offset",
+      "mask",
+      "mask_and_clamp",
+      "kind"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "warp_reduction",
+    "line": 572,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "val",
+      "op"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "barrier",
+    "line": 615,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "barrier_arrive",
+    "line": 658,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "sync_threads",
+    "line": 698,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "sync_warp",
+    "line": 708,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "mask"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "fence_acq_rel_cta",
+    "line": 721,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "fence_acq_rel_cluster",
+    "line": 733,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "fence_acq_rel_gpu",
+    "line": 745,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "fence_acq_rel_sys",
+    "line": 757,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cp_async_commit_group",
+    "line": 769,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cp_async_wait_group",
+    "line": 781,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "n"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cp_async_bulk_commit_group",
+    "line": 793,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cp_async_bulk_wait_group",
+    "line": 805,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "group"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cluster_wait",
+    "line": 821,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cluster_arrive",
+    "line": 831,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cluster_arrive_relaxed",
+    "line": 844,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "fence_proxy",
+    "line": 857,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "kind"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "vote_sync_op",
+    "line": 905,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "pred",
+      "kind",
+      "mask"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "vote_ballot_sync",
+    "line": 967,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "pred",
+      "mask"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "vote_any_sync",
+    "line": 992,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "pred",
+      "mask"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "vote_all_sync",
+    "line": 1017,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "pred",
+      "mask"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "vote_uni_sync",
+    "line": 1042,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "pred",
+      "mask"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "popc",
+    "line": 1065,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "value"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "fence_view_async_tmem_op",
+    "line": 1080,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "kind"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "fence_view_async_shared",
+    "line": 1131,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "setmaxregister_increase",
+    "line": 1151,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "reg_count"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "setmaxregister_decrease",
+    "line": 1163,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "reg_count"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "warpgroup_reg_alloc",
+    "line": 1176,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "reg_count"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "warpgroup_reg_dealloc",
+    "line": 1189,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "reg_count"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "calc_packed_f32x2_op",
+    "line": 1201,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "src_a",
+      "src_b",
+      "src_c",
+      "calc_func"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "fmax",
+    "line": 1272,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "fmin",
+    "line": 1301,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "rcp_approx",
+    "line": 1330,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "exp2",
+    "line": 1345,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cvt_i8_bf16",
+    "line": 1366,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "src_i8"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cvt_i8x2_to_bf16x2",
+    "line": 1392,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "src_vec2"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cvt_i8x4_to_bf16x4",
+    "line": 1419,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "src_vec4"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cvt_f32x2_bf16x2",
+    "line": 1465,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "src_vec2"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cvt_f32_bf16",
+    "line": 1496,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "src_f32"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cvt_i8x4_to_f32x4",
+    "line": 1515,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "src_vec4"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cvt_i8x2_to_f32x2",
+    "line": 1634,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "src_vec2"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "prmt",
+    "line": 1702,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "src",
+      "src_reg_shifted",
+      "prmt_indices"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cvt_i4_bf16",
+    "line": 1727,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "src_i4"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cvt_i4_to_bf16_with_shuffle_impl",
+    "line": 1751,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "src_i32",
+      "num_elts"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cvt_i4_to_bf16_impl",
+    "line": 1854,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "src_i32",
+      "num_elts"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cvt_i4x2_to_bf16x2",
+    "line": 1943,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "src_vec2"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cvt_i4x4_to_bf16x4",
+    "line": 1962,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "src_vec4"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cvt_i4x8_to_bf16x8",
+    "line": 1981,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "src_vec8"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "sext_unpacked_i4x4_to_i8x4",
+    "line": 1999,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "src_vec4"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "log2_of_pow2_int",
+    "line": 2013,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "exp",
+    "line": 2045,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "exp_packed_f32x2",
+    "line": 2059,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "griddepcontrol_wait",
+    "line": 2071,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "griddepcontrol_launch_dependents",
+    "line": 2093,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "warp_redux_sync",
+    "line": 2219,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "value",
+      "kind",
+      "mask_and_clamp"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "atomic_add",
+    "line": 2434,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "ptr",
+      "val"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "atomic_and",
+    "line": 2461,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "ptr",
+      "val"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "atomic_or",
+    "line": 2488,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "ptr",
+      "val"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "atomic_xor",
+    "line": 2515,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "ptr",
+      "val"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "atomic_max",
+    "line": 2542,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "ptr",
+      "val"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "atomic_min",
+    "line": 2569,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "ptr",
+      "val"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "atomic_exch",
+    "line": 2596,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "ptr",
+      "val"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "atomic_fmax",
+    "line": 2624,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "ptr",
+      "val"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "atomic_max_float32",
+    "line": 2694,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "ptr",
+      "value"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "atomic_cas",
+    "line": 2709,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "ptr"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "store",
+    "line": 2788,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "ptr",
+      "val"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "load",
+    "line": 2881,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "ptr",
+      "dtype"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "red",
+    "line": 2993,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "ptr",
+      "val"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cvt_f4e2m1_f16",
+    "line": 3143,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "src"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cvt_f4e2m1x2_to_f16x2",
+    "line": 3164,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "src_vec2"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cvt_f4e2m1x4_to_f16x4",
+    "line": 3190,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "src_vec4"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "cvt_f4e2m1x8_to_f16x8",
+    "line": 3220,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "src_vec8"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "smid",
+    "line": 3256,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "nsmid",
+    "line": 3274,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "clock",
+    "line": 3292,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "clock64",
+    "line": 3310,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "match_sync",
+    "line": 3328,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "mask",
+      "value",
+      "kind"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "clz",
+    "line": 3393,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "value"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "bfind",
+    "line": 3441,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "value"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "brev",
+    "line": 3503,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "value"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "brev",
+    "line": 3512,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "value"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "brev",
+    "line": 3521,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "value"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "brev",
+    "line": 3530,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "value"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "brev",
+    "line": 3539,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "value"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "bfe",
+    "line": 3591,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "value",
+      "start",
+      "length"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "bfe",
+    "line": 3602,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "value",
+      "start",
+      "length"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "bfe",
+    "line": 3613,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "value",
+      "start",
+      "length"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "bfe",
+    "line": 3624,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "value",
+      "start",
+      "length"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "bfe",
+    "line": 3635,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "value",
+      "start",
+      "length"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "bfi",
+    "line": 3720,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "replacement",
+      "value",
+      "start",
+      "length"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "bfi",
+    "line": 3732,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "replacement",
+      "value",
+      "start",
+      "length"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "bfi",
+    "line": 3744,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "replacement",
+      "value",
+      "start",
+      "length"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "bfi",
+    "line": 3756,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "replacement",
+      "value",
+      "start",
+      "length"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "bfi",
+    "line": 3768,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "replacement",
+      "value",
+      "start",
+      "length"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "mul_hi",
+    "line": 3842,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "mul_hi",
+    "line": 3852,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "mul_hi",
+    "line": 3862,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "mul_hi",
+    "line": 3872,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "mul_hi",
+    "line": 3882,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "mul_wide",
+    "line": 3949,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "mul_wide",
+    "line": 3959,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "mul_wide",
+    "line": 3969,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "mul_wide",
+    "line": 3979,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "mul_wide",
+    "line": 3989,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "mul24",
+    "line": 4059,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b",
+      "hi"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "mul24",
+    "line": 4070,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b",
+      "hi"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "mul24",
+    "line": 4081,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b",
+      "hi"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "mad24",
+    "line": 4144,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b",
+      "c",
+      "hi"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "mad24",
+    "line": 4156,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b",
+      "c",
+      "hi"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "mad24",
+    "line": 4168,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b",
+      "c",
+      "hi"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "add_cc",
+    "line": 4234,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "addc",
+    "line": 4291,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "sub_cc",
+    "line": 4348,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "subc",
+    "line": 4405,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "mad_cc",
+    "line": 4462,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b",
+      "c"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "madc",
+    "line": 4538,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b",
+      "c"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "activemask",
+    "line": 4610,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "lanemask_lt",
+    "line": 4640,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "lanemask_le",
+    "line": 4671,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "lanemask_eq",
+    "line": 4702,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "lanemask_ge",
+    "line": 4733,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "lanemask_gt",
+    "line": 4764,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "add_sat_int",
+    "line": 4795,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "sub_sat_int",
+    "line": 4839,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "lop3",
+    "line": 4883,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b",
+      "c",
+      "lut"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "lop3",
+    "line": 4895,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b",
+      "c",
+      "lut"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "lop3",
+    "line": 4907,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b",
+      "c",
+      "lut"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "shf",
+    "line": 4968,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b",
+      "shift",
+      "kind"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "shf",
+    "line": 4980,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b",
+      "shift",
+      "kind"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "shf",
+    "line": 4992,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "a",
+      "b",
+      "shift",
+      "kind"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.nvvm_wrappers",
+    "rel": "cute/arch/nvvm_wrappers.py",
+    "name": "prefetch",
+    "line": 5070,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "addr"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.smem",
+    "rel": "cute/arch/smem.py",
+    "name": "alloc_smem",
+    "line": 25,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "element_type",
+      "size_in_elems",
+      "alignment"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.smem",
+    "rel": "cute/arch/smem.py",
+    "name": "get_dyn_smem",
+    "line": 66,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "element_type",
+      "alignment"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.smem",
+    "rel": "cute/arch/smem.py",
+    "name": "get_dyn_smem_size",
+    "line": 101,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.smem",
+    "rel": "cute/arch/smem.py",
+    "name": "map_dsmem_ptr",
+    "line": 115,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "smem_ptr",
+      "cta_rank_in_cluster"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.tmem",
+    "rel": "cute/arch/tmem.py",
+    "name": "get_max_tmem_alloc_cols",
+    "line": 43,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "compute_capability"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.tmem",
+    "rel": "cute/arch/tmem.py",
+    "name": "get_min_tmem_alloc_cols",
+    "line": 60,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "compute_capability"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.tmem",
+    "rel": "cute/arch/tmem.py",
+    "name": "retrieve_tmem_ptr",
+    "line": 79,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "element_type",
+      "alignment",
+      "ptr_to_buffer_holding_addr"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.tmem",
+    "rel": "cute/arch/tmem.py",
+    "name": "alloc_tmem",
+    "line": 117,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "num_columns",
+      "smem_ptr_to_write_address",
+      "is_two_cta"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.tmem",
+    "rel": "cute/arch/tmem.py",
+    "name": "relinquish_tmem_alloc_permit",
+    "line": 163,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "is_two_cta"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "arch.tmem",
+    "rel": "cute/arch/tmem.py",
+    "name": "dealloc_tmem",
+    "line": 179,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "tmem_ptr",
+      "num_columns",
+      "is_two_cta"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "OperandMajorMode",
+    "line": 53,
+    "kind": "enum_",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "OutputMajorMode",
+    "line": 94,
+    "kind": "enum_",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "normalize_field_to_ir_name",
+    "line": 111,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "field",
+      "admissible_fields"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "OpError",
+    "line": 137,
+    "kind": "other",
+    "bases": [
+      "DSLBaseError"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "MmaUniversalOp",
+    "line": 166,
+    "kind": "mma",
+    "bases": [
+      "atom.MmaOp"
+    ],
+    "fields": [
+      "abacc_dtype"
+    ],
+    "methods": [],
+    "make_trait_type": "UniversalFmaAtomType",
+    "rules": [
+      [
+        "self.abacc_dtype",
+        "[Float16, Float32, Float64]",
+        "NotIn"
+      ]
+    ]
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "MmaUniversalTrait",
+    "line": 227,
+    "kind": "mma",
+    "bases": [
+      "atom.Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "MemoryOrder",
+    "line": 238,
+    "kind": "enum_",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "MemoryScope",
+    "line": 259,
+    "kind": "enum_",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "L2PrefetchSize",
+    "line": 275,
+    "kind": "enum_",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "CacheEvictionPriority",
+    "line": 292,
+    "kind": "enum_",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "LoadCacheMode",
+    "line": 309,
+    "kind": "enum_",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "StoreCacheMode",
+    "line": 326,
+    "kind": "copy",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "SharedSpace",
+    "line": 343,
+    "kind": "enum_",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "CopyUniversalOp",
+    "line": 361,
+    "kind": "copy",
+    "bases": [
+      "atom.CopyOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomSIMTSyncCopyType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "CopyUniversalTrait",
+    "line": 448,
+    "kind": "copy",
+    "bases": [
+      "atom.Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "CopyG2ROp",
+    "line": 453,
+    "kind": "copy",
+    "bases": [
+      "atom.CopyOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomG2RType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "CopyG2RTrait",
+    "line": 513,
+    "kind": "copy",
+    "bases": [
+      "atom.Trait"
+    ],
+    "fields": [],
+    "methods": [
+      "unpack"
+    ],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "CopyR2GOp",
+    "line": 539,
+    "kind": "copy",
+    "bases": [
+      "atom.CopyOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomR2GType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "CopyR2GTrait",
+    "line": 592,
+    "kind": "copy",
+    "bases": [
+      "atom.Trait"
+    ],
+    "fields": [],
+    "methods": [
+      "unpack"
+    ],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "CopyS2ROp",
+    "line": 627,
+    "kind": "copy",
+    "bases": [
+      "atom.CopyOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomS2RType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "CopyS2RTrait",
+    "line": 676,
+    "kind": "copy",
+    "bases": [
+      "atom.Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "CopyR2SOp",
+    "line": 681,
+    "kind": "copy",
+    "bases": [
+      "atom.CopyOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomR2SType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "CopyR2STrait",
+    "line": 730,
+    "kind": "copy",
+    "bases": [
+      "atom.Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.common",
+    "rel": "cute/nvgpu/common.py",
+    "name": "FragmentBase",
+    "line": 739,
+    "kind": "other",
+    "bases": [
+      "ABC"
+    ],
+    "fields": [],
+    "methods": [
+      "make_fragment"
+    ],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "LoadCacheMode",
+    "line": 46,
+    "kind": "enum_",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyG2SOp",
+    "line": 70,
+    "kind": "copy",
+    "bases": [
+      "CopyOp"
+    ],
+    "fields": [
+      "cache_mode"
+    ],
+    "methods": [],
+    "make_trait_type": "CopyAtomSIMTAsyncCopyType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyG2STrait",
+    "line": 123,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "TmaCopyOp",
+    "line": 141,
+    "kind": "copy",
+    "bases": [
+      "CopyOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkTensorTileG2SOp",
+    "line": 155,
+    "kind": "copy",
+    "bases": [
+      "TmaCopyOp"
+    ],
+    "fields": [
+      "cta_group"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": [
+      [
+        "self.cta_group",
+        "CtaGroup.TWO",
+        "Eq"
+      ],
+      [
+        "arch.major",
+        "Arch.sm_90.major",
+        "Eq"
+      ]
+    ]
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkTensorTileG2SNonExecTrait",
+    "line": 250,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [
+      "with_",
+      "unpack"
+    ],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkTensorTileG2STrait",
+    "line": 312,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkTensorIm2ColG2SOp",
+    "line": 317,
+    "kind": "copy",
+    "bases": [
+      "TmaCopyOp"
+    ],
+    "fields": [
+      "cta_group"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": [
+      [
+        "self.cta_group",
+        "CtaGroup.TWO",
+        "Eq"
+      ],
+      [
+        "arch.major",
+        "Arch.sm_90.major",
+        "Eq"
+      ]
+    ]
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkTensorIm2ColG2SNonExecTrait",
+    "line": 374,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [
+      "with_",
+      "unpack"
+    ],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkTensorIm2ColG2STrait",
+    "line": 441,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkTensorIm2ColG2SMulticastOp",
+    "line": 451,
+    "kind": "copy",
+    "bases": [
+      "TmaCopyOp"
+    ],
+    "fields": [
+      "cta_group"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": [
+      [
+        "self.cta_group",
+        "CtaGroup.TWO",
+        "Eq"
+      ],
+      [
+        "arch.major",
+        "Arch.sm_90.major",
+        "Eq"
+      ]
+    ]
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkTensorIm2ColG2SMulticastNonExecTrait",
+    "line": 508,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [
+      "with_",
+      "unpack"
+    ],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkTensorIm2ColG2SMulticastTrait",
+    "line": 585,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkTensorIm2ColS2GOp",
+    "line": 590,
+    "kind": "copy",
+    "bases": [
+      "TmaCopyOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkTensorIm2ColS2GNonExecTrait",
+    "line": 624,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [
+      "with_",
+      "unpack"
+    ],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkTensorIm2ColS2GTrait",
+    "line": 670,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkTensorTileG2SMulticastOp",
+    "line": 680,
+    "kind": "copy",
+    "bases": [
+      "TmaCopyOp"
+    ],
+    "fields": [
+      "cta_group"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": [
+      [
+        "self.cta_group",
+        "CtaGroup.TWO",
+        "Eq"
+      ],
+      [
+        "arch.major",
+        "Arch.sm_90.major",
+        "Eq"
+      ]
+    ]
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkTensorTileG2SMulticastNonExecTrait",
+    "line": 761,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [
+      "with_",
+      "unpack"
+    ],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkTensorTileG2SMulticastTrait",
+    "line": 833,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkTensorTileS2GOp",
+    "line": 843,
+    "kind": "copy",
+    "bases": [
+      "TmaCopyOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkTensorTileS2GNonExecTrait",
+    "line": 901,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [
+      "with_",
+      "unpack"
+    ],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkTensorTileS2GTrait",
+    "line": 947,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyReduceBulkTensorTileS2GOp",
+    "line": 952,
+    "kind": "copy",
+    "bases": [
+      "TmaCopyOp"
+    ],
+    "fields": [
+      "reduction_kind"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": [
+      [
+        "kind.name",
+        "ReductionKind.__members__",
+        "NotIn"
+      ]
+    ]
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyReduceBulkTensorTileS2GNonExecTrait",
+    "line": 1033,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [
+      "with_",
+      "unpack"
+    ],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyReduceBulkTensorTileS2GTrait",
+    "line": 1078,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkG2SOp",
+    "line": 1088,
+    "kind": "copy",
+    "bases": [
+      "CopyOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomBulkCopyG2SType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkG2STrait",
+    "line": 1129,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [
+      "unpack"
+    ],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkG2SMulticastOp",
+    "line": 1178,
+    "kind": "copy",
+    "bases": [
+      "CopyOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomBulkCopyG2SType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkG2SMulticastTrait",
+    "line": 1219,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [
+      "unpack"
+    ],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkS2GOp",
+    "line": 1277,
+    "kind": "copy",
+    "bases": [
+      "CopyOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomBulkCopyS2GType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkS2GTrait",
+    "line": 1318,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkS2GByteMaskOp",
+    "line": 1328,
+    "kind": "copy",
+    "bases": [
+      "CopyOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomBulkCopyS2GType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkS2GByteMaskTrait",
+    "line": 1371,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [
+      "unpack"
+    ],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkS2SOp",
+    "line": 1409,
+    "kind": "copy",
+    "bases": [
+      "CopyOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomBulkCopyS2SType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyBulkS2STrait",
+    "line": 1450,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [
+      "unpack"
+    ],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyDsmemStoreOp",
+    "line": 1498,
+    "kind": "copy",
+    "bases": [
+      "CopyOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomDsmemStoreType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.copy",
+    "rel": "cute/nvgpu/cpasync/copy.py",
+    "name": "CopyDsmemStoreTrait",
+    "line": 1544,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [
+      "unpack"
+    ],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.helpers",
+    "rel": "cute/nvgpu/cpasync/helpers.py",
+    "name": "TmaInfo",
+    "line": 57,
+    "kind": "other",
+    "bases": [],
+    "fields": [],
+    "methods": [
+      "atom",
+      "tma_tensor",
+      "smem_layout"
+    ],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.helpers",
+    "rel": "cute/nvgpu/cpasync/helpers.py",
+    "name": "make_im2col_tma_atom",
+    "line": 170,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "op",
+      "gmem_tensor",
+      "smem_layout_",
+      "cta_tiler",
+      "lower_corner_whd",
+      "upper_corner_whd",
+      "lower_padding_whd",
+      "upper_padding_whd",
+      "stride_whd",
+      "lower_srt",
+      "stride_srt",
+      "num_multicast"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.helpers",
+    "rel": "cute/nvgpu/cpasync/helpers.py",
+    "name": "make_tiled_tma_atom",
+    "line": 403,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "op",
+      "gmem_tensor",
+      "smem_layout_",
+      "cta_tiler",
+      "num_multicast"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.helpers",
+    "rel": "cute/nvgpu/cpasync/helpers.py",
+    "name": "tma_partition",
+    "line": 570,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "atom",
+      "cta_coord",
+      "cta_layout",
+      "smem_tensor",
+      "gmem_tensor"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.helpers",
+    "rel": "cute/nvgpu/cpasync/helpers.py",
+    "name": "create_tma_multicast_mask",
+    "line": 597,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "cta_layout_vmnk",
+      "cta_coord_vmnk",
+      "mcast_mode"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.helpers",
+    "rel": "cute/nvgpu/cpasync/helpers.py",
+    "name": "prefetch_descriptor",
+    "line": 631,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "tma_atom"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.helpers",
+    "rel": "cute/nvgpu/cpasync/helpers.py",
+    "name": "copy_tensormap",
+    "line": 644,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "tma_atom",
+      "tensormap_ptr"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.helpers",
+    "rel": "cute/nvgpu/cpasync/helpers.py",
+    "name": "update_tma_descriptor",
+    "line": 666,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "tma_atom",
+      "gmem_tensor",
+      "tma_desc_ptr"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.helpers",
+    "rel": "cute/nvgpu/cpasync/helpers.py",
+    "name": "fence_tma_desc_acquire",
+    "line": 703,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "tma_desc_ptr"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.helpers",
+    "rel": "cute/nvgpu/cpasync/helpers.py",
+    "name": "cp_fence_tma_desc_release",
+    "line": 729,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "tma_desc_global_ptr",
+      "tma_desc_shared_ptr"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.helpers",
+    "rel": "cute/nvgpu/cpasync/helpers.py",
+    "name": "fence_tma_desc_release",
+    "line": 759,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.cpasync.helpers",
+    "rel": "cute/nvgpu/cpasync/helpers.py",
+    "name": "group_bulk_copy_modes",
+    "line": 780,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "src",
+      "dst",
+      "loc",
+      "ip"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.helpers",
+    "rel": "cute/nvgpu/helpers.py",
+    "name": "make_tiled_tma_atom_A",
+    "line": 48,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "op",
+      "gmem_tensor",
+      "smem_layout",
+      "mma_tiler_mnk",
+      "tiled_mma",
+      "cluster_shape_vmnk"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.helpers",
+    "rel": "cute/nvgpu/helpers.py",
+    "name": "make_tiled_tma_atom_B",
+    "line": 187,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "op",
+      "gmem_tensor",
+      "smem_layout",
+      "mma_tiler_mnk",
+      "tiled_mma",
+      "cluster_shape_vmnk"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.helpers",
+    "rel": "cute/nvgpu/helpers.py",
+    "name": "make_im2col_tma_atom_A",
+    "line": 326,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "op",
+      "gmem_tensor",
+      "smem_layout",
+      "mma_tiler_mnk",
+      "tiled_mma",
+      "filter_trs",
+      "upper_padding_dhw",
+      "lower_padding_dhw",
+      "stride_dhw",
+      "dilation_dhw",
+      "cluster_shape_vmnk"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "TmemLoadRedOp",
+    "line": 29,
+    "kind": "enum_",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Repetition",
+    "line": 46,
+    "kind": "enum_",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Pack",
+    "line": 67,
+    "kind": "enum_",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Unpack",
+    "line": 82,
+    "kind": "enum_",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Ld16x64bOp",
+    "line": 171,
+    "kind": "copy",
+    "bases": [
+      "_LdBase"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomSM100TmemLoadType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Ld16x64bTrait",
+    "line": 215,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Ld16x128bOp",
+    "line": 220,
+    "kind": "copy",
+    "bases": [
+      "_LdBase"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomSM100TmemLoadType",
+    "rules": [
+      [
+        "self.repeat",
+        "Repetition.x128",
+        "Eq"
+      ]
+    ]
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Ld16x128bTrait",
+    "line": 278,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Ld16x256bOp",
+    "line": 283,
+    "kind": "copy",
+    "bases": [
+      "_LdBase"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomSM100TmemLoadType",
+    "rules": [
+      [
+        "self.repeat",
+        "(Repetition.x128, Repetition.x64)",
+        "In"
+      ]
+    ]
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Ld16x256bTrait",
+    "line": 341,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Ld16x32bx2Op",
+    "line": 346,
+    "kind": "copy",
+    "bases": [
+      "_LdBase"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomSM100TmemLoadType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Ld16x32bx2Trait",
+    "line": 386,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Ld32x32bOp",
+    "line": 391,
+    "kind": "copy",
+    "bases": [
+      "_LdBase"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomSM100TmemLoadType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Ld32x32bTrait",
+    "line": 431,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "LdRed16x32bx2Op",
+    "line": 436,
+    "kind": "copy",
+    "bases": [
+      "_LdBase"
+    ],
+    "fields": [
+      "redOp",
+      "nan",
+      "half_split_off"
+    ],
+    "methods": [],
+    "make_trait_type": "CopyAtomSM10xTmemLoadRedType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "LdRed16x32bx2Trait",
+    "line": 482,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "LdRed32x32bOp",
+    "line": 487,
+    "kind": "copy",
+    "bases": [
+      "_LdBase"
+    ],
+    "fields": [
+      "redOp",
+      "nan"
+    ],
+    "methods": [],
+    "make_trait_type": "CopyAtomSM10xTmemLoadRedType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "LdRed32x32bTrait",
+    "line": 532,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "St16x64bOp",
+    "line": 592,
+    "kind": "copy",
+    "bases": [
+      "_StBase"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomSM100TmemStoreType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "St16x64bTrait",
+    "line": 632,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "St16x128bOp",
+    "line": 637,
+    "kind": "copy",
+    "bases": [
+      "_StBase"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomSM100TmemStoreType",
+    "rules": [
+      [
+        "self.repeat",
+        "Repetition.x128",
+        "Eq"
+      ]
+    ]
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "St16x128bTrait",
+    "line": 672,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "St16x256bOp",
+    "line": 677,
+    "kind": "copy",
+    "bases": [
+      "_StBase"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomSM100TmemStoreType",
+    "rules": [
+      [
+        "self.repeat",
+        "(Repetition.x128, Repetition.x64)",
+        "In"
+      ]
+    ]
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "St16x256bTrait",
+    "line": 712,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "St16x32bx2Op",
+    "line": 717,
+    "kind": "copy",
+    "bases": [
+      "_StBase"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomSM100TmemStoreType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "St16x32bx2Trait",
+    "line": 743,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "St32x32bOp",
+    "line": 748,
+    "kind": "copy",
+    "bases": [
+      "_StBase"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomSM100TmemStoreType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "St32x32bTrait",
+    "line": 774,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Cp128x256bOp",
+    "line": 821,
+    "kind": "copy",
+    "bases": [
+      "_S2TCopyBase"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomSM100CopyS2TType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Cp128x256bTrait",
+    "line": 877,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Cp128x128bOp",
+    "line": 882,
+    "kind": "copy",
+    "bases": [
+      "_S2TCopyBase"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomSM100CopyS2TType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Cp128x128bTrait",
+    "line": 924,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Cp4x256bOp",
+    "line": 929,
+    "kind": "copy",
+    "bases": [
+      "_S2TCopyBase"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomSM100CopyS2TType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Cp4x256bTrait",
+    "line": 971,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Cp4x32x128bOp",
+    "line": 976,
+    "kind": "copy",
+    "bases": [
+      "_S2TCopyBase"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomSM100CopyS2TType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Cp4x32x128bTrait",
+    "line": 1018,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Cp2x64x128b0213Op",
+    "line": 1023,
+    "kind": "copy",
+    "bases": [
+      "_S2TCopyBase"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomSM100CopyS2TType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Cp2x64x128b0213Trait",
+    "line": 1065,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Cp2x64x128b0123Op",
+    "line": 1070,
+    "kind": "copy",
+    "bases": [
+      "_S2TCopyBase"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomSM100CopyS2TType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.copy",
+    "rel": "cute/nvgpu/tcgen05/copy.py",
+    "name": "Cp2x64x128b0123Trait",
+    "line": 1113,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.helpers",
+    "rel": "cute/nvgpu/tcgen05/helpers.py",
+    "name": "make_smem_layout_atom",
+    "line": 63,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "kind",
+      "element_type"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.helpers",
+    "rel": "cute/nvgpu/tcgen05/helpers.py",
+    "name": "tile_to_mma_shape",
+    "line": 127,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "atom",
+      "mma_tile_shape",
+      "order"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.helpers",
+    "rel": "cute/nvgpu/tcgen05/helpers.py",
+    "name": "tile_to_mma_shape",
+    "line": 138,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "atom",
+      "mma_tile_shape",
+      "order"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.helpers",
+    "rel": "cute/nvgpu/tcgen05/helpers.py",
+    "name": "tile_to_mma_shape",
+    "line": 149,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "atom",
+      "mma_tile_shape",
+      "order"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.helpers",
+    "rel": "cute/nvgpu/tcgen05/helpers.py",
+    "name": "commit",
+    "line": 187,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "mbar_ptr",
+      "mask",
+      "cta_group"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.helpers",
+    "rel": "cute/nvgpu/tcgen05/helpers.py",
+    "name": "int_to_smem_descriptor",
+    "line": 238,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "i"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.helpers",
+    "rel": "cute/nvgpu/tcgen05/helpers.py",
+    "name": "smem_descriptor_to_int",
+    "line": 248,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "desc"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.helpers",
+    "rel": "cute/nvgpu/tcgen05/helpers.py",
+    "name": "is_tmem_load",
+    "line": 266,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "atom"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.helpers",
+    "rel": "cute/nvgpu/tcgen05/helpers.py",
+    "name": "is_tmem_store",
+    "line": 282,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "atom"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.helpers",
+    "rel": "cute/nvgpu/tcgen05/helpers.py",
+    "name": "get_tmem_copy_properties",
+    "line": 298,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "atom"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.helpers",
+    "rel": "cute/nvgpu/tcgen05/helpers.py",
+    "name": "find_tmem_tensor_col_offset",
+    "line": 325,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "tmem_tensor"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.helpers",
+    "rel": "cute/nvgpu/tcgen05/helpers.py",
+    "name": "make_tmem_copy",
+    "line": 352,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "atom",
+      "tmem_tensor"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.helpers",
+    "rel": "cute/nvgpu/tcgen05/helpers.py",
+    "name": "make_s2t_copy",
+    "line": 370,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "atom",
+      "tmem_tensor"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.helpers",
+    "rel": "cute/nvgpu/tcgen05/helpers.py",
+    "name": "get_s2t_smem_desc_tensor",
+    "line": 389,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "atom",
+      "smem_tensor"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.helpers",
+    "rel": "cute/nvgpu/tcgen05/helpers.py",
+    "name": "make_umma_smem_desc",
+    "line": 405,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "src",
+      "layout",
+      "major",
+      "next_src"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "Tcgen05MmaOp",
+    "line": 68,
+    "kind": "mma",
+    "bases": [
+      "atom.MmaOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "OperandMajorMode",
+    "line": 79,
+    "kind": "enum_",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "OperandSource",
+    "line": 120,
+    "kind": "enum_",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "CtaGroup",
+    "line": 138,
+    "kind": "enum_",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "Field",
+    "line": 153,
+    "kind": "enum_",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "MmaOp",
+    "line": 176,
+    "kind": "mma",
+    "bases": [
+      "Tcgen05MmaOp"
+    ],
+    "fields": [
+      "a_dtype",
+      "b_dtype",
+      "acc_dtype",
+      "shape_mnk",
+      "cta_group",
+      "a_src",
+      "a_major_mode",
+      "b_major_mode"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": [
+      [
+        "arch",
+        "self.admissible_archs",
+        "NotIn"
+      ],
+      [
+        "self.cta_group",
+        "CtaGroup.ONE",
+        "Eq"
+      ],
+      [
+        "rank(shape_mnk_tuple)",
+        "[2, 3]",
+        "NotIn"
+      ],
+      [
+        "depth(shape_mnk_tuple)",
+        "1",
+        "NotEq"
+      ],
+      [
+        "m",
+        "[64, 128]",
+        "NotIn"
+      ],
+      [
+        "m",
+        "[128, 256]",
+        "NotIn"
+      ],
+      [
+        "self.b_dtype.width",
+        "8",
+        "Eq"
+      ],
+      [
+        "self.b_major_mode",
+        "_OperandMajorMode.MN",
+        "Eq"
+      ],
+      [
+        "n % 16",
+        "0",
+        "NotEq"
+      ],
+      [
+        "n % 8",
+        "0",
+        "NotEq"
+      ],
+      [
+        "n % 32",
+        "0",
+        "NotEq"
+      ]
+    ]
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "MmaTraits",
+    "line": 330,
+    "kind": "mma",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [
+      "set",
+      "get"
+    ],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "BlockScaledMmaOp",
+    "line": 375,
+    "kind": "mma",
+    "bases": [
+      "Tcgen05MmaOp"
+    ],
+    "fields": [
+      "a_dtype",
+      "b_dtype",
+      "acc_dtype",
+      "sf_dtype",
+      "sf_vec_size",
+      "shape_mnk",
+      "cta_group",
+      "a_src",
+      "a_major_mode",
+      "b_major_mode"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": [
+      [
+        "arch",
+        "self.admissible_archs",
+        "NotIn"
+      ],
+      [
+        "self.cta_group",
+        "CtaGroup.ONE",
+        "Eq"
+      ],
+      [
+        "self.sf_vec_size",
+        "[16, 32]",
+        "NotIn"
+      ],
+      [
+        "rank(shape_mnk_tuple)",
+        "[2, 3]",
+        "NotIn"
+      ],
+      [
+        "depth(shape_mnk_tuple)",
+        "1",
+        "NotEq"
+      ],
+      [
+        "m",
+        "128",
+        "NotEq"
+      ],
+      [
+        "m",
+        "[128, 256]",
+        "NotIn"
+      ],
+      [
+        "n % 8",
+        "0",
+        "NotEq"
+      ],
+      [
+        "n % 16",
+        "0",
+        "NotEq"
+      ]
+    ]
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "BlockScaledMmaTraits",
+    "line": 526,
+    "kind": "mma",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [
+      "set",
+      "get"
+    ],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "MmaTF32Op",
+    "line": 609,
+    "kind": "mma",
+    "bases": [
+      "MmaOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "MmaAtomSM100UMMAType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "MmaTF32Trait",
+    "line": 699,
+    "kind": "mma",
+    "bases": [
+      "MmaTraits"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "MmaF16BF16Op",
+    "line": 709,
+    "kind": "mma",
+    "bases": [
+      "MmaOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "MmaAtomSM100UMMAType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "MmaF16BF16Trait",
+    "line": 814,
+    "kind": "mma",
+    "bases": [
+      "MmaTraits"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "MmaI8Op",
+    "line": 824,
+    "kind": "mma",
+    "bases": [
+      "MmaOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "MmaAtomSM100UMMAType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "MmaI8Trait",
+    "line": 922,
+    "kind": "mma",
+    "bases": [
+      "MmaTraits"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "MmaFP8Op",
+    "line": 933,
+    "kind": "mma",
+    "bases": [
+      "MmaOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "MmaAtomSM100UMMAType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "MmaFP8Trait",
+    "line": 1043,
+    "kind": "mma",
+    "bases": [
+      "MmaTraits"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "MmaF8F6F4Op",
+    "line": 1048,
+    "kind": "mma",
+    "bases": [
+      "MmaOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "MmaAtomSM100UMMAType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "MmaF8F6F4Trait",
+    "line": 1159,
+    "kind": "mma",
+    "bases": [
+      "MmaTraits"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "MmaMXF8Op",
+    "line": 1171,
+    "kind": "mma",
+    "bases": [
+      "BlockScaledMmaOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "MmaAtomSM100UMMABlockScaledType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "MmaMXF8Trait",
+    "line": 1281,
+    "kind": "mma",
+    "bases": [
+      "BlockScaledMmaTraits"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "MmaMXF8F6F4Op",
+    "line": 1286,
+    "kind": "mma",
+    "bases": [
+      "BlockScaledMmaOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "MmaAtomSM100UMMABlockScaledType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "MmaMXF8F6F4Trait",
+    "line": 1401,
+    "kind": "mma",
+    "bases": [
+      "BlockScaledMmaTraits"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "MmaMXF4Op",
+    "line": 1411,
+    "kind": "mma",
+    "bases": [
+      "BlockScaledMmaOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "MmaAtomSM100UMMABlockScaledType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "MmaMXF4Trait",
+    "line": 1508,
+    "kind": "mma",
+    "bases": [
+      "BlockScaledMmaTraits"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "MmaMXF4NVF4Op",
+    "line": 1518,
+    "kind": "mma",
+    "bases": [
+      "BlockScaledMmaOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "MmaAtomSM100UMMABlockScaledType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "MmaMXF4NVF4Trait",
+    "line": 1622,
+    "kind": "mma",
+    "bases": [
+      "BlockScaledMmaTraits"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "SM103MmaMXF4Op",
+    "line": 1632,
+    "kind": "mma",
+    "bases": [
+      "BlockScaledMmaOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "MmaAtomSM100UMMABlockScaledType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "SM103MmaMXF4NVF4Op",
+    "line": 1737,
+    "kind": "mma",
+    "bases": [
+      "BlockScaledMmaOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "MmaAtomSM100UMMABlockScaledType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.tcgen05.mma",
+    "rel": "cute/nvgpu/tcgen05/mma.py",
+    "name": "SmemLayoutAtomKind",
+    "line": 1850,
+    "kind": "enum_",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warp.copy",
+    "rel": "cute/nvgpu/warp/copy.py",
+    "name": "BaseOp",
+    "line": 25,
+    "kind": "copy",
+    "bases": [
+      "CopyOp"
+    ],
+    "fields": [
+      "transpose",
+      "num_matrices",
+      "unpack_bits"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warp.copy",
+    "rel": "cute/nvgpu/warp/copy.py",
+    "name": "LdMatrix8x8x16bOp",
+    "line": 56,
+    "kind": "copy",
+    "bases": [
+      "BaseOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomLdsmType",
+    "rules": [
+      [
+        "self.num_matrices",
+        "[1, 2, 4]",
+        "NotIn"
+      ]
+    ]
+  },
+  {
+    "module": "nvgpu.warp.copy",
+    "rel": "cute/nvgpu/warp/copy.py",
+    "name": "LdMatrix8x8x16bTrait",
+    "line": 93,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warp.copy",
+    "rel": "cute/nvgpu/warp/copy.py",
+    "name": "LdMatrix8x16x8bOp",
+    "line": 100,
+    "kind": "copy",
+    "bases": [
+      "BaseOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomLdsmType",
+    "rules": [
+      [
+        "self.num_matrices",
+        "[1, 2, 4]",
+        "NotIn"
+      ],
+      [
+        "self.unpack_bits",
+        "[None, 4, 6]",
+        "NotIn"
+      ]
+    ]
+  },
+  {
+    "module": "nvgpu.warp.copy",
+    "rel": "cute/nvgpu/warp/copy.py",
+    "name": "LdMatrix8x16x8bTrait",
+    "line": 149,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warp.copy",
+    "rel": "cute/nvgpu/warp/copy.py",
+    "name": "LdMatrix16x8x8bOp",
+    "line": 156,
+    "kind": "copy",
+    "bases": [
+      "BaseOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomLdsmType",
+    "rules": [
+      [
+        "self.num_matrices",
+        "[2, 4]",
+        "NotIn"
+      ],
+      [
+        "self.unpack_bits",
+        "[None, 4, 6]",
+        "NotIn"
+      ]
+    ]
+  },
+  {
+    "module": "nvgpu.warp.copy",
+    "rel": "cute/nvgpu/warp/copy.py",
+    "name": "LdMatrix16x8x8bTrait",
+    "line": 202,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warp.copy",
+    "rel": "cute/nvgpu/warp/copy.py",
+    "name": "LdMatrix16x16x8bOp",
+    "line": 209,
+    "kind": "copy",
+    "bases": [
+      "BaseOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomLdsmType",
+    "rules": [
+      [
+        "self.num_matrices",
+        "[1, 2]",
+        "NotIn"
+      ],
+      [
+        "self.unpack_bits",
+        "[None, 4, 6]",
+        "NotIn"
+      ]
+    ]
+  },
+  {
+    "module": "nvgpu.warp.copy",
+    "rel": "cute/nvgpu/warp/copy.py",
+    "name": "LdMatrix16x16x8bTrait",
+    "line": 255,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warp.copy",
+    "rel": "cute/nvgpu/warp/copy.py",
+    "name": "StMatrix8x8x16bOp",
+    "line": 262,
+    "kind": "copy",
+    "bases": [
+      "BaseOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomStsmType",
+    "rules": [
+      [
+        "self.num_matrices",
+        "[1, 2, 4]",
+        "NotIn"
+      ]
+    ]
+  },
+  {
+    "module": "nvgpu.warp.copy",
+    "rel": "cute/nvgpu/warp/copy.py",
+    "name": "StMatrix8x8x16bTrait",
+    "line": 298,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warp.copy",
+    "rel": "cute/nvgpu/warp/copy.py",
+    "name": "StMatrix16x8x8bOp",
+    "line": 305,
+    "kind": "copy",
+    "bases": [
+      "BaseOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "CopyAtomStsmType",
+    "rules": [
+      [
+        "self.num_matrices",
+        "[1, 2, 4]",
+        "NotIn"
+      ]
+    ]
+  },
+  {
+    "module": "nvgpu.warp.copy",
+    "rel": "cute/nvgpu/warp/copy.py",
+    "name": "StMatrix16x8x8bTrait",
+    "line": 343,
+    "kind": "copy",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warp.mma",
+    "rel": "cute/nvgpu/warp/mma.py",
+    "name": "WarpMmaOp",
+    "line": 48,
+    "kind": "mma",
+    "bases": [
+      "MmaOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warp.mma",
+    "rel": "cute/nvgpu/warp/mma.py",
+    "name": "MmaF16BF16Op",
+    "line": 57,
+    "kind": "mma",
+    "bases": [
+      "WarpMmaOp"
+    ],
+    "fields": [
+      "ab_dtype",
+      "acc_dtype",
+      "shape_mnk"
+    ],
+    "methods": [],
+    "make_trait_type": "MmaAtomSM80Type",
+    "rules": [
+      [
+        "self.ab_dtype",
+        "[Float16, BFloat16]",
+        "NotIn"
+      ],
+      [
+        "self.acc_dtype",
+        "[Float16, Float32]",
+        "NotIn"
+      ],
+      [
+        "self.shape_mnk",
+        "[(16, 8, 8), (16, 8, 16)]",
+        "NotIn"
+      ],
+      [
+        "self.ab_dtype",
+        "BFloat16",
+        "Eq"
+      ],
+      [
+        "self.acc_dtype",
+        "Float32",
+        "NotEq"
+      ]
+    ]
+  },
+  {
+    "module": "nvgpu.warp.mma",
+    "rel": "cute/nvgpu/warp/mma.py",
+    "name": "MmaF16BF16Trait",
+    "line": 134,
+    "kind": "mma",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warp.mma",
+    "rel": "cute/nvgpu/warp/mma.py",
+    "name": "MmaFP8Op",
+    "line": 139,
+    "kind": "mma",
+    "bases": [
+      "WarpMmaOp"
+    ],
+    "fields": [
+      "ab_dtype",
+      "acc_dtype",
+      "shape_mnk"
+    ],
+    "methods": [],
+    "make_trait_type": "MmaAtomSM89Type",
+    "rules": [
+      [
+        "self.ab_dtype",
+        "[Float8E4M3FN, Float8E5M2]",
+        "NotIn"
+      ],
+      [
+        "self.acc_dtype",
+        "[Float16, Float32]",
+        "NotIn"
+      ],
+      [
+        "self.shape_mnk",
+        "[(16, 8, 32), (16, 8, 16)]",
+        "NotIn"
+      ]
+    ]
+  },
+  {
+    "module": "nvgpu.warp.mma",
+    "rel": "cute/nvgpu/warp/mma.py",
+    "name": "MmaFP8Trait",
+    "line": 211,
+    "kind": "mma",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warp.mma",
+    "rel": "cute/nvgpu/warp/mma.py",
+    "name": "MmaSM120BlockScaledOp",
+    "line": 217,
+    "kind": "mma",
+    "bases": [
+      "MmaOp"
+    ],
+    "fields": [
+      "ab_dtype",
+      "acc_dtype",
+      "shape_mnk",
+      "sf_type",
+      "sf_vec_size",
+      "use_sf_layout_TV"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": [
+      [
+        "arch",
+        "self.admissible_archs",
+        "NotIn"
+      ],
+      [
+        "self.ab_dtype",
+        "Float4E2M1FN",
+        "Eq"
+      ],
+      [
+        "self.acc_dtype",
+        "Float32",
+        "NotEq"
+      ],
+      [
+        "self.sf_vec_size",
+        "16",
+        "Eq"
+      ],
+      [
+        "self.shape_mnk",
+        "(16, 8, 64)",
+        "NotEq"
+      ],
+      [
+        "self.ab_dtype",
+        "(Float8E4M3FN, Float8E5M2)",
+        "In"
+      ],
+      [
+        "self.ab_dtype",
+        "Float4E2M1FN",
+        "NotEq"
+      ],
+      [
+        "self.sf_type",
+        "Float8E4M3FN",
+        "NotEq"
+      ],
+      [
+        "self.sf_vec_size",
+        "32",
+        "Eq"
+      ],
+      [
+        "self.shape_mnk",
+        "(16, 8, 32)",
+        "NotEq"
+      ],
+      [
+        "self.sf_type",
+        "Float8E8M0FNU",
+        "NotEq"
+      ]
+    ]
+  },
+  {
+    "module": "nvgpu.warp.mma",
+    "rel": "cute/nvgpu/warp/mma.py",
+    "name": "Field",
+    "line": 322,
+    "kind": "enum_",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warp.mma",
+    "rel": "cute/nvgpu/warp/mma.py",
+    "name": "MmaBlockScaledTrait",
+    "line": 341,
+    "kind": "mma",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [
+      "set",
+      "get"
+    ],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warp.mma",
+    "rel": "cute/nvgpu/warp/mma.py",
+    "name": "MmaMXF4Op",
+    "line": 388,
+    "kind": "mma",
+    "bases": [
+      "MmaSM120BlockScaledOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "MmaAtomSM120BlockScaledType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warp.mma",
+    "rel": "cute/nvgpu/warp/mma.py",
+    "name": "MmaMXF4Trait",
+    "line": 435,
+    "kind": "mma",
+    "bases": [
+      "MmaBlockScaledTrait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warp.mma",
+    "rel": "cute/nvgpu/warp/mma.py",
+    "name": "MmaMXF4NVF4Op",
+    "line": 445,
+    "kind": "mma",
+    "bases": [
+      "MmaSM120BlockScaledOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "MmaAtomSM120BlockScaledType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warp.mma",
+    "rel": "cute/nvgpu/warp/mma.py",
+    "name": "MmaMXF4NVF4Trait",
+    "line": 492,
+    "kind": "mma",
+    "bases": [
+      "MmaBlockScaledTrait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warp.mma",
+    "rel": "cute/nvgpu/warp/mma.py",
+    "name": "MmaMXF8Op",
+    "line": 502,
+    "kind": "mma",
+    "bases": [
+      "MmaSM120BlockScaledOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "MmaAtomSM120BlockScaledType",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warp.mma",
+    "rel": "cute/nvgpu/warp/mma.py",
+    "name": "MmaMXF8Trait",
+    "line": 549,
+    "kind": "mma",
+    "bases": [
+      "MmaBlockScaledTrait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warp.mma",
+    "rel": "cute/nvgpu/warp/mma.py",
+    "name": "MmaMXF8F6F4Op",
+    "line": 569,
+    "kind": "mma",
+    "bases": [
+      "MmaOp"
+    ],
+    "fields": [
+      "a_dtype",
+      "b_dtype",
+      "acc_dtype",
+      "sf_type"
+    ],
+    "methods": [],
+    "make_trait_type": "MmaAtomSM120BlockScaledType",
+    "rules": [
+      [
+        "arch",
+        "self.admissible_archs",
+        "NotIn"
+      ],
+      [
+        "self.acc_dtype",
+        "Float32",
+        "NotEq"
+      ],
+      [
+        "self.sf_type",
+        "Float8E8M0FNU",
+        "NotEq"
+      ],
+      [
+        "self.a_dtype",
+        "self.b_dtype",
+        "Eq"
+      ],
+      [
+        "(self.a_dtype, self.b_dtype)",
+        "MXF8F6F4_SUPPORTED_PAIRS",
+        "NotIn"
+      ],
+      [
+        "self.a_dtype",
+        "Float4E2M1FN",
+        "Eq"
+      ],
+      [
+        "self.a_dtype",
+        "(Float8E4M3FN, Float8E5M2)",
+        "In"
+      ],
+      [
+        "self.a_dtype",
+        "fp8_dtypes",
+        "In"
+      ],
+      [
+        "self.b_dtype",
+        "fp8_dtypes",
+        "In"
+      ]
+    ]
+  },
+  {
+    "module": "nvgpu.warp.mma",
+    "rel": "cute/nvgpu/warp/mma.py",
+    "name": "MmaMXF8F6F4Trait",
+    "line": 703,
+    "kind": "mma",
+    "bases": [
+      "MmaBlockScaledTrait"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warpgroup.helpers",
+    "rel": "cute/nvgpu/warpgroup/helpers.py",
+    "name": "make_smem_layout_atom",
+    "line": 25,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "kind",
+      "element_type"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warpgroup.helpers",
+    "rel": "cute/nvgpu/warpgroup/helpers.py",
+    "name": "fence",
+    "line": 94,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warpgroup.helpers",
+    "rel": "cute/nvgpu/warpgroup/helpers.py",
+    "name": "commit_group",
+    "line": 104,
+    "kind": "function",
+    "bases": [],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warpgroup.helpers",
+    "rel": "cute/nvgpu/warpgroup/helpers.py",
+    "name": "wait_group",
+    "line": 114,
+    "kind": "function",
+    "bases": [],
+    "fields": [
+      "group"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warpgroup.mma",
+    "rel": "cute/nvgpu/warpgroup/mma.py",
+    "name": "WarpGroupMmaOp",
+    "line": 53,
+    "kind": "mma",
+    "bases": [
+      "AtomMmaOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warpgroup.mma",
+    "rel": "cute/nvgpu/warpgroup/mma.py",
+    "name": "OperandMajorMode",
+    "line": 64,
+    "kind": "enum_",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warpgroup.mma",
+    "rel": "cute/nvgpu/warpgroup/mma.py",
+    "name": "OperandSource",
+    "line": 106,
+    "kind": "enum_",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warpgroup.mma",
+    "rel": "cute/nvgpu/warpgroup/mma.py",
+    "name": "Field",
+    "line": 124,
+    "kind": "enum_",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warpgroup.mma",
+    "rel": "cute/nvgpu/warpgroup/mma.py",
+    "name": "MmaOp",
+    "line": 142,
+    "kind": "mma",
+    "bases": [
+      "WarpGroupMmaOp"
+    ],
+    "fields": [
+      "a_dtype",
+      "b_dtype",
+      "acc_dtype",
+      "shape_mnk",
+      "a_src",
+      "a_major_mode",
+      "b_major_mode"
+    ],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": [
+      [
+        "m",
+        "64",
+        "NotEq"
+      ],
+      [
+        "arch",
+        "Arch.sm_90a",
+        "Eq"
+      ],
+      [
+        "rank(shape_mnk_tuple)",
+        "[2, 3]",
+        "NotIn"
+      ],
+      [
+        "depth(shape_mnk_tuple)",
+        "1",
+        "NotEq"
+      ],
+      [
+        "n % 8",
+        "0",
+        "NotEq"
+      ]
+    ]
+  },
+  {
+    "module": "nvgpu.warpgroup.mma",
+    "rel": "cute/nvgpu/warpgroup/mma.py",
+    "name": "MmaTraits",
+    "line": 262,
+    "kind": "mma",
+    "bases": [
+      "Trait"
+    ],
+    "fields": [],
+    "methods": [
+      "set",
+      "get"
+    ],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warpgroup.mma",
+    "rel": "cute/nvgpu/warpgroup/mma.py",
+    "name": "MmaF16BF16Op",
+    "line": 319,
+    "kind": "mma",
+    "bases": [
+      "MmaOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "MmaAtomSM90Type",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warpgroup.mma",
+    "rel": "cute/nvgpu/warpgroup/mma.py",
+    "name": "MmaF16BF16Trait",
+    "line": 403,
+    "kind": "mma",
+    "bases": [
+      "MmaTraits"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warpgroup.mma",
+    "rel": "cute/nvgpu/warpgroup/mma.py",
+    "name": "MmaF8Op",
+    "line": 408,
+    "kind": "mma",
+    "bases": [
+      "MmaOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "MmaAtomSM90Type",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warpgroup.mma",
+    "rel": "cute/nvgpu/warpgroup/mma.py",
+    "name": "MmaF8Trait",
+    "line": 492,
+    "kind": "mma",
+    "bases": [
+      "MmaTraits"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warpgroup.mma",
+    "rel": "cute/nvgpu/warpgroup/mma.py",
+    "name": "MmaI8Op",
+    "line": 497,
+    "kind": "mma",
+    "bases": [
+      "MmaOp"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "MmaAtomSM90Type",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warpgroup.mma",
+    "rel": "cute/nvgpu/warpgroup/mma.py",
+    "name": "MmaI8Trait",
+    "line": 590,
+    "kind": "mma",
+    "bases": [
+      "MmaTraits"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  },
+  {
+    "module": "nvgpu.warpgroup.mma",
+    "rel": "cute/nvgpu/warpgroup/mma.py",
+    "name": "SmemLayoutAtomKind",
+    "line": 601,
+    "kind": "enum_",
+    "bases": [
+      "enum.Enum"
+    ],
+    "fields": [],
+    "methods": [],
+    "make_trait_type": "",
+    "rules": []
+  }
+]

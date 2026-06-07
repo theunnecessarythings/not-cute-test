@@ -1,0 +1,786 @@
+# API surface manifest
+
+This is generated from Python AST for the uploaded source and is used as the no-silent-gaps checklist.
+
+## `cutlass/cute/tuple.py`
+
+- function `wrap` line 31
+- function `unwrap` line 40
+- function `flatten_to_tuple` line 57
+- function `unflatten` line 82
+- function `product` line 116
+- function `product_like` line 152
+- function `product_each` line 190
+- function `find_if` line 226
+- function `find` line 304
+- function `transform_leaf` line 330
+- function `elem_less` line 363
+- function `tuple_cat` line 378
+- function `transform_apply` line 409
+- function `filter_tuple` line 489
+
+## `cutlass/cute/core.py`
+
+- function `_get_typed_value` line 164
+- function `_pack_x` line 174
+- function `_pack_shape` line 189
+- function `_pack_stride` line 199
+- function `_pack_coord` line 220
+- function `_pack_int_tuple` line 230
+- function `_pack_tile` line 242
+- function `_unpack_x_tuple` line 271
+- function `_check_shape` line 314
+- function `_check_coord` line 336
+- function `_check_stride` line 344
+- function `_check_int_tuple` line 352
+- function `_check_tile` line 360
+- class `IntValue` line 375
+  - method `__init__` line 399
+  - method `get_typed_value` line 418
+  - method `divisibility` line 437
+  - method `__str__` line 444
+  - method `__repr__` line 451
+  - method `pretty_str` line 455
+  - method `_binary_op` line 458
+  - method `__add__` line 484
+  - method `__sub__` line 497
+  - method `__mul__` line 510
+  - method `__floordiv__` line 523
+  - method `__mod__` line 536
+  - method `__radd__` line 549
+  - method `__rsub__` line 562
+  - method `__rmul__` line 575
+  - method `__rfloordiv__` line 588
+  - method `__rmod__` line 601
+- class `Ratio` line 613
+  - method `__init__` line 627
+  - method `is_integral` line 634
+  - method `reduced` line 642
+  - method `__mul__` line 651
+  - method `__rmul__` line 670
+  - method `__str__` line 680
+  - method `to` line 688
+- class `ScaledBasis` line 708
+  - method `__init__` line 745
+  - method `is_static` line 755
+  - method `to` line 764
+  - method `__str__` line 800
+  - method `__hash__` line 803
+  - method `value` line 807
+  - method `mode` line 815
+  - method `__eq__` line 823
+  - method `__rmul__` line 829
+  - method `__mul__` line 878
+  - method `__extract_mlir_values__` line 903
+- function `E` line 911
+- function `get_divisibility` line 948
+- function `basis_value` line 961
+- function `basis_get` line 988
+- class `Swizzle` line 1035
+  - method `__str__` line 1065
+  - method `__eq__` line 1069
+  - method `num_bits` line 1084
+  - method `num_base` line 1091
+  - method `num_shift` line 1098
+- class `_Layout` line 1106
+  - method `__init__` line 1140
+  - method `__repr__` line 1147
+  - method `__str__` line 1155
+  - method `shape_method` line 1169
+  - method `stride_method` line 1178
+  - method `shape` line 1191
+  - method `stride` line 1209
+  - method `max_alignment` line 1224
+  - method `__eq__` line 1231
+  - method `__req__` line 1247
+  - method `__ne__` line 1257
+  - method `__rne__` line 1270
+  - method `__getitem__` line 1280
+  - method `__call__` line 1287
+  - method `get_hier_coord` line 1300
+  - method `get_flat_coord` line 1329
+- class `_ComposedLayout` line 1342
+  - method `__init__` line 1351
+  - method `__str__` line 1358
+  - method `type` line 1362
+  - method `is_normal` line 1366
+  - method `inner` line 1371
+  - method `offset` line 1381
+  - method `outer` line 1393
+  - method `shape` line 1403
+  - method `shape_method` line 1412
+  - method `max_alignment` line 1423
+  - method `__eq__` line 1426
+  - method `__req__` line 1437
+  - method `__ne__` line 1442
+  - method `__rne__` line 1445
+  - method `__getitem__` line 1451
+  - method `__call__` line 1464
+  - method `__extract_mlir_values__` line 1472
+  - method `__new_from_mlir_values__` line 1475
+- class `_Pointer` line 1489
+  - method `__init__` line 1512
+  - method `__str__` line 1520
+  - method `__get_mlir_types__` line 1524
+  - method `__extract_mlir_values__` line 1527
+  - method `__new_from_mlir_values__` line 1530
+  - method `dtype` line 1543
+  - method `alignment` line 1551
+  - method `max_alignment` line 1555
+  - method `memspace` line 1560
+  - method `type` line 1566
+  - method `load` line 1570
+  - method `store` line 1593
+  - method `__getitem__` line 1620
+  - method `__setitem__` line 1630
+  - method `llvm_ptr` line 1645
+  - method `to_llvm_ptr` line 1665
+  - method `_to_builtin_memref` line 1690
+  - method `__add__` line 1731
+  - method `__radd__` line 1750
+  - method `__sub__` line 1760
+  - method `toint` line 1771
+  - method `align` line 1788
+- function `_op_wrapper` line 1843
+- function `ModeOpDecorator` line 1861
+- function `is_valid_leaf` line 1923
+- function `is_static` line 1934
+- function `has_underscore` line 1980
+- function `has_scaled_basis` line 1987
+- function `_tuple_str` line 2004
+- function `pretty_str` line 2024
+- function `printf` line 2040
+- function `front` line 2142
+- function `is_major` line 2171
+- function `assume` line 2188
+- function `make_swizzle` line 2221
+- function `static` line 2240
+- function `get_leaves` line 2250
+- function `depth` line 2264
+- function `rank` line 2297
+- function `is_congruent` line 2331
+- function `is_weakly_congruent` line 2366
+- function `get` line 2405
+- function `get` line 2413
+- function `get` line 2421
+- function `get` line 2431
+- function `select` line 2495
+- function `select` line 2503
+- function `select` line 2511
+- function `select` line 2522
+- function `group_modes` line 2576
+- function `group_modes` line 2585
+- function `group_modes` line 2594
+- function `group_modes` line 2603
+- function `group_modes` line 2614
+- function `slice_` line 2680
+- function `slice_` line 2688
+- function `slice_` line 2696
+- function `slice_` line 2704
+- function `slice_` line 2714
+- function `dice` line 2800
+- function `dice` line 2808
+- function `dice` line 2816
+- function `dice` line 2827
+- function `_extend` line 2900
+- function `prepend` line 2942
+- function `prepend` line 2951
+- function `prepend` line 2960
+- function `prepend` line 2971
+- function `append` line 3019
+- function `append` line 3028
+- function `append` line 3037
+- function `append` line 3048
+- function `prepend_ones` line 3102
+- function `append_ones` line 3117
+- function `append_ones` line 3127
+- function `append_ones` line 3137
+- function `repeat_as_tuple` line 3156
+- function `repeat` line 3182
+- function `repeat_like` line 3210
+- function `flatten` line 3241
+- function `flatten` line 3245
+- function `flatten` line 3247
+- function `flatten` line 3250
+- function `filter_zeros` line 3287
+- function `filter_zeros` line 3295
+- function `filter_zeros` line 3305
+- function `filter` line 3343
+- function `filter` line 3350
+- function `filter` line 3357
+- function `filter` line 3366
+- function `size` line 3403
+- function `shape_div` line 3449
+- function `ceil_div` line 3478
+- function `round_up` line 3521
+- function `make_layout` line 3553
+- function `make_identity_layout` line 3622
+- function `make_ordered_layout` line 3663
+- function `make_layout_like` line 3712
+- class `_ComposedLayoutWithInnerFunc` line 3725
+  - method `__init__` line 3727
+  - method `__call__` line 3743
+  - method `__str__` line 3758
+  - method `type` line 3762
+  - method `is_normal` line 3766
+  - method `inner` line 3770
+  - method `offset` line 3779
+  - method `outer` line 3788
+  - method `shape` line 3797
+- function `make_composed_layout` line 3807
+- function `cosize` line 3867
+- function `size_in_bytes` line 3918
+- function `coalesce` line 3971
+- function `crd2idx` line 3989
+- function `idx2crd` line 4040
+- function `idx2crd` line 4050
+- function `idx2crd` line 4060
+- function `increment_coord` line 4108
+- function `recast_layout` line 4157
+- function `slice_and_offset` line 4215
+- function `shape` line 4229
+- function `recast_ptr` line 4287
+- function `make_ptr` line 4308
+- function `composition` line 4375
+- function `composition` line 4383
+- function `composition` line 4391
+- function `composition` line 4401
+- function `complement` line 4462
+- function `right_inverse` line 4511
+- function `left_inverse` line 4524
+- function `logical_product` line 4537
+- function `logical_product` line 4545
+- function `logical_product` line 4555
+- function `zipped_product` line 4588
+- function `zipped_product` line 4596
+- function `zipped_product` line 4606
+- function `tiled_product` line 4620
+- function `tiled_product` line 4628
+- function `tiled_product` line 4638
+- function `flat_product` line 4652
+- function `flat_product` line 4660
+- function `flat_product` line 4670
+- function `raked_product` line 4684
+- function `raked_product` line 4692
+- function `raked_product` line 4702
+- function `blocked_product` line 4716
+- function `blocked_product` line 4724
+- function `blocked_product` line 4734
+- function `logical_divide` line 4748
+- function `logical_divide` line 4756
+- function `logical_divide` line 4766
+- function `zipped_divide` line 4781
+- function `zipped_divide` line 4789
+- function `zipped_divide` line 4799
+- function `tiled_divide` line 4848
+- function `tiled_divide` line 4856
+- function `tiled_divide` line 4866
+- function `flat_divide` line 4881
+- function `flat_divide` line 4889
+- function `flat_divide` line 4899
+- function `max_common_layout` line 4919
+- function `max_common_vector` line 4946
+- function `tile_to_shape` line 4973
+- function `tile_to_shape` line 4982
+- function `tile_to_shape` line 4993
+- function `local_partition` line 5011
+- function `local_tile` line 5037
+- function `make_layout_image_mask` line 5130
+- function `leading_dim` line 5176
+- function `make_layout_tv` line 5211
+- function `get_nonswizzle_portion` line 5297
+- function `get_swizzle_portion` line 5330
+- function `nullspace` line 5368
+- class `struct` line 5427
+  - method `_is_scalar_type` line 5799
+  - method `__init__` line 5809
+  - method `__call__` line 5892
+  - method `size_in_bytes` line 5935
+  - method `__sizeof__` line 5944
+  - method `__alignof__` line 5948
+  - method `align_offset` line 5953
+- class `union` line 5968
+  - method `__init__` line 6019
+  - method `__call__` line 6091
+  - method `__setattr__` line 6132
+  - method `size_in_bytes` line 6134
+  - method `__sizeof__` line 6142
+  - method `__alignof__` line 6150
+- class `ThrMma` line 6166
+- class `ThrCopy` line 6171
+- class `FastDivmodDivisor` line 6178
+  - method `__init__` line 6197
+  - method `__rdivmod__` line 6233
+  - method `__rfloordiv__` line 6269
+  - method `__rmod__` line 6289
+  - method `divisor` line 6309
+  - method `divisor` line 6333
+  - method `_divisor` line 6338
+  - method `_divisor` line 6342
+  - method `__extract_mlir_values__` line 6345
+  - method `__new_from_mlir_values__` line 6359
+  - method `__repr__` line 6375
+- function `fast_divmod_create_divisor` line 6397
+
+## `cutlass/cute/tensor.py`
+
+- class `_Tensor` line 117
+  - method `__init__` line 145
+  - method `__repr__` line 199
+  - method `__str__` line 202
+  - method `__extract_mlir_values__` line 207
+  - method `__new_from_mlir_values__` line 210
+  - method `__getitem__` line 226
+  - method `_cvt_to_dest` line 314
+  - method `__setitem__` line 343
+  - method `__class__` line 420
+  - method `type` line 426
+  - method `iterator` line 431
+  - method `layout` line 437
+  - method `shape` line 448
+  - method `stride` line 458
+  - method `leading_dim` line 464
+  - method `dtype` line 479
+  - method `element_type` line 484
+  - method `memspace` line 489
+  - method `load` line 496
+  - method `store` line 548
+  - method `fill` line 610
+  - method `_check_can_load_store` line 656
+  - method `_check_can_dereference` line 670
+- function `make_tensor` line 689
+- function `make_identity_tensor` line 789
+- function `make_rmem_tensor` line 835
+- function `make_fragment` line 900
+- function `make_rmem_tensor_like` line 911
+- function `make_fragment_like` line 1001
+- function `make_fragment_like` line 1009
+- function `make_fragment_like` line 1016
+- function `make_fragment_like` line 1025
+- function `recast_tensor` line 1048
+- function `domain_offset` line 1106
+- function `print_tensor` line 1169
+- function `_get_row_and_col_map` line 1224
+- function `_row2col` line 1277
+- function `_col2row` line 1301
+- function `_infer_broadcast_shape` line 1325
+- class `TensorSSA` line 1358
+  - method `__init__` line 1375
+  - method `from_vector` line 1432
+  - method `to_vector` line 1477
+  - method `dtype` line 1501
+  - method `element_type` line 1505
+  - method `__extract_mlir_values__` line 1508
+  - method `__new_from_mlir_values__` line 1511
+  - method `__str__` line 1514
+  - method `shape` line 1518
+  - method `_apply_op` line 1521
+  - method `apply_op` line 1615
+  - method `broadcast_to` line 1658
+  - method `__pow__` line 1720
+  - method `__rpow__` line 1738
+  - method `__add__` line 1756
+  - method `__radd__` line 1774
+  - method `__sub__` line 1792
+  - method `__rsub__` line 1810
+  - method `__mul__` line 1828
+  - method `__rmul__` line 1846
+  - method `__mod__` line 1864
+  - method `__rmod__` line 1882
+  - method `__floordiv__` line 1900
+  - method `__rfloordiv__` line 1918
+  - method `__truediv__` line 1936
+  - method `__rtruediv__` line 1954
+  - method `__eq__` line 1972
+  - method `__ne__` line 1990
+  - method `__lt__` line 2008
+  - method `__le__` line 2026
+  - method `__gt__` line 2044
+  - method `__ge__` line 2062
+  - method `__xor__` line 2080
+  - method `__rxor__` line 2098
+  - method `__or__` line 2116
+  - method `__ror__` line 2134
+  - method `__and__` line 2152
+  - method `__rand__` line 2170
+  - method `__neg__` line 2188
+  - method `__abs__` line 2204
+  - method `_flatten_shape_and_coord` line 2219
+  - method `_build_result` line 2239
+  - method `reshape` line 2261
+  - method `__getitem__` line 2291
+  - method `to` line 2385
+  - method `bitcast` line 2448
+  - method `ir_value` line 2479
+  - method `ir_value_int8` line 2488
+  - method `reduce` line 2516
+- function `full` line 2617
+- function `full_like` line 2654
+- function `empty_like` line 2696
+- function `ones_like` line 2717
+- function `zeros_like` line 2738
+- function `where` line 2759
+- function `any_` line 2822
+- function `all_` line 2843
+- function `gather` line 2864
+- function `scatter` line 2985
+- function `_check_can_gather_scatter` line 3104
+
+## `cutlass/cute/atom.py`
+
+- class `Op` line 42
+- class `MmaOp` line 50
+  - method `_make_trait` line 56
+- class `CopyOp` line 66
+  - method `_make_trait` line 72
+- class `Trait` line 83
+  - method `__init__` line 91
+  - method `__extract_mlir_values__` line 94
+  - method `__new_from_mlir_values__` line 97
+  - method `set` line 100
+  - method `get` line 112
+  - method `unpack` line 123
+  - method `with_` line 132
+- function `make_atom` line 142
+- class `Atom` line 157
+  - method `__init__` line 176
+  - method `__extract_mlir_values__` line 180
+  - method `__new_from_mlir_values__` line 183
+  - method `op` line 192
+  - method `type` line 196
+  - method `set` line 200
+  - method `get` line 227
+  - method `with_` line 251
+  - method `_unpack` line 272
+- class `MmaAtom` line 289
+  - method `__str__` line 294
+  - method `thr_id` line 309
+  - method `shape_mnk` line 319
+  - method `tv_layout_A` line 329
+  - method `tv_layout_B` line 339
+  - method `tv_layout_C` line 349
+  - method `make_fragment_A` line 362
+  - method `make_fragment_B` line 381
+  - method `make_fragment_C` line 399
+- class `TiledMma` line 416
+  - method `__str__` line 421
+  - method `tv_layout_A_tiled` line 439
+  - method `tv_layout_B_tiled` line 449
+  - method `tv_layout_C_tiled` line 459
+  - method `permutation_mnk` line 469
+  - method `thr_layout_vmnk` line 479
+  - method `size` line 488
+  - method `get_tile_size` line 495
+  - method `get_slice` line 511
+  - method `_partition_shape` line 518
+  - method `partition_shape_A` line 536
+  - method `partition_shape_B` line 546
+  - method `partition_shape_C` line 556
+  - method `_thrfrg` line 570
+  - method `_thrfrg` line 580
+  - method `_thrfrg` line 589
+  - method `_thrfrg_A` line 615
+  - method `_thrfrg_B` line 624
+  - method `_thrfrg_C` line 633
+- class `ThrMma` line 643
+  - method `__init__` line 648
+  - method `__new_from_mlir_values__` line 652
+  - method `thr_idx` line 658
+  - method `partition_A` line 662
+  - method `partition_B` line 680
+  - method `partition_C` line 698
+- function `make_mma_atom` line 717
+- function `make_tiled_mma` line 740
+- class `CopyAtom` line 797
+  - method `__str__` line 802
+  - method `value_type` line 815
+  - method `thr_id` line 819
+  - method `layout_src_tv` line 823
+  - method `layout_dst_tv` line 827
+- class `TiledCopy` line 831
+  - method `__str__` line 836
+  - method `layout_tv_tiled` line 852
+  - method `tiler_mn` line 856
+  - method `layout_src_tv_tiled` line 860
+  - method `layout_dst_tv_tiled` line 864
+  - method `size` line 868
+  - method `get_slice` line 875
+  - method `retile` line 879
+- class `ThrCopy` line 894
+  - method `__init__` line 899
+  - method `__new_from_mlir_values__` line 903
+  - method `thr_idx` line 909
+  - method `partition_S` line 913
+  - method `partition_D` line 930
+- function `make_copy_atom` line 948
+- function `_make_tiled_copy` line 980
+- function `make_tiled_copy` line 1008
+- function `make_tiled_copy_tv` line 1036
+- function `make_cotiled_copy` line 1070
+- function `make_tiled_copy_A` line 1169
+- function `make_tiled_copy_B` line 1201
+- function `make_tiled_copy_C` line 1233
+- function `make_tiled_copy_S` line 1265
+- function `make_tiled_copy_D` line 1293
+- function `make_tiled_copy_C_atom` line 1321
+- function `_normalize_variadic_tensor_operand` line 1403
+- function `copy_atom_call` line 1422
+- function `mma_atom_call` line 1529
+
+## `cutlass/cute/typing.py`
+
+- class `SymInt` line 68
+  - method `__init__` line 69
+  - method `__hash__` line 83
+  - method `width` line 87
+  - method `divisibility` line 91
+  - method `symbol` line 95
+  - method `__str__` line 98
+  - method `__repr__` line 105
+  - method `__eq__` line 108
+  - method `__mod__` line 120
+  - method `__rmod__` line 138
+  - method `__mul__` line 144
+  - method `__rmul__` line 155
+  - method `__c_pointers__` line 158
+  - method `__get_mlir_types__` line 161
+  - method `__new_from_mlir_values__` line 167
+- function `sym_int` line 178
+- function `sym_int32` line 184
+- function `sym_int64` line 188
+- class `Layout` line 204
+  - method `__init__` line 205
+  - method `__str__` line 208
+  - method `get_hier_coord` line 211
+  - method `shape` line 216
+  - method `stride` line 226
+- class `ComposedLayout` line 236
+  - method `type` line 293
+  - method `is_normal` line 297
+  - method `inner` line 301
+  - method `offset` line 310
+  - method `outer` line 319
+  - method `shape` line 328
+  - method `__call__` line 336
+- class `Pointer` line 352
+  - method `type` line 360
+  - method `value_type` line 365
+  - method `dtype` line 369
+  - method `memspace` line 374
+  - method `max_alignment` line 379
+  - method `llvm_ptr` line 384
+  - method `toint` line 393
+  - method `align` line 402
+  - method `__add__` line 406
+  - method `__get_mlir_types__` line 416
+  - method `__extract_mlir_values__` line 420
+  - method `__new_from_mlir_values__` line 424
+- class `TypedTensor` line 429
+  - method `__init__` line 469
+  - method `element_type` line 487
+  - method `shape` line 491
+  - method `stride` line 495
+  - method `memspace` line 499
+  - method `assumed_align` line 503
+  - method `isinstance` line 506
+  - method `mlir_type` line 513
+  - method `__get_mlir_types__` line 526
+  - method `__str__` line 529
+- class `Tensor` line 533
+  - method `__class_getitem__` line 597
+  - method `__str__` line 601
+  - method `__getitem__` line 604
+  - method `__setitem__` line 609
+  - method `element_type` line 615
+  - method `element_type` line 618
+  - method `dtype` line 621
+  - method `memspace` line 627
+  - method `iterator` line 631
+  - method `leading_dim` line 635
+  - method `layout` line 650
+  - method `shape` line 656
+  - method `stride` line 660
+  - method `load` line 662
+  - method `store` line 671
+  - method `mark_layout_dynamic` line 679
+  - method `mark_compact_shape_dynamic` line 685
+  - method `fill` line 695
+- function `is_integer` line 698
+- function `is_int_tuple` line 706
+
+## `cutlass/base_dsl/typing.py`
+
+- class `DynamicExpression` line 45
+  - method `__extract_mlir_values__` line 101
+  - method `__new_from_mlir_values__` line 109
+- class `JitArgument` line 121
+  - method `__c_pointers__` line 192
+  - method `__get_mlir_types__` line 201
+  - method `__new_from_mlir_values__` line 210
+- function `get_c_pointers` line 222
+- function `get_mlir_types` line 239
+- function `implements_jit_argument` line 260
+- function `implements_dynamic_expression` line 272
+- class `DslType` line 284
+  - method `__new__` line 321
+  - method `is_abstract` line 336
+- class `NumericMeta` line 340
+  - method `__new__` line 368
+  - method `numpy_dtype` line 408
+  - method `is_integer` line 412
+  - method `is_float` line 415
+  - method `is_same_kind` line 417
+  - method `isinstance` line 420
+  - method `from_python` line 444
+  - method `mlir_type` line 459
+- function `cast` line 466
+- class `IntegerMeta` line 501
+  - method `__new__` line 519
+  - method `__str__` line 559
+  - method `is_integer` line 563
+  - method `is_float` line 567
+  - method `zero` line 571
+  - method `min` line 575
+  - method `max` line 582
+  - method `recast_width` line 588
+- class `FloatMeta` line 601
+  - method `__new__` line 621
+  - method `__str__` line 650
+  - method `is_integer` line 654
+  - method `is_float` line 658
+  - method `zero` line 662
+  - method `inf` line 666
+  - method `nan` line 670
+  - method `exponent_width` line 674
+  - method `mantissa_width` line 678
+  - method `recast_width` line 681
+- function `_arith_signless_to_int` line 692
+- function `_binary_op_type_promote` line 706
+- function `_binary_op` line 832
+- class `Numeric` line 931
+  - method `__init__` line 944
+  - method `__str__` line 953
+  - method `__repr__` line 962
+  - method `__hash__` line 965
+  - method `dtype` line 969
+  - method `to` line 973
+  - method `to` line 982
+  - method `to` line 991
+  - method `to` line 1000
+  - method `to` line 1009
+  - method `to` line 1017
+  - method `ir_value` line 1097
+  - method `bitcast` line 1105
+  - method `zero` line 1128
+  - method `__dsl_not__` line 1130
+  - method `__dsl_and__` line 1155
+  - method `__dsl_or__` line 1211
+  - method `__dsl_bool__` line 1259
+  - method `__bool__` line 1280
+  - method `__index__` line 1293
+  - method `__neg__` line 1302
+  - method `__abs__` line 1313
+  - method `_from_python_value` line 1325
+  - method `__add__` line 1348
+  - method `__sub__` line 1358
+  - method `__mul__` line 1368
+  - method `__floordiv__` line 1378
+  - method `__truediv__` line 1390
+  - method `__mod__` line 1402
+  - method `__radd__` line 1412
+  - method `__rsub__` line 1422
+  - method `__rmul__` line 1434
+  - method `__rfloordiv__` line 1444
+  - method `__rtruediv__` line 1456
+  - method `__rmod__` line 1468
+  - method `__eq__` line 1480
+  - method `__ne__` line 1490
+  - method `__lt__` line 1500
+  - method `__le__` line 1510
+  - method `__gt__` line 1520
+  - method `__ge__` line 1530
+  - method `__pow__` line 1540
+  - method `__c_pointers__` line 1549
+  - method `__get_mlir_types__` line 1554
+  - method `from_mlir_type` line 1558
+- function `as_numeric` line 1597
+- class `Integer` line 1618
+  - method `__init__` line 1672
+  - method `__invert__` line 1719
+  - method `__lshift__` line 1728
+  - method `__rlshift__` line 1737
+  - method `__rshift__` line 1749
+  - method `__rrshift__` line 1758
+  - method `__and__` line 1770
+  - method `__rand__` line 1779
+  - method `__or__` line 1788
+  - method `__ror__` line 1797
+  - method `__xor__` line 1806
+  - method `__rxor__` line 1815
+  - method `__tvm_ffi_int__` line 1824
+- class `Float` line 1828
+  - method `__init__` line 1878
+  - method `__tvm_ffi_float__` line 1913
+- class `Boolean` line 1917
+  - method `__init__` line 1949
+  - method `ir_value_int8` line 1972
+  - method `__neg__` line 1994
+- class `Int4` line 2012
+- class `Int8` line 2021
+- class `Int16` line 2024
+- class `Int32` line 2027
+- class `Int64` line 2030
+- class `Int128` line 2033
+- class `Uint8` line 2038
+- class `Uint16` line 2041
+- class `Uint32` line 2046
+- class `Uint64` line 2051
+- class `Uint128` line 2056
+- class `Float64` line 2061
+  - method `__c_pointers__` line 2062
+- class `Float32` line 2071
+  - method `_get_c_pointer` line 2073
+  - method `__c_pointers__` line 2076
+- class `TFloat32` line 2083
+  - method `__c_pointers__` line 2084
+- class `Float16` line 2090
+  - method `_get_c_pointer` line 2092
+  - method `__c_pointers__` line 2102
+- class `BFloat16` line 2108
+  - method `__c_pointers__` line 2109
+- class `Float8E5M2` line 2125
+- class `Float8E4M3FN` line 2128
+- class `Float8E4M3B11FNUZ` line 2131
+- class `Float8E4M3` line 2138
+- class `Float8E8M0FNU` line 2141
+- class `Float4E2M1FN` line 2144
+- class `Float6E3M2FN` line 2147
+- class `Float6E2M3FN` line 2150
+- function `dtype` line 2191
+- class `TensorMeta` line 2206
+  - method `__new__` line 2218
+- class `Constexpr` line 2236
+- class `align` line 2242
+  - method `__new__` line 2243
+  - method `__str__` line 2248
+- class `PointerMeta` line 2252
+  - method `__new__` line 2256
+  - method `__eq__` line 2277
+  - method `__hash__` line 2285
+  - method `__getitem__` line 2288
+  - method `__str__` line 2304
+- class `Pointer` line 2308
+  - method `__init__` line 2319
+  - method `__str__` line 2322
+- class `IRConst` line 2326
+  - method `__init__` line 2329
+- class `IRValue` line 2333
+  - method `__init__` line 2336
+- class `IRVariadic` line 2340
+  - method `__init__` line 2345
+  - method `block_arg_types` line 2351
+  - method `set_func_args` line 2357
+  - method `__len__` line 2366
+- class `FuncArgWithAttr` line 2373
+  - method `__init__` line 2378
+- function `implicitDowncastNumericType` line 2390

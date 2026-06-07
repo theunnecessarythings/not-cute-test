@@ -1,18 +1,115 @@
-//! By convention, root.zig is the root source file when making a package.
-const std = @import("std");
-const Io = std.Io;
+pub const layout = @import("layout.zig");
+pub const tuple = @import("tuple.zig");
+pub const core = @import("core.zig");
+pub const core_static = @import("core_static.zig");
+pub const layout_algebra = @import("layout_algebra.zig");
+pub const basis = @import("basis.zig");
+pub const mlir_text = @import("mlir_text.zig");
+pub const mlir_ops = @import("mlir_ops.zig");
+pub const typing = @import("typing.zig");
+pub const atom = @import("atom.zig");
+pub const nvgpu = @import("nvgpu.zig");
+pub const morphism = @import("morphism.zig");
+pub const runtime = @import("runtime.zig");
+pub const tensor = @import("tensor.zig");
+pub const algorithm = @import("algorithm.zig");
+pub const math = @import("math.zig");
+pub const arch = @import("arch.zig");
+pub const export_ = @import("export.zig");
+pub const jit = @import("jit.zig");
+pub const testing = @import("testing.zig");
+pub const experimental = @import("experimental.zig");
+pub const layout_core = @import("layout_core.zig");
+pub const tensor_ssa = @import("tensor_ssa.zig");
+pub const copy_mma = @import("copy_mma.zig");
+pub const mlir_harness = @import("mlir_harness.zig");
+pub const runtime_plan = @import("runtime_plan.zig");
+pub const examples_api = @import("examples_api.zig");
+pub const cutlass_bridge = @import("cutlass_bridge.zig");
+pub const cutlass_bridge_exec = @import("cutlass_bridge_exec.zig");
+pub const arch_catalog = @import("arch_catalog.zig");
+pub const cutlass_fixtures = @import("cutlass_fixtures.zig");
+pub const cutlass_emit = @import("cutlass_emit.zig");
+pub const cutlass_routed = @import("cutlass_routed.zig");
+pub const tiled_emit = @import("tiled_emit.zig");
+pub const integration_audit = @import("integration_audit.zig");
+pub const api_surface = @import("api_surface.zig");
+pub const arch_exact = @import("arch_exact.zig");
+pub const arch_ops = @import("arch_ops.zig");
+pub const tensor_api = @import("tensor_api.zig");
+pub const atom_api = @import("atom_api.zig");
+pub const arch_nvvm = @import("arch_nvvm.zig");
+pub const runtime_cuda = @import("runtime_cuda.zig");
+pub const compiler_api = @import("compiler_api.zig");
+pub const tree_utils = @import("tree_utils.zig");
+pub const nvgpu_aliases = @import("nvgpu_aliases.zig");
+pub const cute_compat = @import("cute_compat.zig");
+pub const cuda_driver = @import("cuda_driver.zig");
+pub const execution = @import("execution.zig");
+pub const compile_pipeline = @import("compile_pipeline.zig");
+pub const pipeline_verify = @import("pipeline_verify.zig");
+pub const semantics = @import("semantics.zig");
+pub const arch_op_exact = @import("arch_op_exact.zig");
+pub const kernel_modules = @import("kernel_modules.zig");
+pub const kernel_builders = @import("kernel_builders.zig");
+pub const memory_model = @import("memory_model.zig");
+pub const upstream_parity = @import("upstream_parity.zig");
 
-/// This is a documentation comment to explain the `printAnotherMessage` function below.
-///
-/// Accepting an `Io.Writer` instance is a handy way to write reusable code.
-pub fn printAnotherMessage(writer: *Io.Writer) Io.Writer.Error!void {
-    try writer.print("Run `zig build test` to run the tests.\n", .{});
-}
-
-pub fn add(a: i32, b: i32) i32 {
-    return a + b;
-}
-
-test "basic add functionality" {
-    try std.testing.expect(add(3, 7) == 10);
+test {
+    _ = layout;
+    _ = tuple;
+    _ = core;
+    _ = core_static;
+    _ = layout_algebra;
+    _ = basis;
+    _ = mlir_text;
+    _ = mlir_ops;
+    _ = typing;
+    _ = atom;
+    _ = nvgpu;
+    _ = morphism;
+    _ = runtime;
+    _ = tensor;
+    _ = algorithm;
+    _ = math;
+    _ = arch;
+    _ = export_;
+    _ = jit;
+    _ = testing;
+    _ = experimental;
+    _ = layout_core;
+    _ = tensor_ssa;
+    _ = copy_mma;
+    _ = mlir_harness;
+    _ = runtime_plan;
+    _ = examples_api;
+    _ = cutlass_bridge;
+    _ = cutlass_bridge_exec;
+    _ = arch_catalog;
+    _ = cutlass_fixtures;
+    _ = cutlass_emit;
+    _ = cutlass_routed;
+    _ = tiled_emit;
+    _ = integration_audit;
+    _ = api_surface;
+    _ = arch_exact;
+    _ = arch_ops;
+    _ = tensor_api;
+    _ = atom_api;
+    _ = arch_nvvm;
+    _ = runtime_cuda;
+    _ = compiler_api;
+    _ = tree_utils;
+    _ = nvgpu_aliases;
+    _ = cute_compat;
+    _ = cuda_driver;
+    _ = execution;
+    _ = compile_pipeline;
+    _ = pipeline_verify;
+    _ = semantics;
+    _ = arch_op_exact;
+    _ = kernel_modules;
+    _ = kernel_builders;
+    _ = memory_model;
+    _ = upstream_parity;
 }

@@ -1,0 +1,41 @@
+# Porting notes
+
+The project is now organized as a Zig library with stable domain modules. Earlier checkpoint files have been consolidated; transient source names were removed from `src/` and replaced with cohesive module names.
+
+## Design constraints
+
+- Zig-native public API.
+- Zero default dependency on MLIR/CUDA/Python.
+- Textual MLIR generation by default.
+- Optional CUTLASS parser verification through `tools/cutlass_mlir_bridge.py` when `nvidia-cutlass-dsl` is installed.
+- No Python AST/decorator compatibility layer is required for the Zig port.
+
+## Current translation scope
+
+Implemented foundations include layout algebra, textual MLIR construction, type/tensor/SSA descriptors, atom/copy/MMA descriptors, parser-aligned Cute MLIR fixtures, a CUTLASS DSL parser bridge, runtime/export planning metadata, and examples.
+
+This is still not full source parity with the uploaded CuteDSL tree. See `docs/REMAINING_FULL_PORT.md` for the remaining production work.
+
+
+## Runtime execution wiring
+
+The integrated library now includes `cuda_driver.zig` and `execution.zig`. These provide real CUDA Driver API dynamic loading and launch wiring, while leaving actual GPU execution to environments that have CUDA, a generated cubin/fatbin, and the expected symbols available.
+
+## Latest integrated pipeline/API/architecture pass
+
+The library now includes `compile_pipeline.zig`, `pipeline_verify.zig`,
+`semantics.zig`, and `arch_op_exact.zig`. These add CUTLASS bridge artifact
+planning/extraction commands, sharded parser/pipeline verification, deeper
+shape/stride/coordinate semantics, and stricter architecture operation
+validation for cp.async/TMA/WGMMA/tcgen05-style descriptors. See
+`docs/PIPELINE_API_ARCH_IMPLEMENTATION.md`.
+
+
+## Kernel builders and memory model integrated pass
+
+Added `src/kernel_builders.zig` for full-module Zig-native kernel builders and `src/memory_model.zig` for host/device/managed/external buffer ownership, DLPack-like interop, tensor views, and host↔device transfer planning. Build targets: `kernel-builders`, `memory-model`, and `verify-kernel-builders-parse`.
+
+
+## Upstream example parity
+
+The uploaded source archive itself contained no examples/tests directories. The integrated port therefore maps the packaged/upstream CUTLASS CuTeDSL examples present under `examples/python/CuTeDSL`: notebooks plus the FFI tensor example. The Zig ports emit full MLIR modules and golden files; CUDA graph capture remains dry-run because it depends on external CUDA graph runtime integration.
