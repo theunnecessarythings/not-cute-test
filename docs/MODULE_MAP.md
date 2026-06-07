@@ -9,9 +9,9 @@ The repository exposes cohesive library modules. The current source layout is or
 - `src/basis.zig` — ratio, scaled basis, swizzle descriptors.
 - `src/morphism.zig` — finite-set/tuple morphism validation helpers.
 
-## MLIR text and tooling
+## MLIR construction and tooling
 
-- `src/mlir.zig` — textual MLIR builder, CUTLASS/Cute operation catalog, golden text, and structural verifier harness.
+- `src/mlir.zig` — representation-neutral IR construction API, CUTLASS/Cute operation catalog, current textual encoder, golden fixtures, and structural verifier harness.
 
 ## Types, tensors, atoms, and lowering
 

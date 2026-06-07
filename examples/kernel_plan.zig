@@ -14,14 +14,14 @@ pub fn main() !void {
         .grid_x = 80,
     };
 
-    var module: cute.mlir.TextBuffer(32768) = .{};
+    var module: cute.ir.IR.Storage(32768) = .{};
     try cute.kernel_builders.writeKernelModule(&module, options);
     const launch = try options.launchConfig();
     const compile = try options.compileRequest(
         "gemm_mainloop.mlir",
         "zig-cache/not-cute-artifacts/gemm_mainloop",
     );
-    var command: cute.mlir.TextBuffer(4096) = .{};
+    var command: cute.ir.IR.Storage(4096) = .{};
     try cute.compile_pipeline.bridgeCompileCommandText(
         .{ .python_exe = "python3", .bridge_script = "tools/cutlass_mlir_bridge.py" },
         compile,
@@ -39,7 +39,7 @@ pub fn main() !void {
         launch.block.x,
         launch.block.y,
         launch.block.z,
-        command.slice(),
-        module.slice(),
+        command.contents(),
+        module.contents(),
     });
 }

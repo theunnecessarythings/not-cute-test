@@ -12,7 +12,7 @@ The project is now organized as a Zig library with stable domain modules. Earlie
 
 ## Current translation scope
 
-Implemented foundations include layout algebra, textual MLIR construction, type/tensor/SSA descriptors, atom/copy/MMA descriptors, parser-aligned Cute MLIR fixtures, a CUTLASS DSL parser bridge, runtime/export planning metadata, and examples.
+Implemented foundations include layout algebra, representation-agnostic MLIR construction, type/tensor/SSA descriptors, atom/copy/MMA descriptors, parser-aligned Cute MLIR fixtures, a CUTLASS DSL parser bridge, runtime/export planning metadata, and examples. The current backend encodes IR textually, but callers use IR values, types, operations, attributes, and module builders rather than a text-oriented API.
 
 This is still not full source parity with the uploaded CuteDSL tree. See `docs/REMAINING_FULL_PORT.md` for the remaining production work.
 

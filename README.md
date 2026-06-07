@@ -2,7 +2,7 @@
 
 `not-cute` is a Zig-native, zero-default-dependency port of NVIDIA
 CuteDSL/CuTe concepts. It provides static layout algebra, tensor and atom
-descriptors, deterministic textual MLIR generation, compile and launch
+descriptors, deterministic MLIR construction, compile and launch
 planning, CUDA Driver API wiring, and CUTLASS parser fixtures.
 
 The project targets Zig 0.16.0. It is an active port, not a production-complete

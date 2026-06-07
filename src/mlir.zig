@@ -73,6 +73,9 @@ pub const RawValue = struct {
     text: []const u8,
 };
 
+/// Reference to an IR value owned outside the current builder.
+pub const ExternalValue = RawValue;
+
 pub const Operand = union(enum) {
     value: Value,
     raw: RawValue,
@@ -83,6 +86,10 @@ pub const Operand = union(enum) {
 
     pub fn named(text: []const u8) Operand {
         return .{ .raw = .{ .text = text } };
+    }
+
+    pub fn external(name: []const u8) Operand {
+        return named(name);
     }
 
     pub fn writeTo(self: Operand, out: anytype) Error!void {
@@ -134,6 +141,11 @@ pub const Type = struct {
 
     pub fn raw(text: []const u8) Type {
         return .{ .text = text };
+    }
+
+    /// Construct a dialect or application-defined IR type.
+    pub fn custom(representation: []const u8) Type {
+        return .{ .text = representation };
     }
 
     pub fn ptr(comptime address_space: ?u32) Type {
@@ -232,6 +244,10 @@ pub fn TextBuffer(comptime capacity: usize) type {
             return self.bytes[0..self.len];
         }
 
+        pub fn contents(self: *const Self) []const u8 {
+            return self.slice();
+        }
+
         pub fn append(self: *Self, text: []const u8) Error!void {
             if (self.len + text.len > capacity) return Error.OutOfCapacity;
             @memcpy(self.bytes[self.len..][0..text.len], text);
@@ -279,6 +295,11 @@ pub fn TextBuffer(comptime capacity: usize) type {
     };
 }
 
+/// Fixed-capacity storage for an IR artifact or encoded IR fragment.
+pub fn Storage(comptime capacity: usize) type {
+    return TextBuffer(capacity);
+}
+
 pub const OperationSpec = struct {
     name: []const u8,
     operands: []const Operand = &.{},
@@ -288,6 +309,8 @@ pub const OperationSpec = struct {
     /// Emit MLIR generic quoted operation form: `"dialect.op"(...) ...`.
     quoted: bool = false,
 };
+
+pub const Operation = OperationSpec;
 
 pub fn Builder(comptime capacity: usize) type {
     return struct {
@@ -306,6 +329,10 @@ pub fn Builder(comptime capacity: usize) type {
 
         pub fn slice(self: *const Self) []const u8 {
             return self.text.slice();
+        }
+
+        pub fn contents(self: *const Self) []const u8 {
+            return self.slice();
         }
 
         pub fn append(self: *Self, text: []const u8) Error!void {
@@ -339,6 +366,11 @@ pub fn Builder(comptime capacity: usize) type {
             try self.writeIndent();
             try self.append(text);
             try self.newline();
+        }
+
+        /// Insert an operation not yet modeled by the typed builder surface.
+        pub fn instruction(self: *Self, representation: []const u8) Error!void {
+            try self.rawLine(representation);
         }
 
         pub fn beginModule(self: *Self) Error!void {
@@ -405,6 +437,10 @@ pub fn Builder(comptime capacity: usize) type {
                 return Error.UnbalancedRegion;
             try validateBalancedText(self.slice());
             return self.slice();
+        }
+
+        pub fn finalize(self: *Self) Error![]const u8 {
+            return self.finish();
         }
 
         pub fn beginFunc(
@@ -738,6 +774,36 @@ pub fn Builder(comptime capacity: usize) type {
         }
     };
 }
+
+/// Capacity-bounded builder for an MLIR module.
+pub fn ModuleBuilder(comptime capacity: usize) type {
+    return Builder(capacity);
+}
+
+const IrValue = Value;
+const IrOperand = Operand;
+const IrType = Type;
+const IrAttribute = Attribute;
+const IrOperation = Operation;
+const IrValueRange = ValueRange;
+
+/// Canonical representation-neutral entry point for IR construction.
+pub const IR = struct {
+    pub const Value = IrValue;
+    pub const Operand = IrOperand;
+    pub const Type = IrType;
+    pub const Attribute = IrAttribute;
+    pub const Operation = IrOperation;
+    pub const ValueRange = IrValueRange;
+
+    pub fn Storage(comptime capacity: usize) type {
+        return TextBuffer(capacity);
+    }
+
+    pub fn Module(comptime capacity: usize) type {
+        return Builder(capacity);
+    }
+};
 
 pub const arith = struct {
     pub fn constantInt(builder: anytype, value: i128, ty: Type) Error!Value {
