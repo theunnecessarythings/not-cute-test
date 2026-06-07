@@ -1120,3 +1120,5 @@ test "runtime_plan: source finding summary records no cute-opt binary" {
     try sourceFindingCuteOptSummary(&out);
     try std.testing.expect(std.mem.indexOf(u8, out.slice(), "does not contain a standalone cute-opt") != null);
 }
+
+

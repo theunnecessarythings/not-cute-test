@@ -29,6 +29,7 @@ pub const Error = error{
     InvalidTensorType,
     InvalidSharedLibrary,
     InvalidRoutedFixture,
+    InvalidFullTiledFixture,
     InvalidPythonExecutable,
     InvalidPackageModule,
     InvalidDiscoveryJson,

@@ -21,14 +21,14 @@ pub const experimental = @import("experimental.zig");
 pub const layout_core = layout;
 pub const copy_mma = @import("copy_mma.zig");
 pub const cutlass = @import("cutlass.zig");
-pub const tiled_emit = @import("tiled_emit.zig");
+pub const tiled_emit = cutlass;
 pub const tree_utils = @import("tree_utils.zig");
 pub const cute_compat = @import("cute_compat.zig");
 pub const cuda_driver = @import("cuda_driver.zig");
 pub const execution = @import("execution.zig");
 pub const compile_pipeline = @import("compile_pipeline.zig");
 pub const semantics = @import("semantics.zig");
-pub const kernel_modules = @import("kernel_modules.zig");
+pub const kernel_modules = kernel_builders;
 pub const kernel_builders = @import("kernel_builders.zig");
 pub const memory_model = @import("memory_model.zig");
 

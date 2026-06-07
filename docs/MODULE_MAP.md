@@ -36,8 +36,7 @@ The repository exposes cohesive library modules. The current source layout is or
 
 ## CUTLASS bridge and parser-aligned fixtures
 
-- `src/cutlass.zig` — Python bridge planning, parser-aligned emission helpers, and routed generated modules.
-- `src/tiled_emit.zig` — full tiled-copy and tiled-MMA parser fixtures.
+- `src/cutlass.zig` — Python bridge planning, parser-aligned emission helpers, routed generated modules, and full tiled-copy/MMA fixtures.
 
 ## Examples
 
@@ -67,7 +66,7 @@ validation for cp.async/TMA/WGMMA/tcgen05-style descriptors. See
 
 ## Kernel builders and memory model integrated pass
 
-Added `src/kernel_builders.zig` for full-module Zig-native kernel builders and `src/memory_model.zig` for host/device/managed/external buffer ownership, DLPack-like interop, tensor views, and host↔device transfer planning. Build targets: `kernel-builders`, `memory-model`, and `verify-kernel-builders-parse`.
+Added `src/kernel_builders.zig` for full-module Zig-native kernel builders and compile-request helpers, and `src/memory_model.zig` for host/device/managed/external buffer ownership, DLPack-like interop, tensor views, and host↔device transfer planning. Build targets: `kernel-builders`, `memory-model`, and `verify-kernel-builders-parse`.
 
 Development scripts and executable entry points live under `tools/`. They are
 not exported by `src/root.zig`.ot.zig`.
