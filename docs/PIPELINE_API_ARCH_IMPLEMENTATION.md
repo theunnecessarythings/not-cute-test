@@ -26,7 +26,7 @@ phase-named source files:
   - Shape, stride, coordinate, and layout-view semantics.
   - Broadcast compatibility, row/column-major stride generation, linearize/delinearize, subview offsets, tiling math.
 
-- `src/arch_op_exact.zig`
+- `src/arch_validation.zig`
   - Strongly typed SM architecture, element, memory-space, runtime-field, copy, and MMA descriptors.
   - Validation for cp.async, TMA, ldmatrix/stmatrix, WGMMA, and tcgen05-style families.
   - CUTLASS-style MLIR type spelling helpers.
@@ -67,4 +67,4 @@ CUBIN in this sandbox for that toy fixture; real kernel modules and a complete
 CUTLASS runtime environment are still required for production CUBIN emission.
 
 Full-project ReleaseSafe still exceeds the sandbox time budget, but the newly
-added `semantics.zig` and `arch_op_exact.zig` pass direct ReleaseSafe tests.
+added `semantics.zig` and `arch_validation.zig` pass direct ReleaseSafe tests.

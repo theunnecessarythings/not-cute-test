@@ -26,14 +26,14 @@ This Zig project is an integrated work-in-progress, not a full production-equiva
 
 ## Source-derived parity manifests
 
-The current integrated artifact compiles the uploaded CuteDSL API surface into `src/api_surface.zig` and `docs/api_surface_manifest.json`:
+The current integrated artifact compiles the uploaded CuteDSL API surface into `src/api_manifest.zig` and `docs/api_surface_manifest.json`:
 
 - public top-level records: 1327
 - classes: 456
 - functions: 871
 - public Zig name matches: 155
 
-It also compiles the `cute.arch` / `cute.nvgpu` surface into `src/arch_exact.zig` and `docs/arch_nvgpu_manifest.json`:
+It also compiles the `cute.arch` / `cute.nvgpu` surface into `src/arch_manifest.zig` and `docs/arch_nvgpu_manifest.json`:
 
 - arch/nvgpu public records: 380
 - copy records: 96
@@ -46,7 +46,7 @@ These manifests are now part of the Zig test suite. They are used to prevent acc
 
 ## Core/API and architecture constructor status
 
-The integrated library now includes `core.zig` and `arch_ops.zig` as real modules, not audit-only manifests. The API audit increased from 155 to 297 public name matches, with 254 matches inside `cutlass.cute.*`.
+The integrated library includes `core.zig` and `arch_atoms.zig` as executable modules, separate from generated audit manifests.
 
 Remaining parity work is still significant: many runtime, JIT, full tensor, utility, pipeline, scheduler, and architecture-specific edge cases are not yet source-complete.
 ## API closure continuation
@@ -61,7 +61,7 @@ The runtime layer now contains a concrete CUDA Driver API bridge (`cuda_driver.z
 ## Latest integrated pipeline/API/architecture pass
 
 The library now includes `compile_pipeline.zig`, `pipeline_verify.zig`,
-`semantics.zig`, and `arch_op_exact.zig`. These add CUTLASS bridge artifact
+`semantics.zig`, and `arch_validation.zig`. These add CUTLASS bridge artifact
 planning/extraction commands, sharded parser/pipeline verification, deeper
 shape/stride/coordinate semantics, and stricter architecture operation
 validation for cp.async/TMA/WGMMA/tcgen05-style descriptors. See
@@ -77,14 +77,9 @@ Added `src/kernel_builders.zig` for full-module Zig-native kernel builders and `
 
 Implemented records: 9/9 packaged CuTeDSL notebook/FFI examples available in the installed CUTLASS examples tree.
 
-- `hello_world.ipynb` -> `examples/upstream/hello_world.zig`
-- `print.ipynb` -> `examples/upstream/print_values.zig`
-- `data_types.ipynb` -> `examples/upstream/data_types.zig`
-- `cute_layout_algebra.ipynb` -> `examples/upstream/layout_algebra.zig`
-- `tensor.ipynb` -> `examples/upstream/tensor.zig`
-- `tensorssa.ipynb` -> `examples/upstream/tensorssa.zig`
-- `elementwise_add.ipynb` -> `examples/upstream/elementwise_add.zig`
-- `cuda_graphs.ipynb` -> `examples/upstream/cuda_graphs.zig` as dry-run/launch-plan parity
-- `cute/ffi/tensor.cpp` -> `examples/upstream/ffi_tensor.zig`
+The upstream notebook mappings are parity fixtures, not executable Zig
+examples. Their inventory and limitations are documented in
+`docs/UPSTREAM_EXAMPLE_PARITY.md`; generated MLIR lives under
+`testdata/golden/upstream/`.
 
 Each record has a golden MLIR file under `testdata/golden/upstream/` and shape/op-structure expectations in `src/upstream_parity.zig`.

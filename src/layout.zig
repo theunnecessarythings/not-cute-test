@@ -46,7 +46,9 @@ pub fn BoundedList(comptime T: type, comptime capacity: usize) type {
         }
 
         pub fn appendSlice(self: *Self, values: []const T) Error!void {
-            for (values) |item| try self.append(item);
+            if (values.len > capacity - self.len) return Error.OutOfCapacity;
+            @memcpy(self.items[self.len..][0..values.len], values);
+            self.len += values.len;
         }
 
         pub fn clear(self: *Self) void {
@@ -405,30 +407,37 @@ pub const Layout = struct {
     }
 
     pub fn makeCompact(shape: Tree) Error!Self {
-        try shape.assertPositive();
-        const flat = try shape.flattenLeaves();
-        var strides: Flat = .{};
-        var stride_value: Scalar = 1;
-        for (flat.slice()) |extent| {
-            try strides.append(stride_value);
-            stride_value = std.math.mul(Scalar, stride_value, extent) catch return Error.Overflow;
-        }
-        const stride_tree = try Tree.fromProfileAndLeaves(&shape, strides.slice());
-        return init(shape, stride_tree);
+        return makeCompactWithOrder(shape, .left);
     }
 
     pub fn makeCompactRight(shape: Tree) Error!Self {
+        return makeCompactWithOrder(shape, .right);
+    }
+
+    const CompactOrder = enum { left, right };
+
+    fn makeCompactWithOrder(shape: Tree, order: CompactOrder) Error!Self {
         try shape.assertPositive();
         const flat = try shape.flattenLeaves();
         var strides: Flat = .{};
         for (0..flat.len) |_| try strides.append(0);
+
         var stride_value: Scalar = 1;
-        var i = flat.len;
-        while (i > 0) {
-            i -= 1;
-            strides.set(i, stride_value);
-            stride_value = std.math.mul(Scalar, stride_value, flat.at(i)) catch return Error.Overflow;
+        switch (order) {
+            .left => for (0..flat.len) |i| {
+                strides.set(i, stride_value);
+                stride_value = std.math.mul(Scalar, stride_value, flat.at(i)) catch return Error.Overflow;
+            },
+            .right => {
+                var i = flat.len;
+                while (i > 0) {
+                    i -= 1;
+                    strides.set(i, stride_value);
+                    stride_value = std.math.mul(Scalar, stride_value, flat.at(i)) catch return Error.Overflow;
+                }
+            },
         }
+
         const stride_tree = try Tree.fromProfileAndLeaves(&shape, strides.slice());
         return init(shape, stride_tree);
     }
@@ -777,6 +786,13 @@ test "layout: compact construction and coordinate mapping" {
     try std.testing.expectEqual(@as(Scalar, 1 + 2 * 2 + 3 * 6), try l.crd2idxFlat(&.{ 1, 2, 3 }));
 }
 
+test "layout: bounded appendSlice is atomic on overflow" {
+    var list: BoundedList(u8, 3) = .{};
+    try list.append(1);
+    try std.testing.expectError(Error.OutOfCapacity, list.appendSlice(&.{ 2, 3, 4 }));
+    try std.testing.expectEqualSlices(u8, &.{1}, list.slice());
+}
+
 test "layout: hierarchical profile is preserved" {
     const l = makeLayout(.{ 2, .{ 3, 4 } }, .{ 1, .{ 2, 6 } });
     const coord = Tree.fromComptime(.{ 1, .{ 2, 3 } });
@@ -790,6 +806,13 @@ test "layout: coalesce contiguous modes" {
     const c = try l.coalesce();
     try std.testing.expectEqual(@as(usize, 1), c.leafCount());
     try std.testing.expectEqual(@as(Scalar, 23), try c.crd2idxFlat(&.{23}));
+}
+
+test "layout: coalesce removes unit modes" {
+    const l = makeLayout(.{ 1, 2, 1, 3 }, .{ 0, 1, 0, 2 });
+    const c = try l.coalesce();
+    try std.testing.expectEqual(@as(usize, 1), c.leafCount());
+    try std.testing.expectEqual(@as(Unsigned, 6), try c.size());
 }
 
 test "layout: compact inverse coordinate" {

@@ -16,8 +16,6 @@ The repository exposes cohesive library modules. The current source layout is or
 - `src/mlir_text.zig` — allocation-aware textual MLIR builder.
 - `src/mlir_ops.zig` — CUTLASS/Cute-related dialect operation catalog.
 - `src/mlir_harness.zig` — golden text and structural verifier harness.
-- `src/mlir_harness_exec.zig` — external command execution helpers.
-- `src/mlir_harness_cli.zig` — standalone harness CLI.
 
 ## Types, tensors, atoms, and lowering
 
@@ -38,7 +36,6 @@ The repository exposes cohesive library modules. The current source layout is or
 - `src/runtime_plan.zig` — compile/load/launch manifest and command planning.
 - `src/cuda_driver.zig` — real CUDA Driver API ABI, dynamic loader, memory/module/function/launch wrappers.
 - `src/execution.zig` — executable kernel wiring over compile plans, cubins, symbols, argument packs, and launch configs.
-- `src/execution_cli.zig` — dry-run execution manifest CLI.
 - `src/export.zig` — C-header/wrapper/export metadata.
 - `src/jit.zig` — JIT signature/cache/artifact descriptors.
 - `src/testing.zig` — testing/benchmark/autotune helper descriptors.
@@ -48,23 +45,21 @@ The repository exposes cohesive library modules. The current source layout is or
 
 - `src/cutlass_bridge.zig` — Python bridge invocation planning.
 - `src/cutlass_bridge_exec.zig` — optional bridge execution wrapper.
-- `src/cutlass_fixtures.zig` — parser-aligned Cute/CUTLASS MLIR fixtures.
 - `src/cutlass_emit.zig` — parser-aligned tensor/copy/MMA emission helpers.
 - `src/cutlass_routed.zig` — default-routed generated tensor/copy/MMA modules.
 - `src/tiled_emit.zig` — full tiled-copy and tiled-MMA parser fixtures.
-- `src/integration_audit.zig` — placeholder/default-path audit checks.
 
 ## Examples
 
-- `src/examples_api.zig` — example registry and golden text.
-- `src/examples_cli.zig` — examples CLI.
-- `examples/*.zig` — standalone example binaries.
+- `examples/*.zig` — standalone public-API example binaries.
 
 
 ## Core/API architecture pass modules
 
 - `core.zig`: integrated source-named static core API compatibility layer.
-- `arch_ops.zig`: integrated source-named nvgpu/arch copy and MMA constructor layer.
+- `src/arch_atoms.zig` — source-named nvgpu/arch copy and MMA constructors.
+- `src/arch_manifest.zig` — generated upstream architecture inventory.
+- `src/arch_validation.zig` — typed architecture operation validation.
 ## Newly integrated source-name API modules
 
 - `arch_nvvm.zig` — NVVM wrapper intrinsic emission.
@@ -78,9 +73,8 @@ The repository exposes cohesive library modules. The current source layout is or
 
 ## Latest integrated pipeline/API/architecture pass
 
-The library now includes `compile_pipeline.zig`, `pipeline_verify.zig`,
-`semantics.zig`, and `arch_op_exact.zig`. These add CUTLASS bridge artifact
-planning/extraction commands, sharded parser/pipeline verification, deeper
+The library includes `compile_pipeline.zig`, `semantics.zig`, and
+`arch_validation.zig`. These add CUTLASS bridge artifact planning, deeper
 shape/stride/coordinate semantics, and stricter architecture operation
 validation for cp.async/TMA/WGMMA/tcgen05-style descriptors. See
 `docs/PIPELINE_API_ARCH_IMPLEMENTATION.md`.
@@ -90,5 +84,5 @@ validation for cp.async/TMA/WGMMA/tcgen05-style descriptors. See
 
 Added `src/kernel_builders.zig` for full-module Zig-native kernel builders and `src/memory_model.zig` for host/device/managed/external buffer ownership, DLPack-like interop, tensor views, and host↔device transfer planning. Build targets: `kernel-builders`, `memory-model`, and `verify-kernel-builders-parse`.
 
-- `src/upstream_parity.zig`: upstream CuTeDSL example/test parity inventory, Zig example mappings, expected op/shape structure, and golden MLIR generation.
-- `src/upstream_parity_cli.zig`: CLI for parity report/JSON/MLIR output.
+Development scripts and executable entry points live under `tools/`. They are
+not exported by `src/root.zig`.

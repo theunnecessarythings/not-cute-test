@@ -9,7 +9,7 @@ This file is generated from the uploaded CuteDSL source tree and the current Zig
 - functions: 871
 - public Zig name matches: 155
 
-The complete machine-readable manifest is in `docs/api_surface_manifest.json` and is compiled into `src/api_surface.zig`. A name match is not a semantic implementation claim; it is a guardrail that prevents the port from hiding missing public APIs.
+The complete machine-readable manifest is in `docs/api_surface_manifest.json` and is compiled into `src/api_manifest.zig`. A name match is not a semantic implementation claim; it is a guardrail that prevents the port from hiding missing public APIs.
 
 ## Architecture/nvgpu inventory
 
@@ -21,7 +21,7 @@ The complete machine-readable manifest is in `docs/api_surface_manifest.json` an
 - records with extracted validation rules: 23
 - records with extracted MLIR type factory names: 57
 
-The complete machine-readable manifest is in `docs/arch_nvgpu_manifest.json` and is compiled into `src/arch_exact.zig`.
+The complete machine-readable manifest is in `docs/arch_nvgpu_manifest.json` and is compiled into `src/arch_manifest.zig`.
 
 ## Status
 

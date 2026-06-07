@@ -52,6 +52,7 @@ pub const Error = tensor.Error || layout_core.Error || cutlass_emit.Error || err
     InvalidVectorOrder,
     InvalidVectorSlice,
     InvalidVectorRank,
+    UnsupportedMaskedMemoryOperation,
 };
 
 /// Concrete tensor metadata used by Zig-native front-end code.
@@ -275,6 +276,7 @@ pub const TensorValue = struct {
         try checkVectorLoadStore(self.meta);
         if (mask) |m| try validateMaskShape(self.meta.layout_value.shape, m.shape_value);
         if (pass_thru) |p| try expectSameShape(self.meta.layout_value.shape, p.shape_value);
+        if (mask != null or pass_thru != null) return Error.UnsupportedMaskedMemoryOperation;
 
         const memory_dtype = memoryNumeric(self.meta.dtype);
         var memory_vec_ty: mlir.TextBuffer(128) = .{};
@@ -294,6 +296,7 @@ pub const TensorValue = struct {
         try checkVectorLoadStore(self.meta);
         try expectSameShape(self.meta.layout_value.shape, data.shape_value);
         if (mask) |m| try validateMaskShape(self.meta.layout_value.shape, m.shape_value);
+        if (mask != null) return Error.UnsupportedMaskedMemoryOperation;
         const memory_dtype = memoryNumeric(self.meta.dtype);
         try checkNarrowStoreAlignment(memory_dtype, self.meta.layout_value.shape);
         const casted = try data.castTo(builder, memory_dtype);
@@ -1559,6 +1562,22 @@ test "tensor_ssa: TensorValue emits scalar load and vector store" {
     try tv.store(&b, data, null);
     try std.testing.expect(std.mem.indexOf(u8, b.slice(), "cute.memref.load") != null);
     try std.testing.expect(std.mem.indexOf(u8, b.slice(), "cute.memref.store_vec") != null);
+}
+
+test "tensor_ssa: masked vector memory operations fail explicitly" {
+    var b: mlir.Builder(4096) = .{};
+    const shape = Tree.fromComptime(.{4});
+    const lay = layout.makeLayout(.{4}, .{1});
+    const ptr = try runtime.Pointer.init(0x2000, typing.Float32, .gmem, null);
+    const meta = try makePointerTensor(ptr, lay);
+    const tv = TensorValue.init(meta, mlir.Value.arg(0), "!cute.memref<f32>");
+    const zero = try b.constantF(0.0, mlir.Type.f(32));
+    const flag = try b.constantI(1, mlir.Type.i(1));
+    const data = try SsaTensor.full(&b, shape, typing.Float32, .{ .value = zero });
+    const mask = try SsaTensor.full(&b, shape, typing.Boolean, .{ .value = flag });
+
+    try std.testing.expectError(Error.UnsupportedMaskedMemoryOperation, tv.load(&b, mask, data));
+    try std.testing.expectError(Error.UnsupportedMaskedMemoryOperation, tv.store(&b, data, mask));
 }
 
 test "tensor_ssa: SSA tensor arithmetic cast reshape bitcast where reduce" {

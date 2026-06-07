@@ -14,7 +14,7 @@ that it can be validated in this non-GPU sandbox:
 3. **Semantic implementation depth** was expanded in `semantics.zig` with product
    scans, coordinate iteration, compactness/cosize checks, coordinate splitting,
    local-tile base-offset calculation, and logical/flat divide shape helpers.
-4. **Architecture exactness** was expanded in `arch_op_exact.zig` with typed
+4. **Architecture validation** was expanded in `arch_validation.zig` with typed
    constructors and validations for universal copy, cp.async CG/CA, TMA load/store,
    ldmatrix/stmatrix, tcgen05 load/store, SM80 MMA, SM89 FP8 MMA, SM90 WGMMA,
    and SM100 tcgen05 MMA-style descriptors.

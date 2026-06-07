@@ -24,7 +24,7 @@ The integrated library now includes `cuda_driver.zig` and `execution.zig`. These
 ## Latest integrated pipeline/API/architecture pass
 
 The library now includes `compile_pipeline.zig`, `pipeline_verify.zig`,
-`semantics.zig`, and `arch_op_exact.zig`. These add CUTLASS bridge artifact
+`semantics.zig`, and `arch_validation.zig`. These add CUTLASS bridge artifact
 planning/extraction commands, sharded parser/pipeline verification, deeper
 shape/stride/coordinate semantics, and stricter architecture operation
 validation for cp.async/TMA/WGMMA/tcgen05-style descriptors. See

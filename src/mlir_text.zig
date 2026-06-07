@@ -516,7 +516,7 @@ pub fn Builder(comptime capacity: usize) type {
             for (spec.operand_types) |ty| try validateTypeText(ty.text);
             for (spec.result_types) |ty| try validateTypeText(ty.text);
 
-            const range = self.freshRange(spec.result_types.len);
+            const range = try self.freshRange(spec.result_types.len);
             try self.writeResultPrefixFor(spec.result_types, if (spec.result_types.len == 0) 0 else range.values[0].id);
             if (spec.quoted) try self.append("\"");
             try self.append(spec.name);
@@ -550,7 +550,9 @@ pub fn Builder(comptime capacity: usize) type {
         pub fn call(self: *Self, callee: []const u8, operands: []const Operand, operand_types: []const Type, result_types: []const Type) Error!ValueRange {
             try validateSymbol(callee);
             if (operands.len != operand_types.len) return Error.RankMismatch;
-            const range = self.freshRange(result_types.len);
+            for (operand_types) |ty| try validateTypeText(ty.text);
+            for (result_types) |ty| try validateTypeText(ty.text);
+            const range = try self.freshRange(result_types.len);
             try self.writeResultPrefixFor(result_types, if (result_types.len == 0) 0 else range.values[0].id);
             try self.append("func.call @");
             try self.append(callee);
@@ -568,7 +570,8 @@ pub fn Builder(comptime capacity: usize) type {
             return result;
         }
 
-        pub fn freshRange(self: *Self, len: usize) ValueRange {
+        pub fn freshRange(self: *Self, len: usize) Error!ValueRange {
+            if (len > max_results) return Error.TooManyResults;
             var result: ValueRange = .{};
             result.len = len;
             if (len == 0) return result;
@@ -781,7 +784,7 @@ pub const llvm = struct {
         side_effects: bool,
     ) Error!ValueRange {
         if (operands.len != operand_types.len) return Error.RankMismatch;
-        const range = builder.freshRange(result_types.len);
+        const range = try builder.freshRange(result_types.len);
         try builder.writeResultPrefixFor(result_types, if (result_types.len == 0) 0 else range.values[0].id);
         try builder.append("llvm.inline_asm ");
         try builder.text.appendQuotedString(asm_string);
@@ -1062,6 +1065,17 @@ test "mlir_text: multi-result generic op uses MLIR result group syntax" {
         \\
     ;
     try std.testing.expectEqualStrings(expected, b.slice());
+}
+
+test "mlir_text: every result-producing path enforces max_results" {
+    var b: Builder(2048) = .{};
+    const too_many = [_]Type{Type.i(1)} ** (max_results + 1);
+    try std.testing.expectError(Error.TooManyResults, b.freshRange(too_many.len));
+    try std.testing.expectError(
+        Error.TooManyResults,
+        b.call("callee", &.{}, &.{}, &too_many),
+    );
+    try std.testing.expectEqual(@as(usize, 0), b.next_value);
 }
 
 test "mlir_text: GPU module, cute op, and cuda pipeline" {

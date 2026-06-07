@@ -15,7 +15,7 @@ This integrated pass converts the previous API/architecture audit into additiona
     - `basis.zig`
     - `typing.zig`
 
-- `src/arch_ops.zig`
+- `src/arch_atoms.zig`
   - Typed, source-named constructor layer for common `cute.arch` / `cute.nvgpu` operations.
   - Provides dispatch by upstream source class name for copy and MMA operation families.
   - Wraps the existing `nvgpu.zig` and `atom.zig` descriptor implementation.
@@ -40,7 +40,7 @@ The implementation is static/Zig-native. Dynamic Python AST behavior is not part
 
 ## Architecture/nvgpu constructors added
 
-`arch_ops.zig` adds explicit constructors and dispatch for commonly used upstream families:
+`arch_atoms.zig` adds explicit constructors and dispatch for commonly used upstream families:
 
 - MMA:
   - `MmaUniversalOp`

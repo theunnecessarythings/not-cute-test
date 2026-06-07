@@ -4,7 +4,7 @@ const typing = @import("typing.zig");
 const atom = @import("atom.zig");
 const nvgpu = @import("nvgpu.zig");
 const arch_catalog = @import("arch_catalog.zig");
-const arch_exact = @import("arch_exact.zig");
+const arch_manifest = @import("arch_manifest.zig");
 
 pub const Error = nvgpu.Error || atom.Error || typing.Error || error{
     UnsupportedArch,
@@ -293,12 +293,12 @@ pub fn Cp2x64x128b0123Op(config: CopyConfig) Error!atom.CopyAtom {
 }
 
 pub fn countExactArchRecords() usize {
-    return arch_exact.source_arch_record_count;
+    return arch_manifest.source_arch_record_count;
 }
 
 pub fn countConstructibleRecords() usize {
     var count: usize = 0;
-    for (arch_exact.records) |record| {
+    for (arch_manifest.records) |record| {
         if (makeKind(record.name) != null) count += 1;
     }
     return count;

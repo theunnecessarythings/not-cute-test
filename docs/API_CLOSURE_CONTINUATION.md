@@ -12,7 +12,7 @@ real descriptors, MLIR builders, runtime plans, and tensor/layout types.
 - `runtime_cuda.zig`: CUDA runtime descriptor API mirroring the Python runtime names while keeping this Zig library driver-free by default.
 - `compiler_api.zig`: source-name compile option and compiler descriptor API.
 - `tree_utils.zig`: PyTree/tree utility compatibility layer over Zig layout trees.
-- `nvgpu_aliases.zig`: source-derived nvgpu/arch operation aliases connected to `arch_exact.zig` records.
+- `nvgpu_aliases.zig`: source-derived nvgpu/arch operation aliases connected to `arch_manifest.zig` records.
 - `cute_compat.zig`: remaining `cutlass.cute.*` source-name wrappers, including tuple/core/runtime/testing/export/experimental pipeline names.
 
 ## API audit movement

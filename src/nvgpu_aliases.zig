@@ -1,13 +1,13 @@
 const std = @import("std");
-const arch_exact = @import("arch_exact.zig");
-const arch_ops = @import("arch_ops.zig");
+const arch_manifest = @import("arch_manifest.zig");
+const arch_atoms = @import("arch_atoms.zig");
 
-pub const OpRecord = arch_exact.OpRecord;
-pub const MmaConfig = arch_ops.MmaConfig;
-pub const CopyConfig = arch_ops.CopyConfig;
+pub const OpRecord = arch_manifest.OpRecord;
+pub const MmaConfig = arch_atoms.MmaConfig;
+pub const CopyConfig = arch_atoms.CopyConfig;
 
 pub fn findOp(name: []const u8) ?OpRecord {
-    for (arch_exact.records) |r| if (std.mem.eql(u8, r.name, name)) return r;
+    for (arch_manifest.records) |r| if (std.mem.eql(u8, r.name, name)) return r;
     return null;
 }
 

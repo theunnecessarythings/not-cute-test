@@ -1,5 +1,36 @@
 const std = @import("std");
 
+const ExampleSpec = struct {
+    source: []const u8,
+    name: []const u8,
+};
+
+fn addExamples(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    build_options: *std.Build.Step.Options,
+    library_module: *std.Build.Module,
+    parent_step: *std.Build.Step,
+    specs: []const ExampleSpec,
+) void {
+    for (specs) |spec| {
+        const module = b.createModule(.{
+            .root_source_file = b.path(spec.source),
+            .target = target,
+            .optimize = optimize,
+        });
+        module.addOptions("build_options", build_options);
+        module.addImport("not_cute", library_module);
+
+        const executable = b.addExecutable(.{
+            .name = spec.name,
+            .root_module = module,
+        });
+        parent_step.dependOn(&b.addInstallArtifact(executable, .{}).step);
+    }
+}
+
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
@@ -34,228 +65,30 @@ pub fn build(b: *std.Build) void {
     });
     b.installArtifact(lib);
 
-    const cli_mod = b.createModule(.{
-        .root_source_file = b.path("src/mlir_harness_cli.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    cli_mod.addOptions("build_options", build_options);
-    const cli = b.addExecutable(.{
-        .name = "not-cute-mlir-harness",
-        .root_module = cli_mod,
-    });
-    const install_cli = b.addInstallArtifact(cli, .{});
-    const harness_step = b.step("harness", "Build and install the MLIR harness CLI");
-    harness_step.dependOn(&install_cli.step);
+    const examples_step = b.step("examples", "Build and install standalone API examples");
 
-    const runtime_plan_cli_mod = b.createModule(.{
-        .root_source_file = b.path("src/runtime_plan_cli.zig"),
-        .target = target,
-        .optimize = optimize,
+    addExamples(b, target, optimize, build_options, mod, examples_step, &.{
+        .{ .source = "examples/layout_demo.zig", .name = "layout_demo" },
+        .{ .source = "examples/tensor_demo.zig", .name = "tensor_demo" },
+        .{ .source = "examples/copy_demo.zig", .name = "copy_demo" },
+        .{ .source = "examples/mma_demo.zig", .name = "mma_demo" },
+        .{ .source = "examples/kernel_plan.zig", .name = "kernel_plan" },
     });
-    runtime_plan_cli_mod.addOptions("build_options", build_options);
-    const runtime_plan_cli = b.addExecutable(.{
-        .name = "not-cute-runtime-plan",
-        .root_module = runtime_plan_cli_mod,
-    });
-    const install_runtime_plan_cli = b.addInstallArtifact(runtime_plan_cli, .{});
-    const runtime_plan_step = b.step("runtime-plan", "Build and install the runtime/export planning CLI");
-    runtime_plan_step.dependOn(&install_runtime_plan_cli.step);
 
-    const examples_cli_mod = b.createModule(.{
-        .root_source_file = b.path("src/examples_cli.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    examples_cli_mod.addOptions("build_options", build_options);
-    const examples_cli = b.addExecutable(.{
-        .name = "not-cute-examples",
-        .root_module = examples_cli_mod,
-    });
-    const install_examples_cli = b.addInstallArtifact(examples_cli, .{});
-    const examples_step = b.step("examples", "Build and install example CLI and standalone examples");
-    examples_step.dependOn(&install_examples_cli.step);
-
-    const cutlass_bridge_cli_mod = b.createModule(.{
-        .root_source_file = b.path("src/cutlass_bridge_cli.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    cutlass_bridge_cli_mod.addOptions("build_options", build_options);
-    const cutlass_bridge_cli = b.addExecutable(.{
-        .name = "not-cute-cutlass-bridge",
-        .root_module = cutlass_bridge_cli_mod,
-    });
-    const install_cutlass_bridge_cli = b.addInstallArtifact(cutlass_bridge_cli, .{});
-    const cutlass_bridge_step = b.step("cutlass-bridge", "Build and install the CUTLASS MLIR bridge CLI");
-    cutlass_bridge_step.dependOn(&install_cutlass_bridge_cli.step);
-
-    const cutlass_fixtures_cli_mod = b.createModule(.{
-        .root_source_file = b.path("src/cutlass_fixtures_cli.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    cutlass_fixtures_cli_mod.addOptions("build_options", build_options);
-    const cutlass_fixtures_cli = b.addExecutable(.{
-        .name = "not-cute-cutlass-fixtures",
-        .root_module = cutlass_fixtures_cli_mod,
-    });
-    const install_cutlass_fixtures_cli = b.addInstallArtifact(cutlass_fixtures_cli, .{});
-    const cutlass_fixtures_step = b.step("cutlass-fixtures", "Build and install the CUTLASS parser fixture CLI");
-    cutlass_fixtures_step.dependOn(&install_cutlass_fixtures_cli.step);
-
-    const cutlass_emit_cli_mod = b.createModule(.{
-        .root_source_file = b.path("src/cutlass_emit_cli.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    cutlass_emit_cli_mod.addOptions("build_options", build_options);
-    const cutlass_emit_cli = b.addExecutable(.{
-        .name = "not-cute-cutlass-emission",
-        .root_module = cutlass_emit_cli_mod,
-    });
-    const install_cutlass_emit_cli = b.addInstallArtifact(cutlass_emit_cli, .{});
-    const cutlass_emission_step = b.step("cutlass-emission", "Build and install the CUTLASS parser-aligned emission CLI");
-    cutlass_emission_step.dependOn(&install_cutlass_emit_cli.step);
-
-    const cutlass_routed_cli_mod = b.createModule(.{
-        .root_source_file = b.path("src/cutlass_routed_cli.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    cutlass_routed_cli_mod.addOptions("build_options", build_options);
-    const cutlass_routed_cli = b.addExecutable(.{
-        .name = "not-cute-cutlass-routed",
-        .root_module = cutlass_routed_cli_mod,
-    });
-    const install_cutlass_routed_cli = b.addInstallArtifact(cutlass_routed_cli, .{});
-    const cutlass_routed_step = b.step("cutlass-routed", "Build and install the routed CUTLASS emission CLI");
-    cutlass_routed_step.dependOn(&install_cutlass_routed_cli.step);
-
-    const tiled_emit_cli_mod = b.createModule(.{
-        .root_source_file = b.path("src/tiled_emit_cli.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    tiled_emit_cli_mod.addOptions("build_options", build_options);
-    const tiled_emit_cli = b.addExecutable(.{
-        .name = "not-cute-cutlass-full-tiled",
-        .root_module = tiled_emit_cli_mod,
-    });
-    const install_tiled_emit_cli = b.addInstallArtifact(tiled_emit_cli, .{});
-    const cutlass_full_tiled_step = b.step("cutlass-full-tiled", "Build and install the full tiled copy/MMA CUTLASS fixture CLI");
-    cutlass_full_tiled_step.dependOn(&install_tiled_emit_cli.step);
-
-    const api_audit_cli_mod = b.createModule(.{
-        .root_source_file = b.path("src/api_audit_cli.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    api_audit_cli_mod.addOptions("build_options", build_options);
-    const api_audit_cli = b.addExecutable(.{
-        .name = "not-cute-api-audit",
-        .root_module = api_audit_cli_mod,
-    });
-    const install_api_audit_cli = b.addInstallArtifact(api_audit_cli, .{});
-    const api_audit_step = b.step("api-audit", "Build and install the API/architecture audit CLI");
-    api_audit_step.dependOn(&install_api_audit_cli.step);
-
-    const execution_cli_mod = b.createModule(.{
-        .root_source_file = b.path("src/execution_cli.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    execution_cli_mod.addOptions("build_options", build_options);
-    const execution_cli = b.addExecutable(.{
-        .name = "not-cute-exec",
-        .root_module = execution_cli_mod,
-    });
-    const install_execution_cli = b.addInstallArtifact(execution_cli, .{});
-    const exec_step = b.step("exec", "Build and install the CUDA execution wiring CLI");
-    exec_step.dependOn(&install_execution_cli.step);
-
-    const compile_pipeline_cli_mod = b.createModule(.{
-        .root_source_file = b.path("src/compile_pipeline_cli.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    compile_pipeline_cli_mod.addOptions("build_options", build_options);
-    const compile_pipeline_cli = b.addExecutable(.{
-        .name = "not-cute-compile-pipeline",
-        .root_module = compile_pipeline_cli_mod,
-    });
-    const install_compile_pipeline_cli = b.addInstallArtifact(compile_pipeline_cli, .{});
-    const compile_pipeline_step = b.step("compile-pipeline", "Build and install the CUTLASS compile-pipeline planning CLI");
-    compile_pipeline_step.dependOn(&install_compile_pipeline_cli.step);
-
-    const pipeline_verify_cli_mod = b.createModule(.{
-        .root_source_file = b.path("src/pipeline_verify_cli.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    pipeline_verify_cli_mod.addOptions("build_options", build_options);
-    const pipeline_verify_cli = b.addExecutable(.{
-        .name = "not-cute-pipeline-verify",
-        .root_module = pipeline_verify_cli_mod,
-    });
-    const install_pipeline_verify_cli = b.addInstallArtifact(pipeline_verify_cli, .{});
-    const pipeline_verify_step = b.step("pipeline-verify", "Build and install the sharded CUTLASS verifier CLI");
-    pipeline_verify_step.dependOn(&install_pipeline_verify_cli.step);
-
-    const integration_audit_cli_mod = b.createModule(.{
-        .root_source_file = b.path("src/integration_audit_cli.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    integration_audit_cli_mod.addOptions("build_options", build_options);
-    const integration_audit_cli = b.addExecutable(.{
-        .name = "not-cute-audit",
-        .root_module = integration_audit_cli_mod,
-    });
-    const install_integration_audit_cli = b.addInstallArtifact(integration_audit_cli, .{});
-    const audit_step = b.step("audit", "Build and install the integration audit CLI");
-    audit_step.dependOn(&install_integration_audit_cli.step);
-
-    const launch_cli_mod = b.createModule(.{
-        .root_source_file = b.path("src/launch_cli.zig"),
+    const launch_module = b.createModule(.{
+        .root_source_file = b.path("tools/launch.zig"),
         .target = target,
         .optimize = optimize,
         .link_libc = true,
     });
-    launch_cli_mod.addOptions("build_options", build_options);
-    const launch_cli = b.addExecutable(.{
+    launch_module.addImport("not_cute", mod);
+    const launch_executable = b.addExecutable(.{
         .name = "not-cute-launch",
-        .root_module = launch_cli_mod,
+        .root_module = launch_module,
     });
-    const install_launch_cli = b.addInstallArtifact(launch_cli, .{});
-    const launch_step = b.step("launch", "Build and install the CUDA launch CLI");
-    launch_step.dependOn(&install_launch_cli.step);
-
-    const example_sources = [_][]const u8{
-        "examples/layout_demo.zig",
-        "examples/tensor_demo.zig",
-        "examples/copy_demo.zig",
-        "examples/mma_demo.zig",
-        "examples/gemm_skeleton.zig",
-    };
-    const example_names = [_][]const u8{
-        "layout_demo",
-        "tensor_demo",
-        "copy_demo",
-        "mma_demo",
-        "gemm_skeleton",
-    };
-    for (example_sources, example_names) |source, name| {
-        const ex_mod = b.createModule(.{
-            .root_source_file = b.path(source),
-            .target = target,
-            .optimize = optimize,
-        });
-        ex_mod.addOptions("build_options", build_options);
-        ex_mod.addImport("not_cute", mod);
-        const ex = b.addExecutable(.{ .name = name, .root_module = ex_mod });
-        examples_step.dependOn(&b.addInstallArtifact(ex, .{}).step);
-    }
+    const launch_install = b.addInstallArtifact(launch_executable, .{});
+    const launch_step = b.step("launch", "Build and install the CUDA launch tool");
+    launch_step.dependOn(&launch_install.step);
 
     const test_mod = b.createModule(.{
         .root_source_file = b.path("src/root.zig"),
@@ -404,37 +237,6 @@ pub fn build(b: *std.Build) void {
     });
     verify_cutlass_kernel_cubin_step.dependOn(&run_kernel_cubin.step);
 
-    const compile_artifact_plan_step = b.step("compile-artifact-plan", "Build compile pipeline CLI and print artifact plan command");
-    compile_artifact_plan_step.dependOn(&install_compile_pipeline_cli.step);
-
-    const kernel_builders_cli_mod = b.createModule(.{
-        .root_source_file = b.path("src/kernel_builders_cli.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    kernel_builders_cli_mod.addOptions("build_options", build_options);
-    const kernel_builders_cli = b.addExecutable(.{
-        .name = "not-cute-kernel-builders",
-        .root_module = kernel_builders_cli_mod,
-    });
-    const install_kernel_builders_cli = b.addInstallArtifact(kernel_builders_cli, .{});
-    const kernel_builders_step = b.step("kernel-builders", "Build and install kernel builder CLI");
-    kernel_builders_step.dependOn(&install_kernel_builders_cli.step);
-
-    const memory_model_cli_mod = b.createModule(.{
-        .root_source_file = b.path("src/memory_model_cli.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    memory_model_cli_mod.addOptions("build_options", build_options);
-    const memory_model_cli = b.addExecutable(.{
-        .name = "not-cute-memory-model",
-        .root_module = memory_model_cli_mod,
-    });
-    const install_memory_model_cli = b.addInstallArtifact(memory_model_cli, .{});
-    const memory_model_step = b.step("memory-model", "Build and install memory model CLI");
-    memory_model_step.dependOn(&install_memory_model_cli.step);
-
     const verify_kernel_builders_parse_step = b.step("verify-kernel-builders-parse", "Run CUTLASS parser checks for generated kernel-builder fixtures");
     for ([_][]const u8{
         "testdata/cutlass/kernel_builders/copy_kernel.mlir",
@@ -449,54 +251,6 @@ pub fn build(b: *std.Build) void {
     }) |case_path| {
         const run = b.addSystemCommand(&.{ cutlass_python_path, cutlass_bridge_script, "parse", "--input", case_path });
         verify_kernel_builders_parse_step.dependOn(&run.step);
-    }
-
-    const upstream_parity_cli_mod = b.createModule(.{
-        .root_source_file = b.path("src/upstream_parity_cli.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    upstream_parity_cli_mod.addOptions("build_options", build_options);
-    const upstream_parity_cli = b.addExecutable(.{
-        .name = "not-cute-upstream-parity",
-        .root_module = upstream_parity_cli_mod,
-    });
-    const install_upstream_parity_cli = b.addInstallArtifact(upstream_parity_cli, .{});
-    const upstream_parity_step = b.step("upstream-parity", "Build and install upstream CuTeDSL example parity CLI");
-    upstream_parity_step.dependOn(&install_upstream_parity_cli.step);
-
-    const upstream_example_sources = [_][]const u8{
-        "examples/upstream/hello_world.zig",
-        "examples/upstream/print_values.zig",
-        "examples/upstream/data_types.zig",
-        "examples/upstream/layout_algebra.zig",
-        "examples/upstream/tensor.zig",
-        "examples/upstream/tensorssa.zig",
-        "examples/upstream/elementwise_add.zig",
-        "examples/upstream/cuda_graphs.zig",
-        "examples/upstream/ffi_tensor.zig",
-    };
-    const upstream_example_names = [_][]const u8{
-        "upstream_hello_world",
-        "upstream_print_values",
-        "upstream_data_types",
-        "upstream_layout_algebra",
-        "upstream_tensor",
-        "upstream_tensorssa",
-        "upstream_elementwise_add",
-        "upstream_cuda_graphs",
-        "upstream_ffi_tensor",
-    };
-    for (upstream_example_sources, upstream_example_names) |source, name| {
-        const ex_mod = b.createModule(.{
-            .root_source_file = b.path(source),
-            .target = target,
-            .optimize = optimize,
-        });
-        ex_mod.addOptions("build_options", build_options);
-        ex_mod.addImport("not_cute", mod);
-        const ex = b.addExecutable(.{ .name = name, .root_module = ex_mod });
-        upstream_parity_step.dependOn(&b.addInstallArtifact(ex, .{}).step);
     }
 
     const verify_upstream_parity_parse_step = b.step("verify-upstream-parity-parse", "Run CUTLASS parser checks for upstream parity golden MLIR");

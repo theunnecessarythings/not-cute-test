@@ -1,7 +1,6 @@
 const std = @import("std");
 const mlir = @import("mlir_text.zig");
-const arch_exact = @import("arch_exact.zig");
-const arch_ops = @import("arch_ops.zig");
+const arch_manifest = @import("arch_manifest.zig");
 
 pub const Error = mlir.Error || error{
     UnsupportedArchitecture,
@@ -234,12 +233,12 @@ pub const ExactOpSummary = struct {
         var copy_count: usize = 0;
         var mma_count: usize = 0;
         var rule_count: usize = 0;
-        for (arch_exact.records) |r| {
+        for (arch_manifest.records) |r| {
             if (std.mem.indexOf(u8, r.name, "Copy") != null or std.mem.indexOf(u8, r.name, "copy") != null) copy_count += 1;
             if (std.mem.indexOf(u8, r.name, "Mma") != null or std.mem.indexOf(u8, r.name, "mma") != null or std.mem.indexOf(u8, r.name, "MMA") != null) mma_count += 1;
             if (r.rule_len != 0) rule_count += 1;
         }
-        return .{ .manifest_records = arch_exact.records.len, .copy_records = copy_count, .mma_records = mma_count, .source_exact_rules = rule_count };
+        return .{ .manifest_records = arch_manifest.records.len, .copy_records = copy_count, .mma_records = mma_count, .source_exact_rules = rule_count };
     }
 };
 

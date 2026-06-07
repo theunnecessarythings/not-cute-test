@@ -1,159 +1,87 @@
 # not-cute
 
-A Zig-native, zero-default-dependency porting work-in-progress for NVIDIA CuteDSL/CuTe concepts.
+`not-cute` is a Zig-native, zero-default-dependency port of NVIDIA
+CuteDSL/CuTe concepts. It provides static layout algebra, tensor and atom
+descriptors, deterministic textual MLIR generation, compile and launch
+planning, CUDA Driver API wiring, and CUTLASS parser fixtures.
 
-This repository is organized as a usable Zig library with domain modules. The public surface is grouped by domain:
+The project targets Zig 0.16.0. It is an active port, not a production-complete
+CuteDSL replacement.
 
-- `layout`, `tuple`, `layout_algebra`, `layout_core`, `basis`, `morphism`
-- `mlir_text`, `mlir_ops`, `mlir_harness`
-- `typing`, `tensor`, `tensor_ssa`
-- `atom`, `nvgpu`, `arch`, `arch_catalog`
-- `copy_mma`, `algorithm`, `math`
-- `runtime`, `runtime_plan`, `export_`, `jit`, `testing`, `experimental`
-- `cutlass_bridge`, `cutlass_fixtures`, `cutlass_emit`, `cutlass_routed`, `tiled_emit`, `integration_audit`
-
-The library defaults to Zig-only tests and deterministic textual MLIR generation. CUTLASS/MLIR validation is optional and uses an external Python bridge when `nvidia-cutlass-dsl` is installed.
-
-## Build
+## Quick start
 
 ```sh
-python3 -m pip install ziglang
-python3 -m ziglang fmt --check build.zig src/*.zig examples/*.zig
-python3 -m ziglang build test --summary all
-python3 -m ziglang build examples harness runtime-plan --summary all
+zig fmt --check build.zig src/*.zig examples/*.zig
+zig build test --summary all
+zig build examples --summary all
 ```
 
-Current local validation for this integrated artifact:
+The `examples` step installs standalone programs that call the public APIs.
 
-```text
-161/161 Debug tests passed
-examples build passed
-harness/runtime-plan/exec/CUTLASS helper CLIs build passed
-```
+## Library layout
 
+The public library is exposed from `src/root.zig` and grouped into:
 
-## Runtime execution wiring
+- layout and tuple algebra
+- MLIR text construction and verification
+- tensor, atom, copy, and MMA descriptors
+- architecture operation catalogs and validation
+- kernel builders and memory models
+- compilation, runtime, export, and CUDA execution planning
+- CUTLASS bridge, fixture, and parity tooling
 
-This revision adds `src/cuda_driver.zig` and `src/execution.zig` for real CUDA Driver API dynamic loading, cubin/module loading, function lookup, argument packing, `cuLaunchKernel` orchestration, execution manifests, and generated C wrappers. Actual GPU launch is intentionally not validated in this sandbox, but the code path is compiled, unit-tested, and exposed through:
+See [docs/MODULE_MAP.md](docs/MODULE_MAP.md) for the module inventory and
+[docs/API_SURFACE.md](docs/API_SURFACE.md) for the compatibility surface.
+
+## Build targets
+
+List all available targets with:
 
 ```sh
-python3 -m ziglang build exec --summary all
-./zig-out/bin/not-cute-exec
+zig build --help
 ```
 
-See `docs/RUNTIME_EXECUTION_WIRING.md`.
+Common targets include:
 
-## Optional CUTLASS parser bridge
+```sh
+zig build test
+zig build examples
+zig build launch
+```
 
-Install the real CUTLASS DSL package:
+## Optional CUTLASS validation
+
+CUTLASS validation requires Python and `nvidia-cutlass-dsl`:
 
 ```sh
 python3 -m pip install nvidia-cutlass-dsl
 python3 tools/cutlass_mlir_bridge.py discover --json
+zig build verify-cutlass-parse -Dcutlass-python=python3
+zig build verify-cutlass-pipeline -Dcutlass-python=python3
 ```
 
-Then run parser checks, either individually:
+Artifact compilation additionally depends on a compatible local CUDA/CUTLASS
+toolchain:
 
 ```sh
-python3 tools/cutlass_mlir_bridge.py parse --input testdata/cutlass/cutlass_routed_tensor_vector.mlir
-python3 tools/cutlass_mlir_bridge.py parse --input testdata/cutlass/tiled_emit_full_tiled_copy.mlir
-python3 tools/cutlass_mlir_bridge.py parse --input testdata/cutlass/tiled_emit_full_tiled_mma.mlir
+zig build verify-cutlass-kernel-cubin -Dcutlass-python=python3
 ```
 
-or through build targets:
+## Runtime boundary
 
-```sh
-python3 -m ziglang build verify-cutlass-tensor -Dcutlass-python=python3
-python3 -m ziglang build verify-cutlass-copy -Dcutlass-python=python3
-python3 -m ziglang build verify-cutlass-mma -Dcutlass-python=python3
-python3 -m ziglang build verify-cutlass-negative -Dcutlass-python=python3
-```
+`src/cuda_driver.zig` dynamically loads the CUDA Driver API.
+`src/execution.zig` handles module loading, function lookup, argument packing,
+and `cuLaunchKernel` orchestration. These paths compile and have unit coverage,
+but actual GPU execution depends on the host CUDA installation and hardware.
 
-## Module map
+See [docs/RUNTIME_EXECUTION_WIRING.md](docs/RUNTIME_EXECUTION_WIRING.md).
 
-See `docs/MODULE_MAP.md` for the integrated source layout.
+## Port status
 
-## Current honesty boundary
+Current gaps and compatibility limits are tracked in
+[docs/REMAINING_FULL_PORT.md](docs/REMAINING_FULL_PORT.md). Upstream example
+coverage is documented in
+[docs/UPSTREAM_EXAMPLE_PARITY.md](docs/UPSTREAM_EXAMPLE_PARITY.md).
 
-This is **not** a full production-complete CuteDSL replacement. It is an integrated Zig library containing the work so far: layout algebra, textual MLIR construction, atoms/traits, tensor/SSA descriptors, copy/MMA lowering descriptors, runtime/export planning, examples, CUTLASS parser bridge, and parser-aligned Cute MLIR fixtures.
-
-Remaining work is tracked in `docs/REMAINING_FULL_PORT.md`. Major gaps include real `cute-to-nvvm` pass-pipeline success for generated kernels, CUDA module loading/launch, exhaustive source API parity, exact architecture-specific op validation/lowering, and upstream-scale regression coverage.
-
-## API and architecture audit
-
-The integrated library now includes source-derived API and architecture manifests generated from the uploaded CuteDSL tree:
-
-- `src/api_surface.zig` / `docs/api_surface_manifest.json`
-- `src/arch_exact.zig` / `docs/arch_nvgpu_manifest.json`
-- `zig build api-audit` builds `not-cute-api-audit` for quick count checks.
-
-This is intentionally a parity guardrail, not a claim that every Python behavior has been reimplemented. It makes missing API and arch-op behavior explicit and testable inside the Zig package.
-
-
-## Integrated core/API and architecture coverage
-
-This revision adds real integrated modules rather than phase checkpoints:
-
-- `src/core.zig` for source-named static `cutlass.cute.core` layout/tuple helpers.
-- `src/arch_ops.zig` for typed `cute.arch` / `cute.nvgpu` copy and MMA constructors.
-- `src/api_surface.zig` regenerated against the updated public Zig names.
-
-Current API audit:
-
-```text
-source_public_records=1327
-zig_name_matches=297
-implemented_cute_records=254
-cute_records=721
-arch_nvgpu_records=380
-```
-
-Run:
-
-```sh
-python3 -m ziglang build test --summary all
-python3 -m ziglang build api-audit --summary all
-./zig-out/bin/not-cute-api-audit
-```
-## Latest integrated API closure pass
-
-The current artifact adds source-name compatibility modules for NVVM wrappers, tensor/atom APIs, CUDA runtime descriptors, compiler options, tree utilities, nvgpu aliases, and remaining `cutlass.cute.*` wrappers. The API audit now reports 841 / 1,327 public source-name matches and 721 / 721 `cutlass.cute.*` name matches. See `docs/API_CLOSURE_CONTINUATION.md`.
-
-## Latest integrated pipeline/API/architecture pass
-
-The library now includes `compile_pipeline.zig`, `pipeline_verify.zig`,
-`semantics.zig`, and `arch_op_exact.zig`. These add CUTLASS bridge artifact
-planning/extraction commands, sharded parser/pipeline verification, deeper
-shape/stride/coordinate semantics, and stricter architecture operation
-validation for cp.async/TMA/WGMMA/tcgen05-style descriptors. See
-`docs/PIPELINE_API_ARCH_IMPLEMENTATION.md`.
-
-## CUTLASS compile artifact path
-
-The integrated bridge now supports real `cute-to-nvvm` artifact extraction for a
-kernel-shaped fixture.  With `nvidia-cutlass-dsl` installed, run:
-
-```sh
-python3 -m ziglang build verify-cutlass-kernel-cubin --summary all
-```
-
-The target compiles `testdata/cutlass/kernel_tiled_copy.mlir` through the CUTLASS
-DSL `PassManager` and requires the dumped CUBIN artifact.  Runtime CUDA launch is
-still a separate environment-dependent step.
-
-
-## Kernel builders and memory model integrated pass
-
-Added `src/kernel_builders.zig` for full-module Zig-native kernel builders and `src/memory_model.zig` for host/device/managed/external buffer ownership, DLPack-like interop, tensor views, and host↔device transfer planning. Build targets: `kernel-builders`, `memory-model`, and `verify-kernel-builders-parse`.
-
-
-## Upstream example parity
-
-The library now includes `src/upstream_parity.zig`, `examples/upstream/*.zig`, and `testdata/golden/upstream/*.mlir`. These map the packaged CUTLASS CuTeDSL notebooks and FFI tensor example into Zig-native examples with parser-checked MLIR goldens. Build with:
-
-```sh
-python3 -m ziglang build upstream-parity
-python3 -m ziglang build verify-upstream-parity-parse -j1
-```
-
-`cuda_graphs` is represented as a launch/dry-run parity example because real CUDA graph capture requires an external framework/runtime stream.
+For the validation commands used on the current tree, see
+[VALIDATION.md](VALIDATION.md).

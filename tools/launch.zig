@@ -1,7 +1,8 @@
 const std = @import("std");
-const runtime = @import("runtime.zig");
-const runtime_plan = @import("runtime_plan.zig");
-const execution = @import("execution.zig");
+const cute = @import("not_cute");
+const runtime = cute.runtime;
+const runtime_plan = cute.runtime_plan;
+const execution = cute.execution;
 
 fn stderr(message: []const u8) void {
     _ = std.os.linux.write(2, message.ptr, message.len);

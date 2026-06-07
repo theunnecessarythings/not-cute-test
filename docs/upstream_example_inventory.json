@@ -2,14 +2,14 @@
   "source": "NVIDIA CUTLASS examples/python/CuTeDSL plus uploaded CuTeDSL library tree",
   "uploaded_tree_examples": 0,
   "records": [
-    {"name": "hello_world", "upstream_path": "examples/python/CuTeDSL/notebooks/hello_world.ipynb", "zig_path": "examples/upstream/hello_world.zig", "golden_path": "testdata/golden/upstream/hello_world.mlir", "status": "ported_parser_checked"},
-    {"name": "print", "upstream_path": "examples/python/CuTeDSL/notebooks/print.ipynb", "zig_path": "examples/upstream/print_values.zig", "golden_path": "testdata/golden/upstream/print_values.mlir", "status": "ported_parser_checked"},
-    {"name": "data_types", "upstream_path": "examples/python/CuTeDSL/notebooks/data_types.ipynb", "zig_path": "examples/upstream/data_types.zig", "golden_path": "testdata/golden/upstream/data_types.mlir", "status": "ported_parser_checked"},
-    {"name": "cute_layout_algebra", "upstream_path": "examples/python/CuTeDSL/notebooks/cute_layout_algebra.ipynb", "zig_path": "examples/upstream/layout_algebra.zig", "golden_path": "testdata/golden/upstream/layout_algebra.mlir", "status": "ported_parser_checked"},
-    {"name": "tensor", "upstream_path": "examples/python/CuTeDSL/notebooks/tensor.ipynb", "zig_path": "examples/upstream/tensor.zig", "golden_path": "testdata/golden/upstream/tensor.mlir", "status": "ported_parser_checked"},
-    {"name": "tensorssa", "upstream_path": "examples/python/CuTeDSL/notebooks/tensorssa.ipynb", "zig_path": "examples/upstream/tensorssa.zig", "golden_path": "testdata/golden/upstream/tensorssa.mlir", "status": "ported_parser_checked"},
-    {"name": "elementwise_add", "upstream_path": "examples/python/CuTeDSL/notebooks/elementwise_add.ipynb", "zig_path": "examples/upstream/elementwise_add.zig", "golden_path": "testdata/golden/upstream/elementwise_add.mlir", "status": "ported_parser_checked"},
-    {"name": "cuda_graphs", "upstream_path": "examples/python/CuTeDSL/notebooks/cuda_graphs.ipynb", "zig_path": "examples/upstream/cuda_graphs.zig", "golden_path": "testdata/golden/upstream/cuda_graphs.mlir", "status": "ported_dry_run"},
-    {"name": "ffi_tensor", "upstream_path": "examples/python/CuTeDSL/cute/ffi/tensor.cpp", "zig_path": "examples/upstream/ffi_tensor.zig", "golden_path": "testdata/golden/upstream/ffi_tensor.mlir", "status": "ported_parser_checked"}
+    {"name": "hello_world", "upstream_path": "examples/python/CuTeDSL/notebooks/hello_world.ipynb", "golden_path": "testdata/golden/upstream/hello_world.mlir", "status": "ported_parser_checked"},
+    {"name": "print", "upstream_path": "examples/python/CuTeDSL/notebooks/print.ipynb", "golden_path": "testdata/golden/upstream/print_values.mlir", "status": "ported_parser_checked"},
+    {"name": "data_types", "upstream_path": "examples/python/CuTeDSL/notebooks/data_types.ipynb", "golden_path": "testdata/golden/upstream/data_types.mlir", "status": "ported_parser_checked"},
+    {"name": "cute_layout_algebra", "upstream_path": "examples/python/CuTeDSL/notebooks/cute_layout_algebra.ipynb", "golden_path": "testdata/golden/upstream/layout_algebra.mlir", "status": "ported_parser_checked"},
+    {"name": "tensor", "upstream_path": "examples/python/CuTeDSL/notebooks/tensor.ipynb", "golden_path": "testdata/golden/upstream/tensor.mlir", "status": "ported_parser_checked"},
+    {"name": "tensorssa", "upstream_path": "examples/python/CuTeDSL/notebooks/tensorssa.ipynb", "golden_path": "testdata/golden/upstream/tensorssa.mlir", "status": "ported_parser_checked"},
+    {"name": "elementwise_add", "upstream_path": "examples/python/CuTeDSL/notebooks/elementwise_add.ipynb", "golden_path": "testdata/golden/upstream/elementwise_add.mlir", "status": "ported_parser_checked"},
+    {"name": "cuda_graphs", "upstream_path": "examples/python/CuTeDSL/notebooks/cuda_graphs.ipynb", "golden_path": "testdata/golden/upstream/cuda_graphs.mlir", "status": "ported_dry_run"},
+    {"name": "ffi_tensor", "upstream_path": "examples/python/CuTeDSL/cute/ffi/tensor.cpp", "golden_path": "testdata/golden/upstream/ffi_tensor.mlir", "status": "ported_parser_checked"}
   ]
 }
