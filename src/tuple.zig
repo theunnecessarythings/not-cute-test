@@ -3,11 +3,7 @@ const layout = @import("layout.zig");
 
 pub const Scalar = layout.Scalar;
 pub const Unsigned = layout.Unsigned;
-pub const Error = layout.Error || error{
-    PredicateArityUnsupported,
-    NonCongruentArguments,
-    DivisionByZero,
-};
+pub const Error = layout.Error || error{ DivisionByZero, PredicateArityUnsupported, UnsupportedDynamicOperation };
 
 pub const Tree = layout.Tree;
 pub const Flat = layout.Flat;

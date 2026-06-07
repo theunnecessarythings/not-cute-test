@@ -1,10 +1,9 @@
 const std = @import("std");
-const mlir = @import("mlir_text.zig");
-const mlir_harness = @import("mlir_harness.zig");
-const cutlass_emit = @import("cutlass_emit.zig");
-const cutlass_routed = @import("cutlass_routed.zig");
+const mlir = @import("mlir.zig");
+const mlir_harness = @import("mlir.zig");
+const cutlass = @import("cutlass.zig");
 
-pub const Error = mlir_harness.Error || cutlass_emit.Error || cutlass_routed.Error || error{InvalidFullTiledFixture};
+pub const Error = mlir.Error || cutlass.Error || error{InvalidFullTiledFixture};
 
 pub const FullTiledFixtureKind = enum {
     tiled_copy_full,
@@ -19,7 +18,7 @@ pub const FullTiledFixture = struct {
     pub fn validate(self: FullTiledFixture) Error!void {
         if (self.name.len == 0 or self.mlir_text.len == 0)
             return Error.InvalidFullTiledFixture;
-        try mlir_harness.validateGeneratedMlir(self.mlir_text);
+        try mlir.validateGeneratedMlir(self.mlir_text);
         if (std.mem.indexOf(u8, self.mlir_text, "!cute.tensor") != null)
             return Error.InvalidFullTiledFixture;
         if (std.mem.indexOf(u8, self.mlir_text, "cute.tiled_copy_") != null)

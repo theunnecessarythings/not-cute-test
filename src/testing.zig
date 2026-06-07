@@ -1,5 +1,5 @@
 const std = @import("std");
-const mlir = @import("mlir_text.zig");
+const mlir = @import("mlir.zig");
 const runtime = @import("runtime.zig");
 const tensor = @import("tensor.zig");
 

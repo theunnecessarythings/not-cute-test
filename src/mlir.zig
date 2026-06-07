@@ -1,22 +1,34 @@
-const std = @import("std");
+const atom = @import("atom.zig");
+const copy_mma = @import("copy_mma.zig");
 const layout = @import("layout.zig");
-const ops = @import("mlir_ops.zig");
-
-pub const mlir_ops = ops;
-pub const max_results = 16;
+const build_options = @import("build_options");
+const runtime = @import("runtime.zig");
+const std = @import("std");
+const tensor = @import("tensor.zig");
+const typing = @import("typing.zig");
 
 pub const Error = layout.Error || error{
-    InvalidMlirIdentifier,
-    InvalidMlirType,
+    EmptyCase,
+    GoldenMismatch,
     InvalidMlirAttribute,
-    InvalidMlirString,
+    InvalidMlirIdentifier,
     InvalidMlirOperation,
-    TooManyResults,
-    UnterminatedString,
-    UnbalancedRegion,
-    RegionUnderflow,
+    InvalidMlirString,
+    InvalidMlirType,
+    InvalidToolConfig,
+    MissingExpectedDiagnostic,
     MissingTerminator,
+    NegativeTestUnexpectedSuccess,
+    RegionUnderflow,
+    TooManyArguments,
+    TooManyResults,
+    ToolFailed,
+    ToolNotConfigured,
+    UnbalancedRegion,
+    UnterminatedString,
 };
+
+pub const max_results = 16;
 
 pub const Value = struct {
     id: usize = 0,
@@ -1336,4 +1348,533 @@ test "mlir_text: validation catches malformed names and unbalanced text" {
         Error.UnbalancedRegion,
         validateBalancedText("module {"),
     );
+}
+
+/// Source-grounded MLIR dialect operation inventory.
+///
+/// This is intentionally a registry of textual operation spelling, not generated
+/// bindings.  The uploaded CuteDSL tree imports generated Python MLIR bindings
+/// from `cutlass._mlir`; those bindings are not part of the source archive and
+/// would violate the requested zero-dependency direction.  The Zig port therefore
+/// records the dialect/op names used by the Python code and emits them as text.
+pub const Dialect = enum {
+    arith,
+    builtin,
+    cf,
+    cuda,
+    cute,
+    cute_nvgpu,
+    func,
+    gpu,
+    lir,
+    llvm,
+    math,
+    nvgpu,
+    nvvm,
+    scf,
+    vector,
+};
+
+pub const KnownOp = struct {
+    dialect: Dialect,
+    name: []const u8,
+
+    pub fn fullName(self: KnownOp, out: anytype) !void {
+        try out.append(@tagName(self.dialect));
+        try out.append(".");
+        try out.append(self.name);
+    }
+};
+
+pub const arith_ops = [_][]const u8{
+    "constant", "addi",       "addf",      "subi",   "subf",   "muli",     "mulf",       "divui",        "divsi",
+    "divf",     "floordivsi", "ceildivsi", "remui",  "remsi",  "remf",     "andi",       "ori",          "xori",
+    "shli",     "shrui",      "shrsi",     "cmpi",   "cmpf",   "select",   "index_cast", "index_castui", "extui",
+    "extsi",    "trunci",     "extf",      "truncf", "sitofp", "uitofp",   "fptosi",     "fptoui",       "bitcast",
+    "negf",     "minsi",      "minui",     "maxsi",  "maxui",  "minimumf", "maximumf",
+};
+
+pub const math_ops = [_][]const u8{
+    "absf", "absi",  "acos", "asin",  "atan",  "atan2", "ceil",  "copysign", "cos",  "ctpop",
+    "erf",  "exp",   "exp2", "floor", "fpowi", "gcd",   "ipowi", "log",      "log2", "log10",
+    "powf", "rsqrt", "sin",  "sqrt",  "tan",   "tanh",
+};
+
+pub const builtin_ops = [_][]const u8{
+    "module", "unrealized_conversion_cast",
+};
+
+pub const func_ops = [_][]const u8{
+    "func", "return", "call",
+};
+
+pub const gpu_ops = [_][]const u8{
+    "module", "container_module", "binary", "global",    "launch",   "launch_func", "printf",
+    "return", "sync",             "wait",   "thread_id", "block_id", "grid_dim",    "block_dim",
+};
+
+pub const vector_ops = [_][]const u8{
+    "broadcast",     "bitcast",        "constant_mask", "extract",       "extractelement",       "extract_strided_slice",
+    "from_elements", "gather",         "insert",        "insertelement", "insert_strided_slice", "multi_reduction",
+    "reduction",     "scatter",        "shape_cast",    "shuffle",       "splat",                "to_elements",
+    "transfer_read", "transfer_write",
+};
+
+pub const llvm_ops = [_][]const u8{
+    "addrspacecast", "alloca",  "and",  "bitcast",       "br",       "call",         "cond_br",    "extractelement",
+    "extractvalue",  "fptrunc", "func", "getelementptr", "global",   "icmp",         "inline_asm", "insertvalue",
+    "inttoptr",      "load",    "mul",  "or",            "ptrtoint", "return",       "sitofp",     "store",
+    "trunc",         "urem",    "xor",  "addressof",     "constant", "global_dtors", "undef",      "zero",
+    "poison",
+};
+
+pub const scf_ops = [_][]const u8{
+    "for", "if", "while", "condition", "execute_region", "yield",
+};
+
+pub const cf_ops = [_][]const u8{
+    "assert", "br", "cond_br",
+};
+
+pub const nvvm_ops = [_][]const u8{
+    "barrier",                  "barrier0",               "barrier_arrive",        "bar_warp_sync",         "cp_async_bulk_commit_group",
+    "cp_async_bulk_wait_group", "cp_async_commit_group",  "cp_async_wait_group",   "cluster_arrive",        "cluster_arrive_relaxed",
+    "cluster_wait",             "elect_sync",             "fence_acq_rel_cta",     "fence_acq_rel_cluster", "fence_acq_rel_gpu",
+    "fence_acq_rel_sys",        "fence_proxy",            "fma_packed_f32x2",      "match_sync",            "mapa",
+    "mbarrier_init_shared",     "mbarrier_txn",           "prefetch",              "read.ptx.sreg.clock",   "read.ptx.sreg.clock64",
+    "read.ptx.sreg.ctaid.x",    "read.ptx.sreg.ctaid.y",  "read.ptx.sreg.ctaid.z", "read.ptx.sreg.laneid",  "read.ptx.sreg.nctaid.x",
+    "read.ptx.sreg.nctaid.y",   "read.ptx.sreg.nctaid.z", "read.ptx.sreg.ntid.x",  "read.ptx.sreg.ntid.y",  "read.ptx.sreg.ntid.z",
+    "read.ptx.sreg.smid",       "read.ptx.sreg.tid.x",    "read.ptx.sreg.tid.y",   "read.ptx.sreg.tid.z",   "redux_sync",
+    "setmaxregister",           "shfl.sync",              "store",                 "load",                  "tcgen05_commit",
+    "tcgen05_wait",             "vote_ballot_sync",       "vote_sync",
+};
+
+pub const cuda_ops = [_][]const u8{
+    "cast",                   "kernel",                           "launch_cfg_create",      "launch_cfg_programmatic_stream_serialization_allowed",
+    "launch_cfg_cluster_dim", "launch_cfg_preferred_cluster_dim", "launch_cfg_cooperative", "launch_ex",
+    "return",                 "return_if_error",
+};
+
+pub const cute_ops = [_][]const u8{
+    "assume",           "blocked_product",       "complement",          "copy",               "cosize",             "deref_arith_tuple_iter",
+    "elem_less",        "equal",                 "filter",              "filter_zeros",       "flat_product",       "gemm",
+    "get_iter",         "get_layout",            "get_leaves",          "get_shape",          "inttoptr",           "is_static",
+    "logical_product",  "make_arith_tuple_iter", "make_atom",           "make_coord",         "make_fragment_like", "make_identity_tensor",
+    "make_int_tuple",   "make_layout",           "make_layout_like",    "make_shape",         "make_stride",        "make_tensor",
+    "make_tile",        "make_view",             "memref_alloca",       "memref_load",        "memref_load_vec",    "memref_store",
+    "memref_store_vec", "mma_make_fragment",     "pack_coord",          "pack_int_tuple",     "pack_shape",         "pack_stride",
+    "pack_tile",        "prefetch",              "prepend_to_rank",     "print_view",         "raked_product",      "slice",
+    "static",           "tile_to_shape",         "tiled_mma_partition", "tiled_product",      "tuple_add",          "tuple_div",
+    "tuple_mod",        "tuple_mul",             "tuple_product",       "tuple_product_each", "tuple_sub",          "zipped_product",
+};
+
+pub const cute_nvgpu_ops = [_][]const u8{
+    "arch_alloc_smem",                     "arch_get_dyn_smem",                 "arch_get_dyn_smem_size",                  "arch_make_warp_uniform",
+    "arch_sm100_alloc_tmem",               "arch_sm100_dealloc_tmem",           "arch_sm100_relinquish_tmem_alloc_permit", "arch_sm100_retrieve_tmem_ptr",
+    "atom_get_copy_s2t_smem_desc_view",    "atom_get_value",                    "atom_make_exec_tma",                      "atom_make_non_exec_im2col_tma_load",
+    "atom_make_non_exec_im2col_tma_store", "atom_make_non_exec_tiled_tma_load", "atom_make_non_exec_tiled_tma_reduce",     "atom_make_non_exec_tiled_tma_store",
+    "atom_make_s2t_copy",                  "atom_make_tmem_copy",               "atom_set_value",                          "atom_tma_partition",
+    "copy_tma_desc",                       "get_default_tma_format",            "make_tmem_layout_sfa",                    "make_tmem_layout_sfb",
+    "make_umma_smem_desc",                 "prefetch_tma_desc",                 "tile_to_mma_shape",                       "update_tma_desc",
+};
+
+pub const lir_ops = [_][]const u8{
+    "allocate_buffer",            "copy",                  "create_circular_buffer_pipeline", "create_circular_buffer_pipeline_state",
+    "create_pipeline",            "create_pipeline_state", "create_pipeline_with_mask",       "dot",
+    "dot_block_scaled",           "func",                  "get_mbarrier",                    "get_pipeline_consume_stage",
+    "get_pipeline_produce_stage", "mbarrier_expect_tx",    "partition",                       "pipeline_advance_iterator",
+    "producer_acquire",           "producer_commit",       "producer_try_acquire",            "consumer_release",
+    "consumer_tail",              "consumer_try_wait",     "consumer_wait",                   "return",
+    "simt_auto_vec_copy",         "tma_load",              "tma_load_multicast",              "tma_store",
+};
+
+fn table(dialect: Dialect) []const []const u8 {
+    return switch (dialect) {
+        .arith => &arith_ops,
+        .builtin => &builtin_ops,
+        .cf => &cf_ops,
+        .cuda => &cuda_ops,
+        .cute => &cute_ops,
+        .cute_nvgpu => &cute_nvgpu_ops,
+        .func => &func_ops,
+        .gpu => &gpu_ops,
+        .lir => &lir_ops,
+        .llvm => &llvm_ops,
+        .math => &math_ops,
+        .nvgpu => &[_][]const u8{},
+        .nvvm => &nvvm_ops,
+        .scf => &scf_ops,
+        .vector => &vector_ops,
+    };
+}
+
+pub fn isKnown(dialect: Dialect, name: []const u8) bool {
+    for (table(dialect)) |candidate| {
+        if (std.mem.eql(u8, candidate, name)) return true;
+    }
+    return false;
+}
+
+pub fn isKnownFullName(full_name: []const u8) bool {
+    const dot = std.mem.indexOfScalar(u8, full_name, '.') orelse return false;
+    const prefix = full_name[0..dot];
+    const suffix = full_name[dot + 1 ..];
+    inline for (@typeInfo(Dialect).@"enum".fields) |field| {
+        if (std.mem.eql(u8, prefix, field.name)) {
+            return isKnown(@enumFromInt(field.value), suffix);
+        }
+    }
+    return false;
+}
+
+test "mlir_ops: source-grounded registry recognizes major CuteDSL ops" {
+    try std.testing.expect(isKnown(.cute, "make_layout"));
+    try std.testing.expect(isKnown(.cute, "tile_to_shape"));
+    try std.testing.expect(isKnown(.cute_nvgpu, "atom_make_exec_tma"));
+    try std.testing.expect(isKnown(.arith, "cmpi"));
+    try std.testing.expect(isKnown(.nvvm, "shfl.sync"));
+    try std.testing.expect(isKnown(.lir, "tma_load"));
+    try std.testing.expect(!isKnown(.cute, "not_a_real_cute_op"));
+}
+
+pub const layout_case_mlir =
+    \\module {
+    \\  func.func @layout_case() {
+    \\    %0 = cute.make_shape() : () -> !cute.shape<"(2,3)">
+    \\    %1 = cute.make_stride() : () -> !cute.stride<"(3,1)">
+    \\    %2 = cute.make_layout(%0, %1) : !cute.layout<"(2,3):(3,1)">
+    \\    return
+    \\  }
+    \\}
+    \\
+;
+
+pub const tensor_case_mlir =
+    \\module {
+    \\  func.func @tensor_case(%arg0: !cute.memref<f32, gmem, align<16>, "(4):(1)">, %arg1: vector<4xf32>) {
+    \\    %0 = cute.memref.load_vec(%arg0) : (!cute.memref<f32, gmem, align<16>, "(4):(1)">) -> vector<4xf32>
+    \\    %1 = arith.addf %0, %arg1 : vector<4xf32>
+    \\    cute.memref.store_vec(%1, %arg0) : (vector<4xf32>, !cute.memref<f32, gmem, align<16>, "(4):(1)">) -> ()
+    \\    return
+    \\  }
+    \\}
+    \\
+;
+
+pub const copy_case_mlir =
+    \\module {
+    \\  func.func @copy_case(%arg0: !cute.memref<f32, gmem, align<16>, "(1):(1)">, %arg1: !cute.memref<f32, gmem, align<16>, "(1):(1)">) {
+    \\    %atom = cute.make_atom() : () -> !cute_nvgpu.atom.universal_copy<f32, 32 b>
+    \\    cute.copy_atom_call(%atom, %arg0, %arg1) : (!cute_nvgpu.atom.universal_copy<f32, 32 b>, !cute.memref<f32, gmem, align<16>, "(1):(1)">, !cute.memref<f32, gmem, align<16>, "(1):(1)">) -> ()
+    \\    return
+    \\  }
+    \\}
+    \\
+;
+
+pub const mma_case_mlir =
+    \\module {
+    \\  func.func @mma_case(%arg0: !cute.memref<f32, generic, "(1):(1)">, %arg1: !cute.memref<f32, generic, "(1):(1)">, %arg2: !cute.memref<f32, generic, "(1):(1)">, %arg3: !cute.memref<f32, generic, "(1):(1)">) {
+    \\    %atom = cute.make_atom() : () -> !cute_nvgpu.atom.universal_fma<1x1x1, (f32, f32) -> f32 >
+    \\    cute.mma_atom_call(%atom, %arg3, %arg0, %arg1, %arg2) : (!cute_nvgpu.atom.universal_fma<1x1x1, (f32, f32) -> f32 >, !cute.memref<f32, generic, "(1):(1)">, !cute.memref<f32, generic, "(1):(1)">, !cute.memref<f32, generic, "(1):(1)">, !cute.memref<f32, generic, "(1):(1)">) -> ()
+    \\    return
+    \\  }
+    \\}
+    \\
+;
+
+pub const ToolKind = enum {
+    cute_opt,
+    mlir_opt,
+    filecheck,
+    custom,
+};
+
+pub const MlirCaseKind = enum {
+    layout,
+    tensor,
+    copy,
+    mma,
+    negative,
+};
+
+pub const ToolConfig = struct {
+    cute_opt: []const u8 = build_options.cute_opt_path,
+    mlir_opt: []const u8 = build_options.mlir_opt_path,
+    filecheck: []const u8 = build_options.filecheck_path,
+    enable_external_tools: bool = build_options.enable_mlir_tools,
+    assume_tools_present: bool = build_options.assume_mlir_tools_present,
+    max_output_bytes: usize = 1 << 20,
+
+    pub fn pathFor(
+        self: ToolConfig,
+        kind: ToolKind,
+        custom_path: ?[]const u8,
+    ) Error![]const u8 {
+        return switch (kind) {
+            .cute_opt => self.cute_opt,
+            .mlir_opt => self.mlir_opt,
+            .filecheck => self.filecheck,
+            .custom => custom_path orelse Error.InvalidToolConfig,
+        };
+    }
+
+    pub fn shouldRunExternal(self: ToolConfig) bool {
+        return self.enable_external_tools or self.assume_tools_present;
+    }
+};
+
+pub const Invocation = struct {
+    argv: [32][]const u8 = undefined,
+    argc: usize = 0,
+
+    pub fn init() Invocation {
+        return .{};
+    }
+
+    pub fn append(self: *Invocation, arg: []const u8) Error!void {
+        if (self.argc >= self.argv.len) return Error.TooManyArguments;
+        self.argv[self.argc] = arg;
+        self.argc += 1;
+    }
+
+    pub fn args(self: *const Invocation) []const []const u8 {
+        return self.argv[0..self.argc];
+    }
+
+    pub fn writeShell(self: *const Invocation, out: anytype) !void {
+        for (self.args(), 0..) |arg, i| {
+            if (i != 0) try out.append(" ");
+            try appendShellQuoted(out, arg);
+        }
+    }
+};
+
+pub const GoldenCase = struct {
+    name: []const u8,
+    kind: MlirCaseKind,
+    mlir_text: []const u8,
+    expect_failure: bool = false,
+    expected_diagnostic: ?[]const u8 = null,
+};
+
+pub fn expectGolden(actual: []const u8, expected: []const u8) Error!void {
+    if (!std.mem.eql(u8, actual, expected)) return Error.GoldenMismatch;
+}
+
+pub fn expectContains(haystack: []const u8, needle: []const u8) Error!void {
+    if (std.mem.indexOf(u8, haystack, needle) == null)
+        return Error.MissingExpectedDiagnostic;
+}
+
+pub fn validateGeneratedMlir(text: []const u8) Error!void {
+    if (text.len == 0) return Error.EmptyCase;
+    try validateBalancedText(text);
+    try expectContains(text, "module");
+}
+
+pub fn cuteOptVerifyInvocation(
+    config: ToolConfig,
+    input_path: []const u8,
+) Error!Invocation {
+    var inv = Invocation.init();
+    try inv.append(try config.pathFor(.cute_opt, null));
+    try inv.append("--verify-diagnostics");
+    try inv.append(input_path);
+    return inv;
+}
+
+pub fn cuteOptPipelineInvocation(
+    config: ToolConfig,
+    input_path: []const u8,
+    output_path: []const u8,
+    pipeline: []const u8,
+) Error!Invocation {
+    var inv = Invocation.init();
+    try inv.append(try config.pathFor(.cute_opt, null));
+    try inv.append(pipeline);
+    try inv.append(input_path);
+    try inv.append("-o");
+    try inv.append(output_path);
+    return inv;
+}
+
+pub fn mlirOptPipelineInvocation(
+    config: ToolConfig,
+    input_path: []const u8,
+    output_path: []const u8,
+    pass_pipeline: []const u8,
+) Error!Invocation {
+    var inv = Invocation.init();
+    try inv.append(try config.pathFor(.mlir_opt, null));
+    try inv.append(pass_pipeline);
+    try inv.append(input_path);
+    try inv.append("-o");
+    try inv.append(output_path);
+    return inv;
+}
+
+pub fn fileCheckInvocation(
+    config: ToolConfig,
+    input_path: []const u8,
+    check_file: []const u8,
+) Error!Invocation {
+    var inv = Invocation.init();
+    try inv.append(try config.pathFor(.filecheck, null));
+    try inv.append(check_file);
+    try inv.append("--input-file");
+    try inv.append(input_path);
+    return inv;
+}
+
+pub fn emitLayoutCase(builder: anytype) Error!void {
+    try builder.append(layout_case_mlir);
+}
+
+pub fn emitTensorCase(builder: anytype) Error!void {
+    try builder.append(tensor_case_mlir);
+}
+
+pub fn emitCopyCase(builder: anytype) Error!void {
+    try builder.append(copy_case_mlir);
+}
+
+pub fn emitMmaCase(builder: anytype) Error!void {
+    try builder.append(mma_case_mlir);
+}
+
+pub fn emitNegativeCase(builder: anytype) Error!void {
+    // Deliberately unbalanced and malformed.  This case is for external verifier
+    // negative tests and must not be passed through Builder.finish().
+    try builder.rawLine("module {");
+    try builder.rawLine("  func.func @negative_case(%arg0: i32) {");
+    try builder.rawLine("    %0 = arith.addi %arg0, %arg0 : (i32) -> i32");
+    try builder.rawLine("    // expected-error {{malformed return}}");
+}
+
+fn tensorValue(meta: tensor.TensorMeta, value: Value) tensor.TensorValue {
+    return tensor.TensorValue.init(meta, value, "");
+}
+
+fn makeGenericCopyAtom(
+    dtype: typing.Numeric,
+    src_space: typing.AddressSpace,
+    dst_space: typing.AddressSpace,
+) Error!atom.CopyAtom {
+    const thr = layout.makeCompactLayout(.{4});
+    const tv = layout.makeCompactLayout(.{ 4, 1 });
+    var tr: atom.Trait = .{ .name = "copy", .thr_id = thr };
+    tr = tr.withCopyLayouts(tv, tv);
+    return atom.makeCopyAtom(
+        atom.OpDescriptor.copyTyped("copy", "generic", "unit", dtype, src_space, dst_space, dtype.width, &.{}),
+        tr,
+    );
+}
+
+fn makeGenericMmaAtom() Error!atom.MmaAtom {
+    const thr = layout.makeCompactLayout(.{32});
+    const tv = layout.makeCompactLayout(.{ 32, 1 });
+    var tr: atom.Trait = .{
+        .name = "mma",
+        .thr_id = thr,
+        .shape_mnk = layout.Tree.fromComptime(.{ 16, 8, 8 }),
+    };
+    tr = tr.withMmaLayouts(tv, tv, tv);
+    return atom.makeMmaAtom(
+        atom.OpDescriptor.mmaTyped("mma", "generic", "unit", layout.Tree.fromComptime(.{
+            16,
+            8,
+            8,
+        }), typing.Float16, typing.Float16, typing.Float32, &.{.accumulate}),
+        tr,
+    );
+}
+
+fn appendShellQuoted(out: anytype, arg: []const u8) !void {
+    if (arg.len == 0) {
+        try out.append("''");
+        return;
+    }
+    var needs_quote = false;
+    for (arg) |c| {
+        if (!(std.ascii.isAlphanumeric(c) or c == '_' or c == '-' or c == '/' or c == '.' or c == '=' or c == ':' or c == ',')) {
+            needs_quote = true;
+            break;
+        }
+    }
+    if (!needs_quote) {
+        try out.append(arg);
+        return;
+    }
+    try out.append("'");
+    for (arg) |c| {
+        if (c == '\'') try out.append("'\\''") else try out.appendByte(c);
+    }
+    try out.append("'");
+}
+
+test "mlir_harness: deterministic layout golden case" {
+    var b: Builder(4096) = .{};
+    try emitLayoutCase(&b);
+    _ = try b.finish();
+    const expected = @embedFile("testdata/golden/layout_case.mlir");
+    try std.testing.expectEqualStrings(expected, b.slice());
+    try validateGeneratedMlir(b.slice());
+}
+
+test "mlir_harness: deterministic tensor golden case" {
+    var b: Builder(8192) = .{};
+    try emitTensorCase(&b);
+    _ = try b.finish();
+    try expectContains(b.slice(), "cute.memref.load_vec");
+    try expectContains(b.slice(), "cute.memref.store_vec");
+    try std.testing.expect(std.mem.indexOf(u8, b.slice(), "cute.memref_load_vec") == null);
+}
+
+test "mlir_harness: deterministic copy and mma golden cases" {
+    var b: Builder(16384) = .{};
+    try emitCopyCase(&b);
+    _ = try b.finish();
+    try expectContains(b.slice(), "cute.make_atom()");
+    try expectContains(b.slice(), "cute.copy_atom_call(");
+    try std.testing.expect(std.mem.indexOf(u8, b.slice(), "!cute.tensor") == null);
+
+    b.reset();
+    try emitMmaCase(&b);
+    _ = try b.finish();
+    try expectContains(b.slice(), "cute.make_atom()");
+    try expectContains(b.slice(), "cute.mma_atom_call(");
+}
+
+test "mlir_harness: negative golden case intentionally fails local structural validation" {
+    var b: Builder(2048) = .{};
+    try emitNegativeCase(&b);
+    const expected = @embedFile("testdata/golden/negative_case.mlir");
+    try std.testing.expectEqualStrings(expected, b.slice());
+    try std.testing.expectError(
+        Error.UnbalancedRegion,
+        validateBalancedText(b.slice()),
+    );
+}
+
+test "mlir_harness: tool invocation builders are deterministic" {
+    const config: ToolConfig = .{
+        .cute_opt = "/opt/cute/bin/cute-opt",
+        .mlir_opt = "/opt/llvm/bin/mlir-opt",
+        .filecheck = "/opt/llvm/bin/FileCheck",
+    };
+    const verify = try cuteOptVerifyInvocation(config, "case.mlir");
+    try std.testing.expectEqualStrings("/opt/cute/bin/cute-opt", verify.args()[0]);
+    try std.testing.expectEqualStrings("--verify-diagnostics", verify.args()[1]);
+
+    const pipe = try mlirOptPipelineInvocation(
+        config,
+        "in.mlir",
+        "out.mlir",
+        "--pass-pipeline=builtin.module(canonicalize,cse)",
+    );
+    var shell: TextBuffer(512) = .{};
+    try pipe.writeShell(&shell);
+    try std.testing.expect(std.mem.indexOf(u8, shell.slice(), "mlir-opt") != null);
+    try std.testing.expect(std.mem.indexOf(u8, shell.slice(), "--pass-pipeline") != null);
 }

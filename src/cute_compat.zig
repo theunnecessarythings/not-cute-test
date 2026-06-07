@@ -5,8 +5,8 @@ const core = @import("core.zig");
 const basis = @import("basis.zig");
 const typing = @import("typing.zig");
 const runtime = @import("runtime.zig");
-const mlir = @import("mlir_text.zig");
-const tensor_api = @import("tensor_api.zig");
+const mlir = @import("mlir.zig");
+const tensor = @import("tensor.zig");
 const algorithm = @import("algorithm.zig");
 const experimental = @import("experimental.zig");
 const testing = @import("testing.zig");
@@ -14,7 +14,7 @@ const export_ = @import("export.zig");
 const atom = @import("atom.zig");
 
 pub const Error = layout.Error || runtime.Error || mlir.Error ||
-    tensor_api.Error || algorithm.Error || experimental.Error ||
+    tensor.Error || algorithm.Error || experimental.Error ||
     testing.Error || export_.Error ||
     error{ AssertionFailed, InvalidPipelineState, UnsupportedCompatOperation };
 

@@ -1,8 +1,9 @@
+const layout = @import("layout.zig");
 const std = @import("std");
-const mlir = @import("mlir_text.zig");
+const mlir = @import("mlir.zig");
 const runtime = @import("runtime.zig");
 
-pub const Error = mlir.Error || runtime.Error || error{ TooManySpecializations, InvalidJitArgument, InvalidCompilerState };
+pub const Error = layout.Error || error{ TooManySpecializations, InvalidJitArgument, InvalidCompilerState };
 
 pub const JitArgumentKind = enum { constexpr, runtime, tensor, pointer, stream, scalar, dataclass };
 

@@ -39,7 +39,7 @@ The runtime layer now contains a concrete CUDA Driver API bridge (`cuda_driver.z
 ## Latest integrated pipeline/API/architecture pass
 
 The library includes `compile_pipeline.zig`, `semantics.zig`, and
-`arch_catalog.zig`. These add CUTLASS bridge artifact planning, deeper
+`arch.zig`. These add CUTLASS bridge artifact planning, deeper
 shape/stride/coordinate semantics, and stricter architecture operation
 validation for cp.async/TMA/WGMMA/tcgen05-style descriptors.
 

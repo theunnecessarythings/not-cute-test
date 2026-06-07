@@ -1,8 +1,8 @@
 const std = @import("std");
 const layout = @import("layout.zig");
-const layout_algebra = @import("layout_algebra.zig");
+const layout_algebra = layout;
 const typing = @import("typing.zig");
-const mlir = @import("mlir_text.zig");
+const mlir = @import("mlir.zig");
 
 pub const Error = layout.Error || mlir.Error || layout_algebra.Error || error{
     WrongAtomKind,
@@ -1018,4 +1018,44 @@ test "atom: tiled copy thread slices and MLIR call emission are checked" {
     };
     try copyAtomCall(&b, atom_value, &.{t}, &.{d}, null);
     try std.testing.expect(std.mem.indexOf(u8, b.slice(), "cute.copy_atom_call") != null);
+}
+
+// Aliases from atom_api
+pub const Op = OpDescriptor;
+pub const MmaOp = OpDescriptor;
+pub const CopyOp = OpDescriptor;
+
+pub fn makeAtom(desc: OpDescriptor, tr: Trait) Error!Atom {
+    return .{ .desc = desc, .trait = tr };
+}
+
+pub fn makeCotiledCopy(
+    copy: CopyAtom,
+    tiled: TiledCopy,
+) Error!TiledCopy {
+    return makeTiledCopyS(copy, tiled);
+}
+
+pub fn makeTiledCopyCAtom(
+    copy: CopyAtom,
+    tiled_mma: TiledMma,
+) Error!TiledCopy {
+    return makeTiledCopyC(copy, tiled_mma);
+}
+
+test "atom_api: snake-case wrappers call real atom constructors" {
+    const desc = OpDescriptor.copy(
+        "copy",
+        "generic",
+        @import("typing.zig").Float32,
+    );
+    const tv = try layout.Layout.makeCompact(layout.Tree.fromComptime(.{1}));
+    const tr: Trait = .{
+        .name = "copy_trait",
+        .thr_id = tv,
+        .layout_src_tv = tv,
+        .layout_dst_tv = tv,
+    };
+    const c = try makeCopyAtom(desc, tr);
+    try std.testing.expectEqual(OpKind.copy, c.atom.kind());
 }

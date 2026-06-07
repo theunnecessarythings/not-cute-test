@@ -1,6 +1,6 @@
 const std = @import("std");
 const layout = @import("layout.zig");
-const mlir = @import("mlir_text.zig");
+const mlir = @import("mlir.zig");
 
 pub const Error = layout.Error || mlir.Error || error{ InvalidNumericKind, InvalidDivisibility };
 

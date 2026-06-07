@@ -1,11 +1,12 @@
 const std = @import("std");
 const layout = @import("layout.zig");
 const core = @import("core.zig");
+const tuple = @import("tuple.zig");
 
 pub const Scalar = layout.Scalar;
 pub const Unsigned = layout.Unsigned;
 
-pub const Error = layout.Error || core.Error || error{
+pub const Error = core.Error || error{
     InvalidRank,
     InvalidExtent,
     InvalidStride,

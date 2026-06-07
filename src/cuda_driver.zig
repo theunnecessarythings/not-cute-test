@@ -1,8 +1,7 @@
 const std = @import("std");
 const runtime = @import("runtime.zig");
-const runtime_plan = @import("runtime_plan.zig");
 
-pub const Error = runtime.Error || runtime_plan.Error || error{
+pub const Error = runtime.Error || runtime.Error || error{
     OutOfMemory,
     CudaDriverUnavailable,
     CudaSymbolUnavailable,
@@ -589,7 +588,7 @@ test "cuda_driver: dry-run execution request emits launch JSON" {
         .{ .module_path = "kernel.cubin", .kernel_symbol = "kernel", .launch = cfg },
         3,
     );
-    var out: @import("mlir_text.zig").TextBuffer(1024) = .{};
+    var out: @import("mlir.zig").TextBuffer(1024) = .{};
     try report.writeJson(&out);
     try std.testing.expect(std.mem.indexOf(u8, out.slice(), "kernel.cubin") != null);
     try std.testing.expect(std.mem.indexOf(u8, out.slice(), "\"argument_slots\": 3") != null);
@@ -606,7 +605,7 @@ test "cuda_driver: argument pack preserves kernel parameter pointers" {
 }
 
 test "cuda_driver: C declarations include launch ABI" {
-    var out: @import("mlir_text.zig").TextBuffer(1024) = .{};
+    var out: @import("mlir.zig").TextBuffer(1024) = .{};
     try writeCDriverDeclarations(&out);
     try std.testing.expect(std.mem.indexOf(u8, out.slice(), "cuLaunchKernel") != null);
 }

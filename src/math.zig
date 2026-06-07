@@ -1,6 +1,6 @@
 const std = @import("std");
 const typing = @import("typing.zig");
-const mlir = @import("mlir_text.zig");
+const mlir = @import("mlir.zig");
 const tensor = @import("tensor.zig");
 
 pub const Error = mlir.Error || tensor.Error || error{InvalidMathOp};

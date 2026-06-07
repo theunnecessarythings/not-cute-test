@@ -1,11 +1,11 @@
 const std = @import("std");
-const mlir = @import("mlir_text.zig");
-const runtime_plan = @import("runtime_plan.zig");
-const cutlass_bridge = @import("cutlass_bridge.zig");
-const mlir_harness = @import("mlir_harness.zig");
+const mlir = @import("mlir.zig");
+const runtime = @import("runtime.zig");
+const cutlass = @import("cutlass.zig");
+const mlir_harness = @import("mlir.zig");
 const execution = @import("execution.zig");
 
-pub const Error = runtime_plan.Error || cutlass_bridge.Error || mlir_harness.Error || error{
+pub const Error = runtime.Error || cutlass.Error || mlir.Error || error{
     InvalidCompileRequest,
     InvalidArtifactKind,
     InvalidArtifactSet,
@@ -57,7 +57,7 @@ pub const CompileRequest = struct {
     function_name: []const u8,
     arch: []const u8 = "sm_90",
     pipeline_kind: PipelineKind = .cute_to_nvvm,
-    flavor: runtime_plan.CompileFlavor = .cutlass_dsl,
+    flavor: runtime.CompileFlavor = .cutlass_dsl,
     keep_ptx: bool = true,
     keep_cubin: bool = true,
     keep_object: bool = false,
@@ -72,7 +72,7 @@ pub const CompileRequest = struct {
             return Error.InvalidCompileRequest;
     }
 
-    pub fn compileOptions(self: CompileRequest) runtime_plan.CompileOptions {
+    pub fn compileOptions(self: CompileRequest) runtime.CompileOptions {
         return .{
             .arch = self.arch,
             .dump_dir = self.work_dir,
@@ -245,7 +245,7 @@ pub const ArtifactSet = struct {
 pub const CompileOutcome = struct {
     request: CompileRequest,
     artifacts: ArtifactSet,
-    bridge_command: mlir_harness.Invocation,
+    bridge_command: mlir.Invocation,
 
     pub fn writeJson(self: CompileOutcome, out: anytype) Error!void {
         try out.append("{\"input_mlir\":");
@@ -267,14 +267,14 @@ pub const CompileOutcome = struct {
 };
 
 pub fn bridgeCompileInvocation(
-    config: cutlass_bridge.PythonBridgeConfig,
+    config: cutlass.PythonBridgeConfig,
     request: CompileRequest,
-) Error!mlir_harness.Invocation {
+) Error!mlir.Invocation {
     try config.validate();
     try request.validate();
     var pipeline: mlir.TextBuffer(4096) = .{};
     try request.writePipeline(&pipeline);
-    var inv = mlir_harness.Invocation.init();
+    var inv = mlir.Invocation.init();
     try inv.append(config.python_exe);
     try inv.append(config.bridge_script);
     try inv.append("compile-artifact");
@@ -296,7 +296,7 @@ pub fn bridgeCompileInvocation(
 }
 
 pub fn planBridgeCompilation(
-    config: cutlass_bridge.PythonBridgeConfig,
+    config: cutlass.PythonBridgeConfig,
     request: CompileRequest,
 ) Error!CompileOutcome {
     return .{
@@ -307,7 +307,7 @@ pub fn planBridgeCompilation(
 }
 
 pub fn bridgeCompileCommandText(
-    config: cutlass_bridge.PythonBridgeConfig,
+    config: cutlass.PythonBridgeConfig,
     request: CompileRequest,
     out: anytype,
 ) Error!void {
@@ -386,4 +386,56 @@ test "compile_pipeline: LIR pipeline and execution artifact conversion" {
     const artifacts = try req.expectedArtifacts();
     const exec_artifacts = try artifacts.toExecutionArtifacts(req.input_mlir);
     try std.testing.expectEqualStrings("out/kernel", exec_artifacts.cubin_path);
+}
+
+pub const CompilationError = error{ CompilationFailed, InvalidCompileOption };
+pub const OptLevel = enum { O0, O1, O2, O3 };
+pub const GPUArch = enum { sm70, sm75, sm80, sm89, sm90, sm100, sm103, sm120 };
+pub const CompileOption = struct { key: []const u8, value: []const u8 = "" };
+pub const BooleanCompileOption = struct { key: []const u8, enabled: bool = true };
+pub const StringCompileOption = struct { key: []const u8, value: []const u8 };
+pub const BooleanBasedFileDumpOption = BooleanCompileOption;
+pub const EmptyCompileOption = struct { key: []const u8 };
+pub const PtxasOptions = struct { options: []const []const u8 = &.{} };
+pub const EnableAssertions = BooleanCompileOption;
+pub const GenerateLineInfo = BooleanCompileOption;
+pub const KeepCUBIN = BooleanCompileOption;
+pub const KeepPTX = BooleanCompileOption;
+pub const LinkLibraries = struct { paths: []const []const u8 = &.{} };
+pub const EnableTVMFFI = BooleanCompileOption;
+pub const DumpDir = StringCompileOption;
+pub const CompileCallable = *const fn () void;
+pub const PostCompileHookContext = struct { artifact_path: []const u8 = "", cubin_hash: u64 = 0 };
+pub const Compiler = struct { opt: OptLevel = .O2, arch: GPUArch = .sm90 };
+
+pub fn makeCompilePlan(
+    function_name: []const u8,
+    pipeline: []const u8,
+) runtime.CompilePlan {
+    return .{ .function_name = function_name, .pipeline = pipeline };
+}
+pub fn option(key: []const u8, value: []const u8) CompileOption {
+    return .{ .key = key, .value = value };
+}
+pub fn boolOption(key: []const u8, enabled: bool) BooleanCompileOption {
+    return .{ .key = key, .enabled = enabled };
+}
+pub fn gpuArchName(arch: GPUArch) []const u8 {
+    return switch (arch) {
+        .sm70 => "sm_70",
+        .sm75 => "sm_75",
+        .sm80 => "sm_80",
+        .sm89 => "sm_89",
+        .sm90 => "sm_90",
+        .sm100 => "sm_100",
+        .sm103 => "sm_103",
+        .sm120 => "sm_120",
+    };
+}
+
+test "compiler_api: source named options and arch spellings" {
+    const c: Compiler = .{ .arch = .sm100 };
+    try std.testing.expectEqualStrings("sm_100", gpuArchName(c.arch));
+    const o = boolOption("keep-ptx", true);
+    try std.testing.expect(o.enabled);
 }

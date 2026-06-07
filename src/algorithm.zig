@@ -1,7 +1,7 @@
 const std = @import("std");
 const layout = @import("layout.zig");
 const typing = @import("typing.zig");
-const mlir = @import("mlir_text.zig");
+const mlir = @import("mlir.zig");
 const atom = @import("atom.zig");
 const tensor = @import("tensor.zig");
 

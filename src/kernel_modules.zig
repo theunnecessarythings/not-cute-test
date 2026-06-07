@@ -1,5 +1,5 @@
 const std = @import("std");
-const mlir = @import("mlir_text.zig");
+const mlir = @import("mlir.zig");
 const compile_pipeline = @import("compile_pipeline.zig");
 
 pub const Error = mlir.Error || compile_pipeline.Error;

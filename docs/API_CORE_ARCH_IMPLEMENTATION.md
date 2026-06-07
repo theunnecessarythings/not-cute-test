@@ -9,9 +9,7 @@ This integrated pass converts the previous API/architecture audit into additiona
   - Exposes snake_case public names matching `cutlass.cute.core` where practical.
   - Delegates to the existing semantic modules instead of regenerating code:
     - `tuple.zig`
-    - `core_static.zig`
-    - `layout_algebra.zig`
-    - `layout_core.zig`
+    - `layout.zig`
     - `basis.zig`
     - `typing.zig`
 
@@ -40,7 +38,7 @@ The implementation is static/Zig-native. Dynamic Python AST behavior is not part
 
 ## Architecture/nvgpu constructors added
 
-`arch_atoms.zig` adds explicit constructors and dispatch for commonly used upstream families:
+`arch.zig` adds explicit constructors and dispatch for commonly used upstream families:
 
 - MMA:
   - `MmaUniversalOp`

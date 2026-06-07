@@ -1,10 +1,9 @@
 const std = @import("std");
-const mlir = @import("mlir_text.zig");
+const mlir = @import("mlir.zig");
 const runtime = @import("runtime.zig");
 const compile_pipeline = @import("compile_pipeline.zig");
-const runtime_plan = @import("runtime_plan.zig");
 
-pub const Error = mlir.Error || runtime.Error || compile_pipeline.Error || runtime_plan.Error || error{
+pub const Error = mlir.Error || runtime.Error || compile_pipeline.Error || runtime.Error || error{
     InvalidKernelBuilder,
     InvalidKernelShape,
     InvalidKernelArchitecture,
@@ -105,9 +104,9 @@ pub const KernelOptions = struct {
     pub fn launchPlan(
         self: KernelOptions,
         cubin_path: []const u8,
-    ) Error!runtime_plan.LaunchPlan {
+    ) Error!runtime.LaunchPlan {
         const cfg = try self.launchConfig();
-        const symbols = try runtime_plan.RuntimeSymbols.init("notcute", self.name);
+        const symbols = try runtime.RuntimeSymbols.init("notcute", self.name);
         return .{
             .symbols = symbols,
             .module = try runtime.BinaryModule.init(cubin_path, .cubin),

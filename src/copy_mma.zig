@@ -1,19 +1,19 @@
 const std = @import("std");
 const layout = @import("layout.zig");
 const typing = @import("typing.zig");
-const mlir = @import("mlir_text.zig");
+const mlir = @import("mlir.zig");
 const atom = @import("atom.zig");
-const tensor_ssa = @import("tensor_ssa.zig");
-const cutlass_emit = @import("cutlass_emit.zig");
+const tensor = @import("tensor.zig");
+const cutlass = @import("cutlass.zig");
 
 pub const Tree = layout.Tree;
 pub const Layout = layout.Layout;
-pub const TensorMeta = tensor_ssa.TensorMeta;
-pub const TensorValue = tensor_ssa.TensorValue;
-pub const SsaValue = tensor_ssa.SsaValue;
-pub const SsaTensor = tensor_ssa.SsaTensor;
+pub const TensorMeta = tensor.TensorMeta;
+pub const TensorValue = tensor.TensorValue;
+pub const SsaValue = tensor.SsaValue;
+pub const SsaTensor = tensor.SsaTensor;
 
-pub const Error = tensor_ssa.Error || atom.Error || cutlass_emit.Error || error{
+pub const Error = tensor.Error || atom.Error || cutlass.Error || error{
     IncompatibleElementType,
     IncompatibleTensorShape,
     IncompatibleMemorySpace,
@@ -157,13 +157,13 @@ pub fn lowerCopyAtom(
         var atom_ty_buf: mlir.TextBuffer(256) = .{};
         try src.meta.cutlassTensorTypeText(&src_ty_buf);
         try dst.meta.cutlassTensorTypeText(&dst_ty_buf);
-        try cutlass_emit.writeUniversalCopyAtomType(
+        try cutlass.writeUniversalCopyAtomType(
             &atom_ty_buf,
             atom_value.valueType().mlir_type,
             plan.vector_bits,
         );
         const atom_handle = try emitMakeAtomWithType(builder, atom_ty_buf.slice());
-        try cutlass_emit.emitCopyAtomCall(
+        try cutlass.emitCopyAtomCall(
             builder,
             atom_handle,
             mlir.Type.raw(atom_ty_buf.slice()),
@@ -447,7 +447,7 @@ pub fn makeFragment(
 ) Error!TensorValue {
     const operand = try role.atomOperand();
     const result_shape = try mmaFragmentShape(atom_value, role);
-    var meta = try tensor_ssa.makeFragment(input.meta.dtype, result_shape);
+    var meta = try tensor.makeFragment(input.meta.dtype, result_shape);
     if (role == .C or role == .D) {
         meta.dtype = atom_value.op().c_type orelse input.meta.dtype;
     }
@@ -584,7 +584,7 @@ pub fn lowerMmaAtom(
     try a.meta.cutlassTensorTypeText(&a_ty_buf);
     try b.meta.cutlassTensorTypeText(&b_ty_buf);
     try c.meta.cutlassTensorTypeText(&c_ty_buf);
-    try cutlass_emit.writeUniversalFmaAtomType(
+    try cutlass.writeUniversalFmaAtomType(
         &atom_ty_buf,
         plan.accumulator.mlir_type,
         @intCast(plan.m),
@@ -592,7 +592,7 @@ pub fn lowerMmaAtom(
         @intCast(plan.k),
     );
     const atom_handle = try emitMakeAtomWithType(builder, atom_ty_buf.slice());
-    try cutlass_emit.emitMmaAtomCall(
+    try cutlass.emitMmaAtomCall(
         builder,
         atom_handle,
         mlir.Type.raw(atom_ty_buf.slice()),
@@ -631,7 +631,7 @@ pub fn lowerTiledMma(
     try pa.meta.cutlassTensorTypeText(&a_ty_buf);
     try pb.meta.cutlassTensorTypeText(&b_ty_buf);
     try pc.meta.cutlassTensorTypeText(&c_ty_buf);
-    try cutlass_emit.writeUniversalFmaAtomType(
+    try cutlass.writeUniversalFmaAtomType(
         &atom_ty_buf,
         plan.accumulator.mlir_type,
         @intCast(plan.m),
@@ -639,7 +639,7 @@ pub fn lowerTiledMma(
         @intCast(plan.k),
     );
     const atom_handle = try emitMakeAtomWithType(builder, atom_ty_buf.slice());
-    try cutlass_emit.emitMmaAtomCall(
+    try cutlass.emitMmaAtomCall(
         builder,
         atom_handle,
         mlir.Type.raw(atom_ty_buf.slice()),

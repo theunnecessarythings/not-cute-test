@@ -3,7 +3,7 @@ const layout = @import("layout.zig");
 const typing = @import("typing.zig");
 const runtime = @import("runtime.zig");
 const cuda = @import("cuda_driver.zig");
-const mlir = @import("mlir_text.zig");
+const mlir = @import("mlir.zig");
 
 pub const Error = runtime.Error || typing.Error || layout.Error || cuda.Error || mlir.Error || error{
     InvalidBuffer,

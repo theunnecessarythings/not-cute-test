@@ -1,10 +1,11 @@
 const std = @import("std");
 const layout = @import("layout.zig");
-const core = @import("core_static.zig");
+const core = @import("core.zig");
+const tuple = @import("tuple.zig");
 
 pub const Scalar = layout.Scalar;
 pub const Unsigned = layout.Unsigned;
-pub const Error = core.Error || error{ DivisionByZero, InvalidMode, InvalidSwizzle };
+pub const Error = tuple.Error || error{ InvalidSwizzle };
 pub const max_modes = layout.max_leaves;
 pub const ModePath = layout.BoundedList(usize, max_modes);
 

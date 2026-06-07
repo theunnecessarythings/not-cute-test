@@ -2,33 +2,33 @@ const std = @import("std");
 const cute = @import("not_cute");
 
 pub fn main() !void {
-    var builder: cute.mlir_text.Builder(8192) = .{};
+    var builder: cute.mlir.Builder(8192) = .{};
     const shape = cute.layout.Tree.fromComptime(.{4});
     const tensor_layout = try cute.layout.Layout.makeCompact(shape);
-    const meta = try cute.tensor_ssa.TensorMeta.init(
-        .{ .mlir_value = cute.mlir_text.Value.arg(0) },
+    const meta = try cute.tensor.TensorMeta.init(
+        .{ .mlir_value = cute.mlir.Value.arg(0) },
         tensor_layout,
         cute.typing.Float32,
         .gmem,
     );
-    var tensor_type: cute.mlir_text.TextBuffer(512) = .{};
+    var tensor_type: cute.mlir.TextBuffer(512) = .{};
     try meta.tensorTypeText(&tensor_type);
 
     try builder.beginModule();
     try builder.beginFunc(
         "add_one",
-        &.{cute.mlir_text.Type.raw(tensor_type.slice())},
+        &.{cute.mlir.Type.raw(tensor_type.slice())},
         null,
     );
 
-    const tensor = cute.tensor_ssa.TensorValue.init(
+    const tensor = cute.tensor.TensorValue.init(
         meta,
-        cute.mlir_text.Value.arg(0),
+        cute.mlir.Value.arg(0),
         tensor_type.slice(),
     );
     const values = try tensor.load(&builder, null, null);
-    const one = try builder.constantF(1.0, cute.mlir_text.Type.f(32));
-    const ones = try cute.tensor_ssa.SsaTensor.full(
+    const one = try builder.constantF(1.0, cute.mlir.Type.f(32));
+    const ones = try cute.tensor.SsaTensor.full(
         &builder,
         shape,
         cute.typing.Float32,
