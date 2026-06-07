@@ -19,7 +19,6 @@ Focused optimized tests are useful for runtime and semantic changes:
 zig test -OReleaseSafe src/cuda_driver.zig
 zig test -OReleaseSafe src/execution.zig
 zig test -OReleaseSafe src/semantics.zig
-zig test -OReleaseSafe src/arch_validation.zig
 zig test -OReleaseSafe src/memory_model.zig
 ```
 

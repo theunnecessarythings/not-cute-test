@@ -51,17 +51,32 @@ pub const MathOp = enum {
     }
 };
 
-pub fn unary(builder: anytype, op: MathOp, value: mlir.Operand, ty: mlir.Type) Error!mlir.Value {
+pub fn unary(
+    builder: anytype,
+    op: MathOp,
+    value: mlir.Operand,
+    ty: mlir.Type,
+) Error!mlir.Value {
     if (op == .atan2 or op == .copysign) return Error.InvalidMathOp;
     return builder.genericOp(op.mlirName(), &.{value}, &.{}, &.{ty}, &.{ty});
 }
 
-pub fn binary(builder: anytype, op: MathOp, lhs: mlir.Operand, rhs: mlir.Operand, ty: mlir.Type) Error!mlir.Value {
+pub fn binary(
+    builder: anytype,
+    op: MathOp,
+    lhs: mlir.Operand,
+    rhs: mlir.Operand,
+    ty: mlir.Type,
+) Error!mlir.Value {
     if (op != .atan2 and op != .copysign) return Error.InvalidMathOp;
     return builder.genericOp(op.mlirName(), &.{ lhs, rhs }, &.{}, &.{ ty, ty }, &.{ty});
 }
 
-pub fn tensorUnary(builder: anytype, op: MathOp, input: tensor.TensorSsa) Error!tensor.TensorSsa {
+pub fn tensorUnary(
+    builder: anytype,
+    op: MathOp,
+    input: tensor.TensorSsa,
+) Error!tensor.TensorSsa {
     var vt: mlir.TextBuffer(128) = .{};
     try input.vectorType(&vt);
     const ty = mlir.Type.raw(vt.slice());
@@ -69,11 +84,22 @@ pub fn tensorUnary(builder: anytype, op: MathOp, input: tensor.TensorSsa) Error!
     return tensor.TensorSsa.init(v, input.shape_value, input.dtype);
 }
 
-pub fn tensorBinary(builder: anytype, op: MathOp, lhs: tensor.TensorSsa, rhs: tensor.TensorSsa) Error!tensor.TensorSsa {
+pub fn tensorBinary(
+    builder: anytype,
+    op: MathOp,
+    lhs: tensor.TensorSsa,
+    rhs: tensor.TensorSsa,
+) Error!tensor.TensorSsa {
     var vt: mlir.TextBuffer(128) = .{};
     try lhs.vectorType(&vt);
     const ty = mlir.Type.raw(vt.slice());
-    const v = try binary(builder, op, .{ .value = lhs.value }, .{ .value = rhs.value }, ty);
+    const v = try binary(
+        builder,
+        op,
+        .{ .value = lhs.value },
+        .{ .value = rhs.value },
+        ty,
+    );
     return tensor.TensorSsa.init(v, lhs.shape_value, lhs.dtype);
 }
 
@@ -128,10 +154,20 @@ pub fn tan(builder: anytype, value: mlir.Operand, ty: mlir.Type) Error!mlir.Valu
 pub fn tanh(builder: anytype, value: mlir.Operand, ty: mlir.Type) Error!mlir.Value {
     return unary(builder, .tanh, value, ty);
 }
-pub fn atan2(builder: anytype, lhs: mlir.Operand, rhs: mlir.Operand, ty: mlir.Type) Error!mlir.Value {
+pub fn atan2(
+    builder: anytype,
+    lhs: mlir.Operand,
+    rhs: mlir.Operand,
+    ty: mlir.Type,
+) Error!mlir.Value {
     return binary(builder, .atan2, lhs, rhs, ty);
 }
-pub fn copysign(builder: anytype, lhs: mlir.Operand, rhs: mlir.Operand, ty: mlir.Type) Error!mlir.Value {
+pub fn copysign(
+    builder: anytype,
+    lhs: mlir.Operand,
+    rhs: mlir.Operand,
+    ty: mlir.Type,
+) Error!mlir.Value {
     return binary(builder, .copysign, lhs, rhs, ty);
 }
 

@@ -35,7 +35,11 @@ pub const CArgument = struct {
     c_type: []const u8,
     dynamic: bool = false,
 
-    pub fn init(name: []const u8, kind: ArgumentKind, c_type: []const u8) Error!CArgument {
+    pub fn init(
+        name: []const u8,
+        kind: ArgumentKind,
+        c_type: []const u8,
+    ) Error!CArgument {
         try mlir.validateSymbol(name);
         if (c_type.len == 0) return Error.InvalidExportName;
         return .{ .name = name, .kind = kind, .c_type = c_type };
@@ -64,7 +68,10 @@ pub const WrapperConfig = struct {
     emit_cuda_check: bool = true,
     extern_c: bool = true,
 
-    pub fn init(function_name: []const u8, kernel_name: []const u8) Error!WrapperConfig {
+    pub fn init(
+        function_name: []const u8,
+        kernel_name: []const u8,
+    ) Error!WrapperConfig {
         try mlir.validateSymbol(function_name);
         try mlir.validateSymbol(kernel_name);
         return .{ .function_name = function_name, .kernel_name = kernel_name };
@@ -112,7 +119,11 @@ pub fn writeHeaderEpilogue(out: anytype) Error!void {
     try out.append("\n#ifdef __cplusplus\n}\n#endif\n");
 }
 
-pub fn writeFunctionDeclaration(out: anytype, cfg: WrapperConfig, args: []const CArgument) Error!void {
+pub fn writeFunctionDeclaration(
+    out: anytype,
+    cfg: WrapperConfig,
+    args: []const CArgument,
+) Error!void {
     if (cfg.extern_c) try out.append("extern ");
     try out.append("int ");
     try out.append(cfg.function_name);
@@ -130,7 +141,11 @@ pub fn writeCudaCheck(out: anytype) Error!void {
     try out.append("static inline int not_cute_cuda_check(int code) { return code; }\n");
 }
 
-pub fn writeWrapper(out: anytype, cfg: WrapperConfig, args: []const CArgument) Error!void {
+pub fn writeWrapper(
+    out: anytype,
+    cfg: WrapperConfig,
+    args: []const CArgument,
+) Error!void {
     try out.append("int ");
     try out.append(cfg.function_name);
     try out.append("(");
@@ -150,7 +165,11 @@ pub fn writeWrapper(out: anytype, cfg: WrapperConfig, args: []const CArgument) E
     try out.append("}\n");
 }
 
-pub fn writeCompleteHeader(out: anytype, cfg: WrapperConfig, args: []const CArgument) Error!void {
+pub fn writeCompleteHeader(
+    out: anytype,
+    cfg: WrapperConfig,
+    args: []const CArgument,
+) Error!void {
     try writeHeaderPreamble(out);
     if (cfg.emit_cuda_check) try writeCudaCheck(out);
     try writeFunctionDeclaration(out, cfg, args);
@@ -179,7 +198,11 @@ test "export: generates a usable C header surface" {
     try args.append(try CArgument.init("A", .pointer, "void*"));
     try args.append(try CArgument.init("stream", .stream, "void*"));
     var out: mlir.TextBuffer(2048) = .{};
-    try writeCompleteHeader(&out, try WrapperConfig.init("launch_kernel", "kernel"), args.slice());
+    try writeCompleteHeader(
+        &out,
+        try WrapperConfig.init("launch_kernel", "kernel"),
+        args.slice(),
+    );
     try std.testing.expect(std.mem.indexOf(u8, out.slice(), "extern int launch_kernel") != null);
     try std.testing.expect(std.mem.indexOf(u8, out.slice(), "extern \"C\"") != null);
 }

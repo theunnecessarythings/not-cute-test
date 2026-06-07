@@ -75,7 +75,11 @@ pub fn leftInverse(input: *const Layout) Error!Layout {
 ///
 /// Partial boundary tiles keep the conservative ceil-div rest extent just like
 /// CuteDSL's shape-level divide utilities.
-pub fn divideLayout(target: *const Layout, tiler: *const Tree, form: SplitForm) Error!DivideResult {
+pub fn divideLayout(
+    target: *const Layout,
+    tiler: *const Tree,
+    form: SplitForm,
+) Error!DivideResult {
     const target_shape = try target.shape.flattenLeaves();
     const target_stride = try target.stride.flattenLeaves();
     const tiler_flat_raw = try tiler.flattenLeaves();
@@ -116,7 +120,10 @@ pub fn divideLayout(target: *const Layout, tiler: *const Tree, form: SplitForm) 
             try appendFlat(&s, rest_shape.slice());
             try appendFlat(&d, tile_stride.slice());
             try appendFlat(&d, rest_stride.slice());
-            break :blk try Layout.init(try treeFromFlat(s.slice()), try treeFromFlat(d.slice()));
+            break :blk try Layout.init(
+                try treeFromFlat(s.slice()),
+                try treeFromFlat(d.slice()),
+            );
         },
         .logical => blk: {
             var shape_parts: [layout.max_children]Tree = undefined;
@@ -188,7 +195,11 @@ pub fn blockedProduct(block: *const Layout, tiler: *const Tree) Error!Layout {
 /// Product helper for static layouts. The result layout maps a fused logical
 /// coordinate `x = rest * tile_extent + tile` to the same memory offset as the
 /// corresponding divided coordinate.
-pub fn productLayout(block: *const Layout, tiler: *const Tree, form: SplitForm) Error!Layout {
+pub fn productLayout(
+    block: *const Layout,
+    tiler: *const Tree,
+    form: SplitForm,
+) Error!Layout {
     const tiler_flat = try tiler.flattenLeaves();
     switch (form) {
         .logical => return productLogical(block, tiler_flat.slice()),
@@ -204,7 +215,10 @@ pub fn maxCommonVector(a: *const Layout, b: *const Layout) Error!Scalar {
     const n = @min(ash.len, bsh.len);
     var best: Scalar = 1;
     for (0..n) |i| {
-        if (ast.at(i) == 1 and bst.at(i) == 1) best = @max(best, @min(ash.at(i), bsh.at(i)));
+        if (ast.at(i) == 1 and bst.at(i) == 1) best = @max(
+            best,
+            @min(ash.at(i), bsh.at(i)),
+        );
     }
     return best;
 }
@@ -217,7 +231,11 @@ pub fn maxCommonLayout(a: *const Layout, b: *const Layout) Error!Layout {
 /// Repeat `atom` until it covers `target_shape`, respecting the supplied
 /// fastest-to-slowest order. This mirrors the static part of CuteDSL's
 /// `tile_to_shape` utility.
-pub fn tileToShape(atom: *const Layout, target_shape: *const Tree, order: []const usize) Error!Layout {
+pub fn tileToShape(
+    atom: *const Layout,
+    target_shape: *const Tree,
+    order: []const usize,
+) Error!Layout {
     const target = try target_shape.flattenLeaves();
     const atom_shape = try atom.shape.flattenLeaves();
     if (atom_shape.len > target.len) return Error.RankMismatch;
@@ -234,7 +252,10 @@ pub fn tileToShape(atom: *const Layout, target_shape: *const Tree, order: []cons
         if (a <= 0 or target.at(i) <= 0) return Error.InvalidShape;
         try result_shape.append(roundUpScalar(target.at(i), a));
     }
-    const shape_tree = try Tree.fromProfileAndLeaves(target_shape, result_shape.slice());
+    const shape_tree = try Tree.fromProfileAndLeaves(
+        target_shape,
+        result_shape.slice(),
+    );
     return orderedCompact(shape_tree, order);
 }
 
@@ -248,7 +269,11 @@ pub fn leadingDim(shape: *const Tree, stride: *const Tree) Error!?usize {
     return null;
 }
 
-pub fn makeLayoutImageMask(lay: *const Layout, coord: []const Scalar, mode: usize) Error!u16 {
+pub fn makeLayoutImageMask(
+    lay: *const Layout,
+    coord: []const Scalar,
+    mode: usize,
+) Error!u16 {
     const r = lay.leafCount();
     if (coord.len != r) return Error.RankMismatch;
     if (mode >= r) return Error.InvalidMode;
@@ -261,7 +286,11 @@ pub fn makeLayoutImageMask(lay: *const Layout, coord: []const Scalar, mode: usiz
     var offset: Scalar = 0;
     for (coord, 0..) |c, i| {
         if (i == mode) continue;
-        const term = std.math.mul(Scalar, c, stride_flat.at(i)) catch return Error.Overflow;
+        const term = std.math.mul(
+            Scalar,
+            c,
+            stride_flat.at(i),
+        ) catch return Error.Overflow;
         offset = std.math.add(Scalar, offset, term) catch return Error.Overflow;
     }
     if (offset < 0 or offset >= 16) return Error.MaskDoesNotFit16Bits;
@@ -276,12 +305,18 @@ pub fn makeLayoutImageMask(lay: *const Layout, coord: []const Scalar, mode: usiz
     return mask;
 }
 
-pub fn makeLayoutTv(thr_layout: *const Layout, val_layout: *const Layout) Error!LayoutTv {
+pub fn makeLayoutTv(
+    thr_layout: *const Layout,
+    val_layout: *const Layout,
+) Error!LayoutTv {
     const layout_mn = try rakedProduct(thr_layout, &val_layout.shape);
     const tiler_mn = try productEach(&layout_mn.shape);
     const thr_size: Scalar = @intCast(try thr_layout.size());
     const val_size: Scalar = @intCast(try val_layout.size());
-    const tv_domain = try Layout.makeCompact(try Tree.initTuple(&.{ try Tree.initLeaf(thr_size), try Tree.initLeaf(val_size) }));
+    const tv_domain = try Layout.makeCompact(try Tree.initTuple(&.{
+        try Tree.initLeaf(thr_size),
+        try Tree.initLeaf(val_size),
+    }));
     const inv = try rightInverse(&layout_mn);
     const comp = try composition(inv, tv_domain);
     const layout_tv = switch (comp) {
@@ -301,14 +336,27 @@ pub fn nullspace(input: *const Layout) Error!Layout {
         if (strides.at(i) == 0) {
             try null_shapes.append(shapes.at(i));
             try null_strides.append(compact_stride);
-            compact_stride = std.math.mul(Scalar, compact_stride, shapes.at(i)) catch return Error.Overflow;
+            compact_stride = std.math.mul(
+                Scalar,
+                compact_stride,
+                shapes.at(i),
+            ) catch return Error.Overflow;
         }
     }
-    if (null_shapes.len == 0) return Layout.init(try Tree.initLeaf(1), try Tree.initLeaf(0));
-    return Layout.init(try treeFromFlat(null_shapes.slice()), try treeFromFlat(null_strides.slice()));
+    if (null_shapes.len == 0) return Layout.init(
+        try Tree.initLeaf(1),
+        try Tree.initLeaf(0),
+    );
+    return Layout.init(
+        try treeFromFlat(null_shapes.slice()),
+        try treeFromFlat(null_strides.slice()),
+    );
 }
 
-pub fn sliceAndOffset(selector: *const layout_algebra.Selector, input: *const Layout) Error!SliceOffset {
+pub fn sliceAndOffset(
+    selector: *const layout_algebra.Selector,
+    input: *const Layout,
+) Error!SliceOffset {
     return layout_algebra.sliceAndOffset(input, selector);
 }
 
@@ -331,10 +379,17 @@ fn productLogical(block: *const Layout, tiler: []const Scalar) Error!Layout {
             try out_stride.append(st.at(i));
         }
     }
-    return Layout.init(try treeFromFlat(out_shape.slice()), try treeFromFlat(out_stride.slice()));
+    return Layout.init(
+        try treeFromFlat(out_shape.slice()),
+        try treeFromFlat(out_stride.slice()),
+    );
 }
 
-fn productGrouped(block: *const Layout, tiler: []const Scalar, form: SplitForm) Error!Layout {
+fn productGrouped(
+    block: *const Layout,
+    tiler: []const Scalar,
+    form: SplitForm,
+) Error!Layout {
     const sh = try block.shape.flattenLeaves();
     const st = try block.stride.flattenLeaves();
     if (tiler.len == 0) return block.*;
@@ -353,7 +408,10 @@ fn productGrouped(block: *const Layout, tiler: []const Scalar, form: SplitForm) 
             try out_shape.append(sh.at(i));
             try out_stride.append(st.at(i));
         }
-        return Layout.init(try treeFromFlat(out_shape.slice()), try treeFromFlat(out_stride.slice()));
+        return Layout.init(
+            try treeFromFlat(out_shape.slice()),
+            try treeFromFlat(out_stride.slice()),
+        );
     }
 
     const root = block.shape.nodes.at(block.shape.root);
@@ -388,7 +446,10 @@ fn productGrouped(block: *const Layout, tiler: []const Scalar, form: SplitForm) 
         const rest_stride = try rest_stride_tree.flattenLeaves();
         try out_stride.append(rest_stride.at(i));
     }
-    return Layout.init(try treeFromFlat(out_shape.slice()), try treeFromFlat(out_stride.slice()));
+    return Layout.init(
+        try treeFromFlat(out_shape.slice()),
+        try treeFromFlat(out_stride.slice()),
+    );
 }
 
 fn productEach(input: *const Tree) Error!Tree {
@@ -413,7 +474,11 @@ fn orderedCompact(shape: Tree, order: []const usize) Error!Layout {
     var stride_value: Scalar = 1;
     for (order) |idx| {
         strides.set(idx, stride_value);
-        stride_value = std.math.mul(Scalar, stride_value, flat_shape.at(idx)) catch return Error.Overflow;
+        stride_value = std.math.mul(
+            Scalar,
+            stride_value,
+            flat_shape.at(idx),
+        ) catch return Error.Overflow;
     }
     return Layout.init(shape, try Tree.fromProfileAndLeaves(&shape, strides.slice()));
 }
@@ -443,27 +508,57 @@ test "layout_core: zipped divide preserves target offset formula" {
     const target = layout.makeLayout(.{ 8, 6 }, .{ 6, 1 });
     const tiler = Tree.fromComptime(.{ 2, 3 });
     const divided = try zippedDivide(&target, &tiler);
-    try std.testing.expectEqualSlices(Scalar, &.{ 2, 3, 4, 2 }, (try divided.shape.flattenLeaves()).slice());
-    try std.testing.expectEqualSlices(Scalar, &.{ 6, 1, 12, 3 }, (try divided.stride.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 2, 3, 4, 2 },
+        (try divided.shape.flattenLeaves()).slice(),
+    );
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 6, 1, 12, 3 },
+        (try divided.stride.flattenLeaves()).slice(),
+    );
     // tile=(1,2), rest=(3,1) -> original coord=(7,5)
-    try std.testing.expectEqual(@as(Scalar, 47), try divided.crd2idxFlat(&.{ 1, 2, 3, 1 }));
+    try std.testing.expectEqual(
+        @as(Scalar, 47),
+        try divided.crd2idxFlat(&.{ 1, 2, 3, 1 }),
+    );
 }
 
 test "layout_core: logical divide interleaves tile and rest modes" {
     const target = layout.makeLayout(.{ 8, 6 }, .{ 6, 1 });
     const tiler = Tree.fromComptime(.{ 2, 3 });
     const divided = try logicalDivide(&target, &tiler);
-    try std.testing.expectEqualSlices(Scalar, &.{ 2, 4, 3, 2 }, (try divided.shape.flattenLeaves()).slice());
-    try std.testing.expectEqualSlices(Scalar, &.{ 6, 12, 1, 3 }, (try divided.stride.flattenLeaves()).slice());
-    try std.testing.expectEqual(@as(Scalar, 47), try divided.crd2idxFlat(&.{ 1, 3, 2, 1 }));
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 2, 4, 3, 2 },
+        (try divided.shape.flattenLeaves()).slice(),
+    );
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 6, 12, 1, 3 },
+        (try divided.stride.flattenLeaves()).slice(),
+    );
+    try std.testing.expectEqual(
+        @as(Scalar, 47),
+        try divided.crd2idxFlat(&.{ 1, 3, 2, 1 }),
+    );
 }
 
 test "layout_core: flat divide groups tile leaves before rest leaves" {
     const target = layout.makeLayout(.{ 8, 6, 5 }, .{ 30, 5, 1 });
     const tiler = Tree.fromComptime(.{ 2, 3 });
     const divided = try flatDivide(&target, &tiler);
-    try std.testing.expectEqualSlices(Scalar, &.{ 2, 3, 1, 4, 2, 5 }, (try divided.shape.flattenLeaves()).slice());
-    try std.testing.expectEqualSlices(Scalar, &.{ 30, 5, 1, 60, 15, 1 }, (try divided.stride.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 2, 3, 1, 4, 2, 5 },
+        (try divided.shape.flattenLeaves()).slice(),
+    );
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 30, 5, 1, 60, 15, 1 },
+        (try divided.stride.flattenLeaves()).slice(),
+    );
 }
 
 test "layout_core: product fuses divided layout back to target extents" {
@@ -471,15 +566,31 @@ test "layout_core: product fuses divided layout back to target extents" {
     const tiler = Tree.fromComptime(.{ 2, 3 });
     const divided = try zippedDivide(&target, &tiler);
     const fused = try zippedProduct(&divided, &tiler);
-    try std.testing.expectEqualSlices(Scalar, &.{ 8, 6 }, (try fused.shape.flattenLeaves()).slice());
-    try std.testing.expectEqualSlices(Scalar, &.{ 6, 1 }, (try fused.stride.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 8, 6 },
+        (try fused.shape.flattenLeaves()).slice(),
+    );
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 6, 1 },
+        (try fused.stride.flattenLeaves()).slice(),
+    );
 }
 
 test "layout_core: nullspace selects zero-stride modes" {
     const l = layout.makeLayout(.{ 2, 3, 4 }, .{ 12, 0, 0 });
     const n = try nullspace(&l);
-    try std.testing.expectEqualSlices(Scalar, &.{ 3, 4 }, (try n.shape.flattenLeaves()).slice());
-    try std.testing.expectEqualSlices(Scalar, &.{ 1, 3 }, (try n.stride.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 3, 4 },
+        (try n.shape.flattenLeaves()).slice(),
+    );
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 1, 3 },
+        (try n.stride.flattenLeaves()).slice(),
+    );
 }
 
 test "layout_core: leading dimension and image mask" {
@@ -494,14 +605,30 @@ test "layout_core: max common vector and layout" {
     const b = layout.makeLayout(.{ 8, 2 }, .{ 2, 1 });
     try std.testing.expectEqual(@as(Scalar, 2), try maxCommonVector(&a, &b));
     const c = try maxCommonLayout(&a, &b);
-    try std.testing.expectEqualSlices(Scalar, &.{2}, (try c.shape.flattenLeaves()).slice());
-    try std.testing.expectEqualSlices(Scalar, &.{1}, (try c.stride.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{2},
+        (try c.shape.flattenLeaves()).slice(),
+    );
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{1},
+        (try c.stride.flattenLeaves()).slice(),
+    );
 }
 
 test "layout_core: tile to shape pads and orders compact layout" {
     const atom = layout.makeCompactLayout(.{ 2, 3 });
     const target = Tree.fromComptime(.{ 7, 5 });
     const out = try tileToShape(&atom, &target, &.{ 1, 0 });
-    try std.testing.expectEqualSlices(Scalar, &.{ 8, 6 }, (try out.shape.flattenLeaves()).slice());
-    try std.testing.expectEqualSlices(Scalar, &.{ 6, 1 }, (try out.stride.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 8, 6 },
+        (try out.shape.flattenLeaves()).slice(),
+    );
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 6, 1 },
+        (try out.stride.flattenLeaves()).slice(),
+    );
 }

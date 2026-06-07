@@ -56,31 +56,156 @@ pub const Numeric = struct {
     }
 };
 
-pub const Boolean: Numeric = .{ .name = "Boolean", .width = 1, .kind = .boolean, .mlir_type = "i1" };
-pub const Int4: Numeric = .{ .name = "Int4", .width = 4, .kind = .signed_int, .mlir_type = "i4" };
-pub const Int8: Numeric = .{ .name = "Int8", .width = 8, .kind = .signed_int, .mlir_type = "i8" };
-pub const Int16: Numeric = .{ .name = "Int16", .width = 16, .kind = .signed_int, .mlir_type = "i16" };
-pub const Int32: Numeric = .{ .name = "Int32", .width = 32, .kind = .signed_int, .mlir_type = "i32" };
-pub const Int64: Numeric = .{ .name = "Int64", .width = 64, .kind = .signed_int, .mlir_type = "i64" };
-pub const Int128: Numeric = .{ .name = "Int128", .width = 128, .kind = .signed_int, .mlir_type = "i128" };
-pub const Uint8: Numeric = .{ .name = "Uint8", .width = 8, .kind = .unsigned_int, .mlir_type = "i8" };
-pub const Uint16: Numeric = .{ .name = "Uint16", .width = 16, .kind = .unsigned_int, .mlir_type = "i16" };
-pub const Uint32: Numeric = .{ .name = "Uint32", .width = 32, .kind = .unsigned_int, .mlir_type = "i32" };
-pub const Uint64: Numeric = .{ .name = "Uint64", .width = 64, .kind = .unsigned_int, .mlir_type = "i64" };
-pub const Uint128: Numeric = .{ .name = "Uint128", .width = 128, .kind = .unsigned_int, .mlir_type = "i128" };
-pub const Float64: Numeric = .{ .name = "Float64", .width = 64, .kind = .float, .mlir_type = "f64" };
-pub const Float32: Numeric = .{ .name = "Float32", .width = 32, .kind = .float, .mlir_type = "f32" };
-pub const TFloat32: Numeric = .{ .name = "TFloat32", .width = 32, .kind = .tfloat, .mlir_type = "tf32" };
-pub const Float16: Numeric = .{ .name = "Float16", .width = 16, .kind = .float, .mlir_type = "f16" };
-pub const BFloat16: Numeric = .{ .name = "BFloat16", .width = 16, .kind = .bfloat, .mlir_type = "bf16" };
-pub const Float8E5M2: Numeric = .{ .name = "Float8E5M2", .width = 8, .kind = .fp8_e5m2, .mlir_type = "f8E5M2" };
-pub const Float8E4M3FN: Numeric = .{ .name = "Float8E4M3FN", .width = 8, .kind = .fp8_e4m3fn, .mlir_type = "f8E4M3FN" };
-pub const Float8E4M3B11FNUZ: Numeric = .{ .name = "Float8E4M3B11FNUZ", .width = 8, .kind = .fp8_e4m3b11fnuz, .mlir_type = "f8E4M3B11FNUZ" };
-pub const Float8E4M3: Numeric = .{ .name = "Float8E4M3", .width = 8, .kind = .fp8_e4m3, .mlir_type = "f8E4M3" };
-pub const Float8E8M0FNU: Numeric = .{ .name = "Float8E8M0FNU", .width = 8, .kind = .fp8_e8m0fnu, .mlir_type = "f8E8M0FNU" };
-pub const Float4E2M1FN: Numeric = .{ .name = "Float4E2M1FN", .width = 4, .kind = .fp4_e2m1fn, .mlir_type = "f4E2M1FN" };
-pub const Float6E2M3FN: Numeric = .{ .name = "Float6E2M3FN", .width = 6, .kind = .fp6_e2m3fn, .mlir_type = "f6E2M3FN" };
-pub const Float6E3M2FN: Numeric = .{ .name = "Float6E3M2FN", .width = 6, .kind = .fp6_e3m2fn, .mlir_type = "f6E3M2FN" };
+pub const Boolean: Numeric = .{
+    .name = "Boolean",
+    .width = 1,
+    .kind = .boolean,
+    .mlir_type = "i1",
+};
+pub const Int4: Numeric = .{
+    .name = "Int4",
+    .width = 4,
+    .kind = .signed_int,
+    .mlir_type = "i4",
+};
+pub const Int8: Numeric = .{
+    .name = "Int8",
+    .width = 8,
+    .kind = .signed_int,
+    .mlir_type = "i8",
+};
+pub const Int16: Numeric = .{
+    .name = "Int16",
+    .width = 16,
+    .kind = .signed_int,
+    .mlir_type = "i16",
+};
+pub const Int32: Numeric = .{
+    .name = "Int32",
+    .width = 32,
+    .kind = .signed_int,
+    .mlir_type = "i32",
+};
+pub const Int64: Numeric = .{
+    .name = "Int64",
+    .width = 64,
+    .kind = .signed_int,
+    .mlir_type = "i64",
+};
+pub const Int128: Numeric = .{
+    .name = "Int128",
+    .width = 128,
+    .kind = .signed_int,
+    .mlir_type = "i128",
+};
+pub const Uint8: Numeric = .{
+    .name = "Uint8",
+    .width = 8,
+    .kind = .unsigned_int,
+    .mlir_type = "i8",
+};
+pub const Uint16: Numeric = .{
+    .name = "Uint16",
+    .width = 16,
+    .kind = .unsigned_int,
+    .mlir_type = "i16",
+};
+pub const Uint32: Numeric = .{
+    .name = "Uint32",
+    .width = 32,
+    .kind = .unsigned_int,
+    .mlir_type = "i32",
+};
+pub const Uint64: Numeric = .{
+    .name = "Uint64",
+    .width = 64,
+    .kind = .unsigned_int,
+    .mlir_type = "i64",
+};
+pub const Uint128: Numeric = .{
+    .name = "Uint128",
+    .width = 128,
+    .kind = .unsigned_int,
+    .mlir_type = "i128",
+};
+pub const Float64: Numeric = .{
+    .name = "Float64",
+    .width = 64,
+    .kind = .float,
+    .mlir_type = "f64",
+};
+pub const Float32: Numeric = .{
+    .name = "Float32",
+    .width = 32,
+    .kind = .float,
+    .mlir_type = "f32",
+};
+pub const TFloat32: Numeric = .{
+    .name = "TFloat32",
+    .width = 32,
+    .kind = .tfloat,
+    .mlir_type = "tf32",
+};
+pub const Float16: Numeric = .{
+    .name = "Float16",
+    .width = 16,
+    .kind = .float,
+    .mlir_type = "f16",
+};
+pub const BFloat16: Numeric = .{
+    .name = "BFloat16",
+    .width = 16,
+    .kind = .bfloat,
+    .mlir_type = "bf16",
+};
+pub const Float8E5M2: Numeric = .{
+    .name = "Float8E5M2",
+    .width = 8,
+    .kind = .fp8_e5m2,
+    .mlir_type = "f8E5M2",
+};
+pub const Float8E4M3FN: Numeric = .{
+    .name = "Float8E4M3FN",
+    .width = 8,
+    .kind = .fp8_e4m3fn,
+    .mlir_type = "f8E4M3FN",
+};
+pub const Float8E4M3B11FNUZ: Numeric = .{
+    .name = "Float8E4M3B11FNUZ",
+    .width = 8,
+    .kind = .fp8_e4m3b11fnuz,
+    .mlir_type = "f8E4M3B11FNUZ",
+};
+pub const Float8E4M3: Numeric = .{
+    .name = "Float8E4M3",
+    .width = 8,
+    .kind = .fp8_e4m3,
+    .mlir_type = "f8E4M3",
+};
+pub const Float8E8M0FNU: Numeric = .{
+    .name = "Float8E8M0FNU",
+    .width = 8,
+    .kind = .fp8_e8m0fnu,
+    .mlir_type = "f8E8M0FNU",
+};
+pub const Float4E2M1FN: Numeric = .{
+    .name = "Float4E2M1FN",
+    .width = 4,
+    .kind = .fp4_e2m1fn,
+    .mlir_type = "f4E2M1FN",
+};
+pub const Float6E2M3FN: Numeric = .{
+    .name = "Float6E2M3FN",
+    .width = 6,
+    .kind = .fp6_e2m3fn,
+    .mlir_type = "f6E2M3FN",
+};
+pub const Float6E3M2FN: Numeric = .{
+    .name = "Float6E3M2FN",
+    .width = 6,
+    .kind = .fp6_e3m2fn,
+    .mlir_type = "f6E3M2FN",
+};
 
 pub const SymInt = struct {
     width: u16 = 32,
@@ -138,7 +263,13 @@ pub const TypedTensor = struct {
     memspace: AddressSpace = .generic,
     assumed_align: ?usize = null,
 
-    pub fn init(dtype: Numeric, shape: layout.Tree, stride: layout.Tree, memspace: AddressSpace, assumed_align: ?usize) Error!TypedTensor {
+    pub fn init(
+        dtype: Numeric,
+        shape: layout.Tree,
+        stride: layout.Tree,
+        memspace: AddressSpace,
+        assumed_align: ?usize,
+    ) Error!TypedTensor {
         if (!shape.sameProfile(&stride)) return Error.ProfileMismatch;
         try shape.assertPositive();
         return .{
@@ -209,10 +340,22 @@ test "typing: symbolic int and typed tensor MLIR strings" {
     var out: mlir.TextBuffer(512) = .{};
     const s = try symInt64(8, "N");
     try s.writeMlir(&out);
-    try std.testing.expectEqualStrings("!cute.int_tuple<\"?{i64 div=8}\">", out.slice());
+    try std.testing.expectEqualStrings(
+        "!cute.int_tuple<\"?{i64 div=8}\">",
+        out.slice(),
+    );
 
     out.clear();
-    const tt = try TypedTensor.init(Float32, layout.Tree.fromComptime(.{ 16, 8 }), layout.Tree.fromComptime(.{ 8, 1 }), .gmem, null);
+    const tt = try TypedTensor.init(
+        Float32,
+        layout.Tree.fromComptime(.{ 16, 8 }),
+        layout.Tree.fromComptime(.{ 8, 1 }),
+        .gmem,
+        null,
+    );
     try tt.writeMlirType(&out);
-    try std.testing.expectEqualStrings("!cute.memref<ptr<f32, gmem, align=4>, layout<shape=(16,8), stride=(8,1)>>", out.slice());
+    try std.testing.expectEqualStrings(
+        "!cute.memref<ptr<f32, gmem, align=4>, layout<shape=(16,8), stride=(8,1)>>",
+        out.slice(),
+    );
 }

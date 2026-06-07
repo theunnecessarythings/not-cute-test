@@ -107,10 +107,18 @@ pub const MmaFragments = struct {
     c: TensorValue,
 };
 
-pub fn validateCopy(atom_value: atom.CopyAtom, src: TensorMeta, dst: TensorMeta, pred: ?SsaValue) Error!CopyLoweringPlan {
-    if (!sameNumeric(src.dtype, atom_value.valueType())) return Error.IncompatibleElementType;
-    if (!sameNumeric(dst.dtype, atom_value.valueType())) return Error.IncompatibleElementType;
-    if (!src.layout_value.shape.equals(&dst.layout_value.shape)) return Error.IncompatibleTensorShape;
+pub fn validateCopy(
+    atom_value: atom.CopyAtom,
+    src: TensorMeta,
+    dst: TensorMeta,
+    pred: ?SsaValue,
+) Error!CopyLoweringPlan {
+    if (!sameNumeric(src.dtype, atom_value.valueType()))
+        return Error.IncompatibleElementType;
+    if (!sameNumeric(dst.dtype, atom_value.valueType()))
+        return Error.IncompatibleElementType;
+    if (!src.layout_value.shape.equals(&dst.layout_value.shape))
+        return Error.IncompatibleTensorShape;
     if (atom_value.op().source_space) |space| if (src.memspace != space) return Error.IncompatibleMemorySpace;
     if (atom_value.op().destination_space) |space| if (dst.memspace != space) return Error.IncompatibleMemorySpace;
     if (pred) |p| if (p.dtype.kind != .boolean) return Error.InvalidPredicateType;
@@ -126,12 +134,22 @@ pub fn validateCopy(atom_value: atom.CopyAtom, src: TensorMeta, dst: TensorMeta,
     };
 }
 
-pub fn lowerCopyAtom(builder: anytype, atom_value: atom.CopyAtom, src: TensorValue, dst: TensorValue, pred: ?SsaValue) Error!CopyLoweringResult {
+pub fn lowerCopyAtom(
+    builder: anytype,
+    atom_value: atom.CopyAtom,
+    src: TensorValue,
+    dst: TensorValue,
+    pred: ?SsaValue,
+) Error!CopyLoweringResult {
     const plan = try validateCopy(atom_value, src.meta, dst.meta, pred);
     if (pred) |_| {
         const src_op = try tensorOperand(src);
         const dst_op = try tensorOperand(dst);
-        const pred_op: ?atom.TensorOperand = if (pred) |p| .{ .value = .{ .value = p.value }, .ty = mlir.Type.raw(p.dtype.mlir_type), .element = p.dtype } else null;
+        const pred_op: ?atom.TensorOperand = if (pred) |p| .{
+            .value = .{ .value = p.value },
+            .ty = mlir.Type.raw(p.dtype.mlir_type),
+            .element = p.dtype,
+        } else null;
         try atom.copyAtomCall(builder, atom_value, &.{src_op}, &.{dst_op}, pred_op);
     } else {
         var src_ty_buf: mlir.TextBuffer(512) = .{};
@@ -139,7 +157,11 @@ pub fn lowerCopyAtom(builder: anytype, atom_value: atom.CopyAtom, src: TensorVal
         var atom_ty_buf: mlir.TextBuffer(256) = .{};
         try src.meta.cutlassTensorTypeText(&src_ty_buf);
         try dst.meta.cutlassTensorTypeText(&dst_ty_buf);
-        try cutlass_emit.writeUniversalCopyAtomType(&atom_ty_buf, atom_value.valueType().mlir_type, plan.vector_bits);
+        try cutlass_emit.writeUniversalCopyAtomType(
+            &atom_ty_buf,
+            atom_value.valueType().mlir_type,
+            plan.vector_bits,
+        );
         const atom_handle = try emitMakeAtomWithType(builder, atom_ty_buf.slice());
         try cutlass_emit.emitCopyAtomCall(
             builder,
@@ -154,7 +176,11 @@ pub fn lowerCopyAtom(builder: anytype, atom_value: atom.CopyAtom, src: TensorVal
     return .{ .plan = plan, .emitted_predicate = pred != null };
 }
 
-pub fn copyTensor(builder: anytype, src: TensorValue, dst: TensorValue) Error!CopyLoweringResult {
+pub fn copyTensor(
+    builder: anytype,
+    src: TensorValue,
+    dst: TensorValue,
+) Error!CopyLoweringResult {
     try validatePlainCopy(src.meta, dst.meta, null);
     try builder.operationNoResult(.{
         .name = "cute.copy",
@@ -172,12 +198,25 @@ pub fn copyTensor(builder: anytype, src: TensorValue, dst: TensorValue) Error!Co
     } };
 }
 
-pub fn copyIf(builder: anytype, src: TensorValue, dst: TensorValue, pred: SsaValue) Error!CopyLoweringResult {
+pub fn copyIf(
+    builder: anytype,
+    src: TensorValue,
+    dst: TensorValue,
+    pred: SsaValue,
+) Error!CopyLoweringResult {
     try validatePlainCopy(src.meta, dst.meta, pred);
     try builder.operationNoResult(.{
         .name = "cute.copy_if",
-        .operands = &.{ .{ .value = src.value }, .{ .value = dst.value }, .{ .value = pred.value } },
-        .operand_types = &.{ src.type_(), dst.type_(), mlir.Type.raw(pred.dtype.mlir_type) },
+        .operands = &.{
+            .{ .value = src.value },
+            .{ .value = dst.value },
+            .{ .value = pred.value },
+        },
+        .operand_types = &.{
+            src.type_(),
+            dst.type_(),
+            mlir.Type.raw(pred.dtype.mlir_type),
+        },
         .result_types = &.{},
     });
     return .{ .plan = .{
@@ -191,32 +230,73 @@ pub fn copyIf(builder: anytype, src: TensorValue, dst: TensorValue, pred: SsaVal
     }, .emitted_predicate = true };
 }
 
-pub fn retileCopy(builder: anytype, tiled: atom.TiledCopy, tensor_value: TensorValue) Error!TensorValue {
+pub fn retileCopy(
+    builder: anytype,
+    tiled: atom.TiledCopy,
+    tensor_value: TensorValue,
+) Error!TensorValue {
     const out_layout = try tiled.retile(tensor_value.meta.layout_value);
     var out_meta = tensor_value.meta;
     out_meta.layout_value = out_layout;
-    return emitTensorTransform(builder, "cute.tiled.copy.retile", tensor_value, out_meta, &.{});
+    return emitTensorTransform(
+        builder,
+        "cute.tiled.copy.retile",
+        tensor_value,
+        out_meta,
+        &.{},
+    );
 }
 
-pub fn partitionSrc(builder: anytype, tiled: atom.TiledCopy, src: TensorValue, thread_id: mlir.Value) Error!TensorValue {
+pub fn partitionSrc(
+    builder: anytype,
+    tiled: atom.TiledCopy,
+    src: TensorValue,
+    thread_id: mlir.Value,
+) Error!TensorValue {
     const thr = try tiled.getSlice(0);
     const out_layout = try thr.partitionS(src.meta.layout_value);
     var out_meta = src.meta;
     out_meta.layout_value = out_layout;
     const tid_ty = mlir.Type.index();
-    return emitTensorTransform(builder, "cute.tiled.copy.partition_S", src, out_meta, &.{.{ .value = thread_id }}, &.{tid_ty});
+    return emitTensorTransform(
+        builder,
+        "cute.tiled.copy.partition_S",
+        src,
+        out_meta,
+        &.{.{ .value = thread_id }},
+        &.{tid_ty},
+    );
 }
 
-pub fn partitionDst(builder: anytype, tiled: atom.TiledCopy, dst: TensorValue, thread_id: mlir.Value) Error!TensorValue {
+pub fn partitionDst(
+    builder: anytype,
+    tiled: atom.TiledCopy,
+    dst: TensorValue,
+    thread_id: mlir.Value,
+) Error!TensorValue {
     const thr = try tiled.getSlice(0);
     const out_layout = try thr.partitionD(dst.meta.layout_value);
     var out_meta = dst.meta;
     out_meta.layout_value = out_layout;
     const tid_ty = mlir.Type.index();
-    return emitTensorTransform(builder, "cute.tiled.copy.partition_D", dst, out_meta, &.{.{ .value = thread_id }}, &.{tid_ty});
+    return emitTensorTransform(
+        builder,
+        "cute.tiled.copy.partition_D",
+        dst,
+        out_meta,
+        &.{.{ .value = thread_id }},
+        &.{tid_ty},
+    );
 }
 
-pub fn lowerTiledCopy(builder: anytype, tiled: atom.TiledCopy, src: TensorValue, dst: TensorValue, thread_id: mlir.Value, pred: ?SsaValue) Error!CopyLoweringResult {
+pub fn lowerTiledCopy(
+    builder: anytype,
+    tiled: atom.TiledCopy,
+    src: TensorValue,
+    dst: TensorValue,
+    thread_id: mlir.Value,
+    pred: ?SsaValue,
+) Error!CopyLoweringResult {
     _ = try validateCopy(tiled.base, src.meta, dst.meta, pred);
     const ps = try partitionSrc(builder, tiled, src, thread_id);
     const pd = try partitionDst(builder, tiled, dst, thread_id);
@@ -225,9 +305,17 @@ pub fn lowerTiledCopy(builder: anytype, tiled: atom.TiledCopy, src: TensorValue,
     return result;
 }
 
-pub fn lowerAsyncCopy(builder: anytype, atom_value: atom.CopyAtom, src: TensorValue, dst: TensorValue, barrier: ?mlir.Value, pred: ?SsaValue) Error!CopyLoweringResult {
+pub fn lowerAsyncCopy(
+    builder: anytype,
+    atom_value: atom.CopyAtom,
+    src: TensorValue,
+    dst: TensorValue,
+    barrier: ?mlir.Value,
+    pred: ?SsaValue,
+) Error!CopyLoweringResult {
     const plan = try validateCopy(atom_value, src.meta, dst.meta, pred);
-    if (dst.meta.memspace != .smem and dst.meta.memspace != .tmem) return Error.InvalidAsyncCopy;
+    if (dst.meta.memspace != .smem and dst.meta.memspace != .tmem)
+        return Error.InvalidAsyncCopy;
     var operands: [5]mlir.Operand = undefined;
     var types: [5]mlir.Type = undefined;
     var count: usize = 0;
@@ -265,7 +353,15 @@ pub fn lowerAsyncCopy(builder: anytype, atom_value: atom.CopyAtom, src: TensorVa
     }, .emitted_predicate = pred != null };
 }
 
-pub fn lowerTmaCopy(builder: anytype, atom_value: atom.CopyAtom, src: TensorValue, dst: TensorValue, descriptor: mlir.Value, coords: []const mlir.Value, pred: ?SsaValue) Error!CopyLoweringResult {
+pub fn lowerTmaCopy(
+    builder: anytype,
+    atom_value: atom.CopyAtom,
+    src: TensorValue,
+    dst: TensorValue,
+    descriptor: mlir.Value,
+    coords: []const mlir.Value,
+    pred: ?SsaValue,
+) Error!CopyLoweringResult {
     const plan = try validateCopy(atom_value, src.meta, dst.meta, pred);
     var operands: [18]mlir.Operand = undefined;
     var types: [18]mlir.Type = undefined;
@@ -309,7 +405,13 @@ pub fn lowerTmaCopy(builder: anytype, atom_value: atom.CopyAtom, src: TensorValu
     }, .emitted_predicate = pred != null };
 }
 
-pub fn validateMma(atom_value: atom.MmaAtom, d: TensorMeta, a: TensorMeta, b: TensorMeta, c: TensorMeta) Error!MmaLoweringPlan {
+pub fn validateMma(
+    atom_value: atom.MmaAtom,
+    d: TensorMeta,
+    a: TensorMeta,
+    b: TensorMeta,
+    c: TensorMeta,
+) Error!MmaLoweringPlan {
     const shape = atom_value.op().instruction_shape_mnk orelse atom_value.shapeMnk();
     if (shape.rank() != 3) return Error.InvalidMmaShape;
     const leaves = try shape.flattenLeaves();
@@ -337,7 +439,12 @@ pub fn validateMma(atom_value: atom.MmaAtom, d: TensorMeta, a: TensorMeta, b: Te
     };
 }
 
-pub fn makeFragment(builder: anytype, atom_value: atom.MmaAtom, comptime role: FragmentRole, input: TensorValue) Error!TensorValue {
+pub fn makeFragment(
+    builder: anytype,
+    atom_value: atom.MmaAtom,
+    comptime role: FragmentRole,
+    input: TensorValue,
+) Error!TensorValue {
     const operand = try role.atomOperand();
     const result_shape = try mmaFragmentShape(atom_value, role);
     var meta = try tensor_ssa.makeFragment(input.meta.dtype, result_shape);
@@ -346,23 +453,47 @@ pub fn makeFragment(builder: anytype, atom_value: atom.MmaAtom, comptime role: F
     }
     var type_buf: mlir.TextBuffer(512) = .{};
     try meta.tensorTypeText(&type_buf);
-    const result = try atom_value.makeFragmentMlir(operand, builder, .{ .value = input.value }, input.type_(), mlir.Type.raw(type_buf.slice()));
+    const result = try atom_value.makeFragmentMlir(
+        operand,
+        builder,
+        .{ .value = input.value },
+        input.type_(),
+        mlir.Type.raw(type_buf.slice()),
+    );
     return TensorValue.initFromMeta(meta, result);
 }
 
-pub fn makeFragmentA(builder: anytype, atom_value: atom.MmaAtom, input: TensorValue) Error!TensorValue {
+pub fn makeFragmentA(
+    builder: anytype,
+    atom_value: atom.MmaAtom,
+    input: TensorValue,
+) Error!TensorValue {
     return makeFragment(builder, atom_value, .A, input);
 }
 
-pub fn makeFragmentB(builder: anytype, atom_value: atom.MmaAtom, input: TensorValue) Error!TensorValue {
+pub fn makeFragmentB(
+    builder: anytype,
+    atom_value: atom.MmaAtom,
+    input: TensorValue,
+) Error!TensorValue {
     return makeFragment(builder, atom_value, .B, input);
 }
 
-pub fn makeFragmentC(builder: anytype, atom_value: atom.MmaAtom, input: TensorValue) Error!TensorValue {
+pub fn makeFragmentC(
+    builder: anytype,
+    atom_value: atom.MmaAtom,
+    input: TensorValue,
+) Error!TensorValue {
     return makeFragment(builder, atom_value, .C, input);
 }
 
-pub fn partitionMma(builder: anytype, tiled: atom.TiledMma, comptime role: FragmentRole, tensor_value: TensorValue, thread_id: mlir.Value) Error!TensorValue {
+pub fn partitionMma(
+    builder: anytype,
+    tiled: atom.TiledMma,
+    comptime role: FragmentRole,
+    tensor_value: TensorValue,
+    thread_id: mlir.Value,
+) Error!TensorValue {
     const operand: atom.Operand = switch (role) {
         .A => .A,
         .B => .B,
@@ -376,27 +507,73 @@ pub fn partitionMma(builder: anytype, tiled: atom.TiledMma, comptime role: Fragm
     };
     const result_type = try tensorTypeBuffer(out_meta);
     const value = switch (operand) {
-        .A => try tiled.emitPartition(.A, builder, .{ .value = tensor_value.value }, .{ .value = thread_id }, tensor_value.type_(), mlir.Type.index(), mlir.Type.raw(result_type.slice())),
-        .B => try tiled.emitPartition(.B, builder, .{ .value = tensor_value.value }, .{ .value = thread_id }, tensor_value.type_(), mlir.Type.index(), mlir.Type.raw(result_type.slice())),
-        .C => try tiled.emitPartition(.C, builder, .{ .value = tensor_value.value }, .{ .value = thread_id }, tensor_value.type_(), mlir.Type.index(), mlir.Type.raw(result_type.slice())),
+        .A => try tiled.emitPartition(
+            .A,
+            builder,
+            .{ .value = tensor_value.value },
+            .{ .value = thread_id },
+            tensor_value.type_(),
+            mlir.Type.index(),
+            mlir.Type.raw(result_type.slice()),
+        ),
+        .B => try tiled.emitPartition(
+            .B,
+            builder,
+            .{ .value = tensor_value.value },
+            .{ .value = thread_id },
+            tensor_value.type_(),
+            mlir.Type.index(),
+            mlir.Type.raw(result_type.slice()),
+        ),
+        .C => try tiled.emitPartition(
+            .C,
+            builder,
+            .{ .value = tensor_value.value },
+            .{ .value = thread_id },
+            tensor_value.type_(),
+            mlir.Type.index(),
+            mlir.Type.raw(result_type.slice()),
+        ),
         else => unreachable,
     };
     return TensorValue.initFromMeta(out_meta, value);
 }
 
-pub fn partitionMmaA(builder: anytype, tiled: atom.TiledMma, tensor_value: TensorValue, thread_id: mlir.Value) Error!TensorValue {
+pub fn partitionMmaA(
+    builder: anytype,
+    tiled: atom.TiledMma,
+    tensor_value: TensorValue,
+    thread_id: mlir.Value,
+) Error!TensorValue {
     return partitionMma(builder, tiled, .A, tensor_value, thread_id);
 }
 
-pub fn partitionMmaB(builder: anytype, tiled: atom.TiledMma, tensor_value: TensorValue, thread_id: mlir.Value) Error!TensorValue {
+pub fn partitionMmaB(
+    builder: anytype,
+    tiled: atom.TiledMma,
+    tensor_value: TensorValue,
+    thread_id: mlir.Value,
+) Error!TensorValue {
     return partitionMma(builder, tiled, .B, tensor_value, thread_id);
 }
 
-pub fn partitionMmaC(builder: anytype, tiled: atom.TiledMma, tensor_value: TensorValue, thread_id: mlir.Value) Error!TensorValue {
+pub fn partitionMmaC(
+    builder: anytype,
+    tiled: atom.TiledMma,
+    tensor_value: TensorValue,
+    thread_id: mlir.Value,
+) Error!TensorValue {
     return partitionMma(builder, tiled, .C, tensor_value, thread_id);
 }
 
-pub fn lowerMmaAtom(builder: anytype, atom_value: atom.MmaAtom, d: TensorValue, a: TensorValue, b: TensorValue, c: TensorValue) Error!MmaLoweringPlan {
+pub fn lowerMmaAtom(
+    builder: anytype,
+    atom_value: atom.MmaAtom,
+    d: TensorValue,
+    a: TensorValue,
+    b: TensorValue,
+    c: TensorValue,
+) Error!MmaLoweringPlan {
     const plan = try validateMma(atom_value, d.meta, a.meta, b.meta, c.meta);
     var d_ty_buf: mlir.TextBuffer(512) = .{};
     var a_ty_buf: mlir.TextBuffer(512) = .{};
@@ -407,7 +584,13 @@ pub fn lowerMmaAtom(builder: anytype, atom_value: atom.MmaAtom, d: TensorValue, 
     try a.meta.cutlassTensorTypeText(&a_ty_buf);
     try b.meta.cutlassTensorTypeText(&b_ty_buf);
     try c.meta.cutlassTensorTypeText(&c_ty_buf);
-    try cutlass_emit.writeUniversalFmaAtomType(&atom_ty_buf, plan.accumulator.mlir_type, @intCast(plan.m), @intCast(plan.n), @intCast(plan.k));
+    try cutlass_emit.writeUniversalFmaAtomType(
+        &atom_ty_buf,
+        plan.accumulator.mlir_type,
+        @intCast(plan.m),
+        @intCast(plan.n),
+        @intCast(plan.k),
+    );
     const atom_handle = try emitMakeAtomWithType(builder, atom_ty_buf.slice());
     try cutlass_emit.emitMmaAtomCall(
         builder,
@@ -425,7 +608,15 @@ pub fn lowerMmaAtom(builder: anytype, atom_value: atom.MmaAtom, d: TensorValue, 
     return plan;
 }
 
-pub fn lowerTiledMma(builder: anytype, tiled: atom.TiledMma, d: TensorValue, a: TensorValue, b: TensorValue, c: TensorValue, thread_id: mlir.Value) Error!MmaLoweringPlan {
+pub fn lowerTiledMma(
+    builder: anytype,
+    tiled: atom.TiledMma,
+    d: TensorValue,
+    a: TensorValue,
+    b: TensorValue,
+    c: TensorValue,
+    thread_id: mlir.Value,
+) Error!MmaLoweringPlan {
     const plan = try validateMma(tiled.base, d.meta, a.meta, b.meta, c.meta);
     const pa = try partitionMmaA(builder, tiled, a, thread_id);
     const pb = try partitionMmaB(builder, tiled, b, thread_id);
@@ -440,7 +631,13 @@ pub fn lowerTiledMma(builder: anytype, tiled: atom.TiledMma, d: TensorValue, a: 
     try pa.meta.cutlassTensorTypeText(&a_ty_buf);
     try pb.meta.cutlassTensorTypeText(&b_ty_buf);
     try pc.meta.cutlassTensorTypeText(&c_ty_buf);
-    try cutlass_emit.writeUniversalFmaAtomType(&atom_ty_buf, plan.accumulator.mlir_type, @intCast(plan.m), @intCast(plan.n), @intCast(plan.k));
+    try cutlass_emit.writeUniversalFmaAtomType(
+        &atom_ty_buf,
+        plan.accumulator.mlir_type,
+        @intCast(plan.m),
+        @intCast(plan.n),
+        @intCast(plan.k),
+    );
     const atom_handle = try emitMakeAtomWithType(builder, atom_ty_buf.slice());
     try cutlass_emit.emitMmaAtomCall(
         builder,
@@ -458,16 +655,31 @@ pub fn lowerTiledMma(builder: anytype, tiled: atom.TiledMma, d: TensorValue, a: 
     return plan;
 }
 
-pub fn gemmStep(builder: anytype, tiled: atom.TiledMma, d: TensorValue, a: TensorValue, b: TensorValue, c: TensorValue, thread_id: mlir.Value) Error!MmaLoweringPlan {
+pub fn gemmStep(
+    builder: anytype,
+    tiled: atom.TiledMma,
+    d: TensorValue,
+    a: TensorValue,
+    b: TensorValue,
+    c: TensorValue,
+    thread_id: mlir.Value,
+) Error!MmaLoweringPlan {
     return lowerTiledMma(builder, tiled, d, a, b, c, thread_id);
 }
 
-pub fn lowerMmaAccumulate(builder: anytype, atom_value: atom.MmaAtom, acc: SsaTensor, a: SsaTensor, b: SsaTensor) Error!SsaTensor {
+pub fn lowerMmaAccumulate(
+    builder: anytype,
+    atom_value: atom.MmaAtom,
+    acc: SsaTensor,
+    a: SsaTensor,
+    b: SsaTensor,
+) Error!SsaTensor {
     const expected = try mmaFragmentShape(atom_value, .C);
     if (!acc.shape_value.equals(&expected)) return Error.InvalidFragmentShape;
     const shape_a = try mmaFragmentShape(atom_value, .A);
     const shape_b = try mmaFragmentShape(atom_value, .B);
-    if (!a.shape_value.equals(&shape_a) or !b.shape_value.equals(&shape_b)) return Error.InvalidFragmentShape;
+    if (!a.shape_value.equals(&shape_a) or !b.shape_value.equals(&shape_b))
+        return Error.InvalidFragmentShape;
     var acc_ty: mlir.TextBuffer(256) = .{};
     var a_ty: mlir.TextBuffer(256) = .{};
     var b_ty: mlir.TextBuffer(256) = .{};
@@ -478,7 +690,11 @@ pub fn lowerMmaAccumulate(builder: anytype, atom_value: atom.MmaAtom, acc: SsaTe
         "cute.mma.ssa",
         &.{ .{ .value = acc.value }, .{ .value = a.value }, .{ .value = b.value } },
         &.{.{ .key = "op", .value = atomNameAttr(atom_value.op().name) }},
-        &.{ mlir.Type.raw(acc_ty.slice()), mlir.Type.raw(a_ty.slice()), mlir.Type.raw(b_ty.slice()) },
+        &.{
+            mlir.Type.raw(acc_ty.slice()),
+            mlir.Type.raw(a_ty.slice()),
+            mlir.Type.raw(b_ty.slice()),
+        },
         &.{mlir.Type.raw(acc_ty.slice())},
     );
     return SsaTensor.init(result, acc.shape_value, acc.dtype);
@@ -495,15 +711,28 @@ fn emitMakeAtomWithType(builder: anytype, atom_ty: []const u8) Error!mlir.Value 
 
 fn validatePlainCopy(src: TensorMeta, dst: TensorMeta, pred: ?SsaValue) Error!void {
     if (!sameNumeric(src.dtype, dst.dtype)) return Error.IncompatibleElementType;
-    if (!src.layout_value.shape.equals(&dst.layout_value.shape)) return Error.IncompatibleTensorShape;
+    if (!src.layout_value.shape.equals(&dst.layout_value.shape))
+        return Error.IncompatibleTensorShape;
     if (pred) |p| if (p.dtype.kind != .boolean) return Error.InvalidPredicateType;
 }
 
 fn tensorOperand(t: TensorValue) Error!atom.TensorOperand {
-    return .{ .value = .{ .value = t.value }, .ty = t.type_(), .element = t.meta.dtype, .v_rank = t.meta.rank() };
+    return .{
+        .value = .{ .value = t.value },
+        .ty = t.type_(),
+        .element = t.meta.dtype,
+        .v_rank = t.meta.rank(),
+    };
 }
 
-fn emitTensorTransform(builder: anytype, op_name: []const u8, input: TensorValue, out_meta: TensorMeta, extra_operands: []const mlir.Operand, extra_types: []const mlir.Type) Error!TensorValue {
+fn emitTensorTransform(
+    builder: anytype,
+    op_name: []const u8,
+    input: TensorValue,
+    out_meta: TensorMeta,
+    extra_operands: []const mlir.Operand,
+    extra_types: []const mlir.Type,
+) Error!TensorValue {
     if (extra_operands.len != extra_types.len) return Error.RankMismatch;
     var operands: [8]mlir.Operand = undefined;
     var types: [8]mlir.Type = undefined;
@@ -514,7 +743,13 @@ fn emitTensorTransform(builder: anytype, op_name: []const u8, input: TensorValue
         types[i + 1] = extra_types[i];
     }
     var type_buf = try tensorTypeBuffer(out_meta);
-    const result = try builder.genericOp(op_name, operands[0 .. 1 + extra_operands.len], &.{}, types[0 .. 1 + extra_types.len], &.{mlir.Type.raw(type_buf.slice())});
+    const result = try builder.genericOp(
+        op_name,
+        operands[0 .. 1 + extra_operands.len],
+        &.{},
+        types[0 .. 1 + extra_types.len],
+        &.{mlir.Type.raw(type_buf.slice())},
+    );
     return TensorValue.initFromMeta(out_meta, result);
 }
 
@@ -544,9 +779,18 @@ fn mmaFragmentShape(atom_value: atom.MmaAtom, role: FragmentRole) Error!Tree {
     const leaves = try shape.flattenLeaves();
     if (leaves.len != 3) return Error.InvalidMmaShape;
     return switch (role) {
-        .A => Tree.initTuple(&.{ try Tree.initLeaf(leaves.at(0)), try Tree.initLeaf(leaves.at(2)) }),
-        .B => Tree.initTuple(&.{ try Tree.initLeaf(leaves.at(1)), try Tree.initLeaf(leaves.at(2)) }),
-        .C, .D => Tree.initTuple(&.{ try Tree.initLeaf(leaves.at(0)), try Tree.initLeaf(leaves.at(1)) }),
+        .A => Tree.initTuple(&.{
+            try Tree.initLeaf(leaves.at(0)),
+            try Tree.initLeaf(leaves.at(2)),
+        }),
+        .B => Tree.initTuple(&.{
+            try Tree.initLeaf(leaves.at(1)),
+            try Tree.initLeaf(leaves.at(2)),
+        }),
+        .C, .D => Tree.initTuple(&.{
+            try Tree.initLeaf(leaves.at(0)),
+            try Tree.initLeaf(leaves.at(1)),
+        }),
     };
 }
 
@@ -565,27 +809,55 @@ fn makeTensorValue(meta: TensorMeta, value_name: []const u8) Error!TensorValue {
     return TensorValue.initFromMeta(meta, mlir.Value.named(value_name));
 }
 
-fn genericCopyAtom(dtype: typing.Numeric, src_space: typing.AddressSpace, dst_space: typing.AddressSpace) Error!atom.CopyAtom {
+fn genericCopyAtom(
+    dtype: typing.Numeric,
+    src_space: typing.AddressSpace,
+    dst_space: typing.AddressSpace,
+) Error!atom.CopyAtom {
     const thr = layout.makeCompactLayout(.{4});
     const tv = layout.makeCompactLayout(.{ 4, 1 });
     var tr: atom.Trait = .{ .name = "copy", .thr_id = thr };
     tr = tr.withCopyLayouts(tv, tv);
-    return atom.makeCopyAtom(atom.OpDescriptor.copyTyped("copy", "generic", "unit", dtype, src_space, dst_space, dtype.width, &.{}), tr);
+    return atom.makeCopyAtom(
+        atom.OpDescriptor.copyTyped("copy", "generic", "unit", dtype, src_space, dst_space, dtype.width, &.{}),
+        tr,
+    );
 }
 
 fn genericMmaAtom() Error!atom.MmaAtom {
     const thr = layout.makeCompactLayout(.{32});
     const tv = layout.makeCompactLayout(.{ 32, 1 });
-    var tr: atom.Trait = .{ .name = "mma", .thr_id = thr, .shape_mnk = Tree.fromComptime(.{ 16, 8, 8 }) };
+    var tr: atom.Trait = .{
+        .name = "mma",
+        .thr_id = thr,
+        .shape_mnk = Tree.fromComptime(.{ 16, 8, 8 }),
+    };
     tr = tr.withMmaLayouts(tv, tv, tv);
-    return atom.makeMmaAtom(atom.OpDescriptor.mmaTyped("mma", "generic", "unit", Tree.fromComptime(.{ 16, 8, 8 }), typing.Float16, typing.Float16, typing.Float32, &.{.accumulate}), tr);
+    return atom.makeMmaAtom(
+        atom.OpDescriptor.mmaTyped("mma", "generic", "unit", Tree.fromComptime(.{
+            16,
+            8,
+            8,
+        }), typing.Float16, typing.Float16, typing.Float32, &.{.accumulate}),
+        tr,
+    );
 }
 
 test "copy_mma: copy atom validates tensor metadata and emits copy call" {
     const shape = Tree.fromComptime(.{ 4, 4 });
     const l = try Layout.makeCompact(shape);
-    const src_meta = try TensorMeta.init(.{ .pointer = @import("runtime.zig").Pointer.nullptr(typing.Float32, .gmem) }, l, typing.Float32, .gmem);
-    const dst_meta = try TensorMeta.init(.{ .pointer = @import("runtime.zig").Pointer.nullptr(typing.Float32, .smem) }, l, typing.Float32, .smem);
+    const src_meta = try TensorMeta.init(
+        .{ .pointer = @import("runtime.zig").Pointer.nullptr(typing.Float32, .gmem) },
+        l,
+        typing.Float32,
+        .gmem,
+    );
+    const dst_meta = try TensorMeta.init(
+        .{ .pointer = @import("runtime.zig").Pointer.nullptr(typing.Float32, .smem) },
+        l,
+        typing.Float32,
+        .smem,
+    );
     const src = try makeTensorValue(src_meta, "%src");
     const dst = try makeTensorValue(dst_meta, "%dst");
     const copy_atom = try genericCopyAtom(typing.Float32, .gmem, .smem);
@@ -600,21 +872,60 @@ test "copy_mma: copy rejects element, shape, memory and predicate mismatches" {
     const shape = Tree.fromComptime(.{ 4, 4 });
     const l = try Layout.makeCompact(shape);
     const copy_atom = try genericCopyAtom(typing.Float32, .gmem, .smem);
-    const src = try TensorMeta.init(.{ .pointer = @import("runtime.zig").Pointer.nullptr(typing.Float32, .gmem) }, l, typing.Float32, .gmem);
-    const dst_bad_type = try TensorMeta.init(.{ .pointer = @import("runtime.zig").Pointer.nullptr(typing.Float16, .smem) }, l, typing.Float16, .smem);
-    try std.testing.expectError(Error.IncompatibleElementType, validateCopy(copy_atom, src, dst_bad_type, null));
-    const dst_bad_space = try TensorMeta.init(.{ .pointer = @import("runtime.zig").Pointer.nullptr(typing.Float32, .gmem) }, l, typing.Float32, .gmem);
-    try std.testing.expectError(Error.IncompatibleMemorySpace, validateCopy(copy_atom, src, dst_bad_space, null));
+    const src = try TensorMeta.init(
+        .{ .pointer = @import("runtime.zig").Pointer.nullptr(typing.Float32, .gmem) },
+        l,
+        typing.Float32,
+        .gmem,
+    );
+    const dst_bad_type = try TensorMeta.init(
+        .{ .pointer = @import("runtime.zig").Pointer.nullptr(typing.Float16, .smem) },
+        l,
+        typing.Float16,
+        .smem,
+    );
+    try std.testing.expectError(
+        Error.IncompatibleElementType,
+        validateCopy(copy_atom, src, dst_bad_type, null),
+    );
+    const dst_bad_space = try TensorMeta.init(
+        .{ .pointer = @import("runtime.zig").Pointer.nullptr(typing.Float32, .gmem) },
+        l,
+        typing.Float32,
+        .gmem,
+    );
+    try std.testing.expectError(
+        Error.IncompatibleMemorySpace,
+        validateCopy(copy_atom, src, dst_bad_space, null),
+    );
     const bad_pred = SsaValue.init(mlir.Value.named("%p"), typing.Int32);
-    const dst = try TensorMeta.init(.{ .pointer = @import("runtime.zig").Pointer.nullptr(typing.Float32, .smem) }, l, typing.Float32, .smem);
-    try std.testing.expectError(Error.InvalidPredicateType, validateCopy(copy_atom, src, dst, bad_pred));
+    const dst = try TensorMeta.init(
+        .{ .pointer = @import("runtime.zig").Pointer.nullptr(typing.Float32, .smem) },
+        l,
+        typing.Float32,
+        .smem,
+    );
+    try std.testing.expectError(
+        Error.InvalidPredicateType,
+        validateCopy(copy_atom, src, dst, bad_pred),
+    );
 }
 
 test "copy_mma: tiled copy partitions tensors before atom call" {
     const shape = Tree.fromComptime(.{ 8, 4 });
     const l = try Layout.makeCompact(shape);
-    const src_meta = try TensorMeta.init(.{ .pointer = @import("runtime.zig").Pointer.nullptr(typing.Int32, .gmem) }, l, typing.Int32, .gmem);
-    const dst_meta = try TensorMeta.init(.{ .pointer = @import("runtime.zig").Pointer.nullptr(typing.Int32, .smem) }, l, typing.Int32, .smem);
+    const src_meta = try TensorMeta.init(
+        .{ .pointer = @import("runtime.zig").Pointer.nullptr(typing.Int32, .gmem) },
+        l,
+        typing.Int32,
+        .gmem,
+    );
+    const dst_meta = try TensorMeta.init(
+        .{ .pointer = @import("runtime.zig").Pointer.nullptr(typing.Int32, .smem) },
+        l,
+        typing.Int32,
+        .smem,
+    );
     const src = try makeTensorValue(src_meta, "%src");
     const dst = try makeTensorValue(dst_meta, "%dst");
     const copy_atom = try genericCopyAtom(typing.Int32, .gmem, .smem);
@@ -632,14 +943,32 @@ test "copy_mma: tiled copy partitions tensors before atom call" {
 test "copy_mma: async and tma copy emit distinct nvgpu hooks" {
     const shape = Tree.fromComptime(.{ 4, 4 });
     const l = try Layout.makeCompact(shape);
-    const src_meta = try TensorMeta.init(.{ .pointer = @import("runtime.zig").Pointer.nullptr(typing.Float32, .gmem) }, l, typing.Float32, .gmem);
-    const dst_meta = try TensorMeta.init(.{ .pointer = @import("runtime.zig").Pointer.nullptr(typing.Float32, .smem) }, l, typing.Float32, .smem);
+    const src_meta = try TensorMeta.init(
+        .{ .pointer = @import("runtime.zig").Pointer.nullptr(typing.Float32, .gmem) },
+        l,
+        typing.Float32,
+        .gmem,
+    );
+    const dst_meta = try TensorMeta.init(
+        .{ .pointer = @import("runtime.zig").Pointer.nullptr(typing.Float32, .smem) },
+        l,
+        typing.Float32,
+        .smem,
+    );
     const src = try makeTensorValue(src_meta, "%src");
     const dst = try makeTensorValue(dst_meta, "%dst");
     const copy_atom = try genericCopyAtom(typing.Float32, .gmem, .smem);
     var b: mlir.Builder(4096) = .{};
     _ = try lowerAsyncCopy(&b, copy_atom, src, dst, null, null);
-    _ = try lowerTmaCopy(&b, copy_atom, src, dst, mlir.Value.named("%desc"), &.{mlir.Value.named("%i")}, null);
+    _ = try lowerTmaCopy(
+        &b,
+        copy_atom,
+        src,
+        dst,
+        mlir.Value.named("%desc"),
+        &.{mlir.Value.named("%i")},
+        null,
+    );
     try std.testing.expect(std.mem.indexOf(u8, b.slice(), "cute_nvgpu.copy_async") != null);
     try std.testing.expect(std.mem.indexOf(u8, b.slice(), "cute_nvgpu.tma_copy") != null);
 }
@@ -649,10 +978,30 @@ test "copy_mma: mma validates fragment shapes and emits call" {
     const la = try Layout.makeCompact(Tree.fromComptime(.{ 16, 8 }));
     const lb = try Layout.makeCompact(Tree.fromComptime(.{ 8, 8 }));
     const lc = try Layout.makeCompact(Tree.fromComptime(.{ 16, 8 }));
-    const a_meta = try TensorMeta.init(.{ .fragment = {} }, la, typing.Float16, .generic);
-    const b_meta = try TensorMeta.init(.{ .fragment = {} }, lb, typing.Float16, .generic);
-    const c_meta = try TensorMeta.init(.{ .fragment = {} }, lc, typing.Float32, .generic);
-    const d_meta = try TensorMeta.init(.{ .fragment = {} }, lc, typing.Float32, .generic);
+    const a_meta = try TensorMeta.init(
+        .{ .fragment = {} },
+        la,
+        typing.Float16,
+        .generic,
+    );
+    const b_meta = try TensorMeta.init(
+        .{ .fragment = {} },
+        lb,
+        typing.Float16,
+        .generic,
+    );
+    const c_meta = try TensorMeta.init(
+        .{ .fragment = {} },
+        lc,
+        typing.Float32,
+        .generic,
+    );
+    const d_meta = try TensorMeta.init(
+        .{ .fragment = {} },
+        lc,
+        typing.Float32,
+        .generic,
+    );
     const a = try makeTensorValue(a_meta, "%a");
     const bval = try makeTensorValue(b_meta, "%b");
     const c = try makeTensorValue(c_meta, "%c");
@@ -662,20 +1011,44 @@ test "copy_mma: mma validates fragment shapes and emits call" {
     try std.testing.expectEqual(@as(layout.Unsigned, 16), plan.m);
     try std.testing.expectEqual(@as(layout.Unsigned, 8), plan.n);
     try std.testing.expect(std.mem.indexOf(u8, builder.slice(), "cute.mma_atom_call") != null);
-    const wrong_a_meta = try TensorMeta.init(.{ .fragment = {} }, lb, typing.Float16, .generic);
-    try std.testing.expectError(Error.InvalidMmaOperand, validateMma(mma, d_meta, wrong_a_meta, b_meta, c_meta));
+    const wrong_a_meta = try TensorMeta.init(
+        .{ .fragment = {} },
+        lb,
+        typing.Float16,
+        .generic,
+    );
+    try std.testing.expectError(
+        Error.InvalidMmaOperand,
+        validateMma(mma, d_meta, wrong_a_meta, b_meta, c_meta),
+    );
 }
 
 test "copy_mma: tiled mma partitions A/B/C/D before lowering" {
     const mma = try genericMmaAtom();
-    const tiled = try atom.makeTiledMma(mma, layout.makeCompactLayout(.{ 1, 1, 1 }), null);
+    const tiled = try atom.makeTiledMma(
+        mma,
+        layout.makeCompactLayout(.{ 1, 1, 1 }),
+        null,
+    );
     const la = try Layout.makeCompact(Tree.fromComptime(.{ 16, 8 }));
     const lb = try Layout.makeCompact(Tree.fromComptime(.{ 8, 8 }));
     const lc = try Layout.makeCompact(Tree.fromComptime(.{ 16, 8 }));
-    const a = try makeTensorValue(try TensorMeta.init(.{ .fragment = {} }, la, typing.Float16, .generic), "%a");
-    const b = try makeTensorValue(try TensorMeta.init(.{ .fragment = {} }, lb, typing.Float16, .generic), "%b");
-    const c = try makeTensorValue(try TensorMeta.init(.{ .fragment = {} }, lc, typing.Float32, .generic), "%c");
-    const d = try makeTensorValue(try TensorMeta.init(.{ .fragment = {} }, lc, typing.Float32, .generic), "%d");
+    const a = try makeTensorValue(
+        try TensorMeta.init(.{ .fragment = {} }, la, typing.Float16, .generic),
+        "%a",
+    );
+    const b = try makeTensorValue(
+        try TensorMeta.init(.{ .fragment = {} }, lb, typing.Float16, .generic),
+        "%b",
+    );
+    const c = try makeTensorValue(
+        try TensorMeta.init(.{ .fragment = {} }, lc, typing.Float32, .generic),
+        "%c",
+    );
+    const d = try makeTensorValue(
+        try TensorMeta.init(.{ .fragment = {} }, lc, typing.Float32, .generic),
+        "%d",
+    );
     var builder: mlir.Builder(8192) = .{};
     const tid = try builder.constantIndex(0);
     _ = try lowerTiledMma(&builder, tiled, d, a, b, c, tid);
@@ -686,9 +1059,21 @@ test "copy_mma: tiled mma partitions A/B/C/D before lowering" {
 test "copy_mma: SSA mma hook checks fragment shapes" {
     const mma = try genericMmaAtom();
     var builder: mlir.Builder(4096) = .{};
-    const acc = try SsaTensor.empty(&builder, Tree.fromComptime(.{ 16, 8 }), typing.Float32);
-    const a = try SsaTensor.empty(&builder, Tree.fromComptime(.{ 16, 8 }), typing.Float16);
-    const b = try SsaTensor.empty(&builder, Tree.fromComptime(.{ 8, 8 }), typing.Float16);
+    const acc = try SsaTensor.empty(
+        &builder,
+        Tree.fromComptime(.{ 16, 8 }),
+        typing.Float32,
+    );
+    const a = try SsaTensor.empty(
+        &builder,
+        Tree.fromComptime(.{ 16, 8 }),
+        typing.Float16,
+    );
+    const b = try SsaTensor.empty(
+        &builder,
+        Tree.fromComptime(.{ 8, 8 }),
+        typing.Float16,
+    );
     const out = try lowerMmaAccumulate(&builder, mma, acc, a, b);
     try std.testing.expect(out.shape_value.equals(&Tree.fromComptime(.{ 16, 8 })));
     try std.testing.expect(std.mem.indexOf(u8, builder.slice(), "cute.mma.ssa") != null);

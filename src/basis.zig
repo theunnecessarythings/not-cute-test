@@ -42,13 +42,25 @@ pub const Ratio = struct {
     }
 
     pub fn mul(self: Ratio, other: Ratio) Error!Ratio {
-        const n = std.math.mul(Scalar, self.numerator, other.numerator) catch return Error.Overflow;
-        const d = std.math.mul(Scalar, self.denominator, other.denominator) catch return Error.Overflow;
+        const n = std.math.mul(
+            Scalar,
+            self.numerator,
+            other.numerator,
+        ) catch return Error.Overflow;
+        const d = std.math.mul(
+            Scalar,
+            self.denominator,
+            other.denominator,
+        ) catch return Error.Overflow;
         return (try init(n, d)).reduced();
     }
 
     pub fn mulInt(self: Ratio, value: Scalar) Error!Ratio {
-        const n = std.math.mul(Scalar, self.numerator, value) catch return Error.Overflow;
+        const n = std.math.mul(
+            Scalar,
+            self.numerator,
+            value,
+        ) catch return Error.Overflow;
         return (try init(n, self.denominator)).reduced();
     }
 
@@ -150,7 +162,8 @@ pub const Swizzle = struct {
     pub fn init(num_bits: u6, num_base: u6, num_shift: i8) Error!Swizzle {
         if (num_bits == 0) return Error.InvalidSwizzle;
         const abs_shift: u8 = @intCast(if (num_shift < 0) -num_shift else num_shift);
-        if (@as(u16, num_base) + @as(u16, num_bits) + @as(u16, abs_shift) >= 128) return Error.InvalidSwizzle;
+        if (@as(u16, num_base) + @as(u16, num_bits) + @as(u16, abs_shift) >= 128)
+            return Error.InvalidSwizzle;
         return .{ .num_bits = num_bits, .num_base = num_base, .num_shift = num_shift };
     }
 
@@ -193,7 +206,11 @@ test "basis: scaled basis equality scaling and basis_get" {
 
     const t = layout.Tree.fromComptime(.{ 10, .{ 20, 30 } });
     const sub = try basisGet(try ScaledBasis.initInt(1, &.{ 1, 0 }), &t);
-    try std.testing.expectEqualSlices(Scalar, &.{20}, (try sub.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{20},
+        (try sub.flattenLeaves()).slice(),
+    );
 }
 
 test "basis: swizzle descriptor equality and xor mapping" {

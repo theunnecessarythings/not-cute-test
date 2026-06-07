@@ -3,7 +3,9 @@ const cute = @import("not_cute");
 
 pub fn main() !void {
     var builder: cute.mlir_text.Builder(8192) = .{};
-    const tensor_layout = try cute.layout.Layout.makeCompact(cute.layout.Tree.fromComptime(.{4}));
+    const tensor_layout = try cute.layout.Layout.makeCompact(
+        cute.layout.Tree.fromComptime(.{4}),
+    );
     const src_meta = try cute.tensor_ssa.TensorMeta.init(
         .{ .mlir_value = cute.mlir_text.Value.arg(0) },
         tensor_layout,
@@ -29,11 +31,22 @@ pub fn main() !void {
     try builder.beginModule();
     try builder.beginFunc(
         "copy_vector",
-        &.{ cute.mlir_text.Type.raw(src_type.slice()), cute.mlir_text.Type.raw(dst_type.slice()) },
+        &.{
+            cute.mlir_text.Type.raw(src_type.slice()),
+            cute.mlir_text.Type.raw(dst_type.slice()),
+        },
         null,
     );
-    const src = cute.tensor_ssa.TensorValue.init(src_meta, cute.mlir_text.Value.arg(0), src_type.slice());
-    const dst = cute.tensor_ssa.TensorValue.init(dst_meta, cute.mlir_text.Value.arg(1), dst_type.slice());
+    const src = cute.tensor_ssa.TensorValue.init(
+        src_meta,
+        cute.mlir_text.Value.arg(0),
+        src_type.slice(),
+    );
+    const dst = cute.tensor_ssa.TensorValue.init(
+        dst_meta,
+        cute.mlir_text.Value.arg(1),
+        dst_type.slice(),
+    );
     _ = try cute.copy_mma.lowerCopyAtom(&builder, copy_atom, src, dst, null);
     try builder.ret(&.{}, &.{});
     try builder.endFunc();

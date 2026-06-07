@@ -38,8 +38,17 @@ pub fn writeTiledCopyGpuKernel(out: anytype, kernel_name: []const u8) Error!void
     try out.append("}\n");
 }
 
-pub fn compileRequestForTiledCopyKernel(input_mlir: []const u8, work_dir: []const u8, arch: []const u8) compile_pipeline.CompileRequest {
-    return compile_pipeline.defaultKernelCompileRequest(input_mlir, work_dir, "tiled_copy_kernel", arch);
+pub fn compileRequestForTiledCopyKernel(
+    input_mlir: []const u8,
+    work_dir: []const u8,
+    arch: []const u8,
+) compile_pipeline.CompileRequest {
+    return compile_pipeline.defaultKernelCompileRequest(
+        input_mlir,
+        work_dir,
+        "tiled_copy_kernel",
+        arch,
+    );
 }
 
 test "kernel_modules: writes kernel-shaped CUTLASS MLIR" {
@@ -50,8 +59,15 @@ test "kernel_modules: writes kernel-shaped CUTLASS MLIR" {
 }
 
 test "kernel_modules: compile request targets executable cubin dump path" {
-    const req = compileRequestForTiledCopyKernel("kernel.mlir", "zig-cache/not-cute/kernel", "sm_90");
+    const req = compileRequestForTiledCopyKernel(
+        "kernel.mlir",
+        "zig-cache/not-cute/kernel",
+        "sm_90",
+    );
     var p: mlir.TextBuffer(256) = .{};
     try req.artifactPath(.cubin, &p);
-    try std.testing.expectEqualStrings("zig-cache/not-cute/kernel/tiled_copy_kernel", p.slice());
+    try std.testing.expectEqualStrings(
+        "zig-cache/not-cute/kernel/tiled_copy_kernel",
+        p.slice(),
+    );
 }

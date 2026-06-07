@@ -17,13 +17,19 @@ pub const FullTiledFixture = struct {
     mlir_text: []const u8,
 
     pub fn validate(self: FullTiledFixture) Error!void {
-        if (self.name.len == 0 or self.mlir_text.len == 0) return Error.InvalidFullTiledFixture;
+        if (self.name.len == 0 or self.mlir_text.len == 0)
+            return Error.InvalidFullTiledFixture;
         try mlir_harness.validateGeneratedMlir(self.mlir_text);
-        if (std.mem.indexOf(u8, self.mlir_text, "!cute.tensor") != null) return Error.InvalidFullTiledFixture;
-        if (std.mem.indexOf(u8, self.mlir_text, "cute.tiled_copy_") != null) return Error.InvalidFullTiledFixture;
-        if (std.mem.indexOf(u8, self.mlir_text, "cute.tiled_mma_") != null) return Error.InvalidFullTiledFixture;
-        if (std.mem.indexOf(u8, self.mlir_text, "cute.tiled.copy.partition_S") == null and self.kind == .tiled_copy_full) return Error.InvalidFullTiledFixture;
-        if (std.mem.indexOf(u8, self.mlir_text, "cute.tiled.mma.partition") == null and self.kind == .tiled_mma_full) return Error.InvalidFullTiledFixture;
+        if (std.mem.indexOf(u8, self.mlir_text, "!cute.tensor") != null)
+            return Error.InvalidFullTiledFixture;
+        if (std.mem.indexOf(u8, self.mlir_text, "cute.tiled_copy_") != null)
+            return Error.InvalidFullTiledFixture;
+        if (std.mem.indexOf(u8, self.mlir_text, "cute.tiled_mma_") != null)
+            return Error.InvalidFullTiledFixture;
+        if (std.mem.indexOf(u8, self.mlir_text, "cute.tiled.copy.partition_S") == null and self.kind == .tiled_copy_full)
+            return Error.InvalidFullTiledFixture;
+        if (std.mem.indexOf(u8, self.mlir_text, "cute.tiled.mma.partition") == null and self.kind == .tiled_mma_full)
+            return Error.InvalidFullTiledFixture;
     }
 };
 
@@ -78,8 +84,16 @@ pub const full_tiled_mma_fixture =
 ;
 
 pub const full_tiled_fixtures = [_]FullTiledFixture{
-    .{ .name = "tiled_emit_full_tiled_copy", .kind = .tiled_copy_full, .mlir_text = full_tiled_copy_fixture },
-    .{ .name = "tiled_emit_full_tiled_mma", .kind = .tiled_mma_full, .mlir_text = full_tiled_mma_fixture },
+    .{
+        .name = "tiled_emit_full_tiled_copy",
+        .kind = .tiled_copy_full,
+        .mlir_text = full_tiled_copy_fixture,
+    },
+    .{
+        .name = "tiled_emit_full_tiled_mma",
+        .kind = .tiled_mma_full,
+        .mlir_text = full_tiled_mma_fixture,
+    },
 };
 
 pub fn fixtureByName(name: []const u8) ?FullTiledFixture {
@@ -98,8 +112,10 @@ pub fn emitFullTiledMmaModule(out: anytype) Error!void {
 }
 
 pub fn emitByName(name: []const u8, out: anytype) Error!void {
-    if (std.mem.eql(u8, name, "tiled_emit_full_tiled_copy")) return emitFullTiledCopyModule(out);
-    if (std.mem.eql(u8, name, "tiled_emit_full_tiled_mma")) return emitFullTiledMmaModule(out);
+    if (std.mem.eql(u8, name, "tiled_emit_full_tiled_copy"))
+        return emitFullTiledCopyModule(out);
+    if (std.mem.eql(u8, name, "tiled_emit_full_tiled_mma"))
+        return emitFullTiledMmaModule(out);
     return Error.InvalidFullTiledFixture;
 }
 

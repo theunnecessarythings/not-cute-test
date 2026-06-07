@@ -4,7 +4,6 @@ const typing = @import("typing.zig");
 const atom = @import("atom.zig");
 const nvgpu = @import("nvgpu.zig");
 const arch_catalog = @import("arch_catalog.zig");
-const arch_manifest = @import("arch_manifest.zig");
 
 pub const Error = nvgpu.Error || atom.Error || typing.Error || error{
     UnsupportedArch,
@@ -100,18 +99,70 @@ pub fn makeMmaBySourceName(name: []const u8, arch: SmArch, config: MmaConfig) Er
     const opts = toNvgpuMmaOptions(config);
     if (std.mem.eql(u8, name, "MmaUniversalOp")) return nvgpu.universalMma(config.acc_dtype);
     if (std.mem.eql(u8, name, "MmaF16BF16Op")) {
-        if (@intFromEnum(arch) >= @intFromEnum(SmArch.sm100)) return nvgpu.tcgen05MmaF16BF16(config.a_dtype, config.acc_dtype, opts);
-        if (@intFromEnum(arch) >= @intFromEnum(SmArch.sm90)) return nvgpu.warpgroupMmaF16BF16(config.a_dtype, config.acc_dtype, opts);
+        if (@intFromEnum(arch) >= @intFromEnum(SmArch.sm100))
+            return nvgpu.tcgen05MmaF16BF16(config.a_dtype, config.acc_dtype, opts);
+        if (@intFromEnum(arch) >= @intFromEnum(SmArch.sm90))
+            return nvgpu.warpgroupMmaF16BF16(config.a_dtype, config.acc_dtype, opts);
         return nvgpu.warpMmaF16BF16(config.a_dtype, config.acc_dtype, opts);
     }
-    if (std.mem.eql(u8, name, "MmaFP8Op") or std.mem.eql(u8, name, "MmaF8Op")) return nvgpu.warpMmaFP8(config.a_dtype, config.acc_dtype, opts);
-    if (std.mem.eql(u8, name, "MmaTF32Op")) return nvgpu.tcgen05BlockScaledMma("MmaTF32Op", typing.TFloat32, typing.TFloat32, typing.Float8E8M0FNU, opts);
-    if (std.mem.eql(u8, name, "MmaI8Op")) return nvgpu.tcgen05BlockScaledMma("MmaI8Op", typing.Int8, typing.Int8, typing.Float8E8M0FNU, opts);
-    if (std.mem.eql(u8, name, "MmaF8F6F4Op")) return nvgpu.tcgen05BlockScaledMma("MmaF8F6F4Op", config.a_dtype, config.b_dtype, config.sf_dtype, opts);
-    if (std.mem.eql(u8, name, "MmaMXF8Op")) return nvgpu.tcgen05BlockScaledMma("MmaMXF8Op", config.a_dtype, config.b_dtype, config.sf_dtype, opts);
-    if (std.mem.eql(u8, name, "MmaMXF8F6F4Op")) return nvgpu.tcgen05BlockScaledMma("MmaMXF8F6F4Op", config.a_dtype, config.b_dtype, config.sf_dtype, opts);
-    if (std.mem.eql(u8, name, "MmaMXF4Op")) return nvgpu.tcgen05BlockScaledMma("MmaMXF4Op", typing.Float4E2M1FN, typing.Float4E2M1FN, config.sf_dtype, opts);
-    if (std.mem.eql(u8, name, "MmaMXF4NVF4Op")) return nvgpu.tcgen05BlockScaledMma("MmaMXF4NVF4Op", typing.Float4E2M1FN, typing.Float4E2M1FN, config.sf_dtype, opts);
+    if (std.mem.eql(u8, name, "MmaFP8Op") or std.mem.eql(u8, name, "MmaF8Op"))
+        return nvgpu.warpMmaFP8(config.a_dtype, config.acc_dtype, opts);
+    if (std.mem.eql(u8, name, "MmaTF32Op"))
+        return nvgpu.tcgen05BlockScaledMma(
+            "MmaTF32Op",
+            typing.TFloat32,
+            typing.TFloat32,
+            typing.Float8E8M0FNU,
+            opts,
+        );
+    if (std.mem.eql(u8, name, "MmaI8Op"))
+        return nvgpu.tcgen05BlockScaledMma(
+            "MmaI8Op",
+            typing.Int8,
+            typing.Int8,
+            typing.Float8E8M0FNU,
+            opts,
+        );
+    if (std.mem.eql(u8, name, "MmaF8F6F4Op"))
+        return nvgpu.tcgen05BlockScaledMma(
+            "MmaF8F6F4Op",
+            config.a_dtype,
+            config.b_dtype,
+            config.sf_dtype,
+            opts,
+        );
+    if (std.mem.eql(u8, name, "MmaMXF8Op"))
+        return nvgpu.tcgen05BlockScaledMma(
+            "MmaMXF8Op",
+            config.a_dtype,
+            config.b_dtype,
+            config.sf_dtype,
+            opts,
+        );
+    if (std.mem.eql(u8, name, "MmaMXF8F6F4Op"))
+        return nvgpu.tcgen05BlockScaledMma(
+            "MmaMXF8F6F4Op",
+            config.a_dtype,
+            config.b_dtype,
+            config.sf_dtype,
+            opts,
+        );
+    if (std.mem.eql(u8, name, "MmaMXF4Op"))
+        return nvgpu.tcgen05BlockScaledMma(
+            "MmaMXF4Op",
+            typing.Float4E2M1FN,
+            typing.Float4E2M1FN,
+            config.sf_dtype,
+            opts,
+        );
+    if (std.mem.eql(u8, name, "MmaMXF4NVF4Op"))
+        return nvgpu.tcgen05BlockScaledMma(
+            "MmaMXF4NVF4Op",
+            typing.Float4E2M1FN,
+            typing.Float4E2M1FN,
+            config.sf_dtype,
+            opts,
+        );
     return Error.UnknownOperation;
 }
 
@@ -125,16 +176,25 @@ pub fn makeCopyBySourceName(name: []const u8, arch: SmArch, config: CopyConfig) 
     if (std.mem.eql(u8, name, "CopyS2ROp")) return nvgpu.copyS2R(config.dtype, opts);
     if (std.mem.eql(u8, name, "CopyR2SOp")) return nvgpu.copyR2S(config.dtype, opts);
     if (std.mem.eql(u8, name, "CopyG2SOp")) return nvgpu.cpAsyncG2S(config.dtype, opts);
-    if (startsWith(name, "CopyBulkTensor") or startsWith(name, "CopyReduceBulkTensor")) return nvgpu.tmaCopy(name, config.dtype, .gmem, .smem, opts);
-    if (startsWith(name, "CopyBulkG2S")) return nvgpu.tmaCopy(name, config.dtype, .gmem, .smem, opts);
-    if (startsWith(name, "CopyBulkS2G")) return nvgpu.tmaCopy(name, config.dtype, .smem, .gmem, opts);
-    if (startsWith(name, "CopyBulkS2S")) return nvgpu.tmaCopy(name, config.dtype, .smem, .smem, opts);
+    if (startsWith(name, "CopyBulkTensor") or startsWith(name, "CopyReduceBulkTensor"))
+        return nvgpu.tmaCopy(name, config.dtype, .gmem, .smem, opts);
+    if (startsWith(name, "CopyBulkG2S"))
+        return nvgpu.tmaCopy(name, config.dtype, .gmem, .smem, opts);
+    if (startsWith(name, "CopyBulkS2G"))
+        return nvgpu.tmaCopy(name, config.dtype, .smem, .gmem, opts);
+    if (startsWith(name, "CopyBulkS2S"))
+        return nvgpu.tmaCopy(name, config.dtype, .smem, .smem, opts);
     if (startsWith(name, "CopyDsmemStore")) return nvgpu.tmaCopy(name, config.dtype, .smem, .smem, opts);
-    if (startsWith(name, "LdMatrix")) return nvgpu.warpLdMatrix(name, config.dtype, config.bits_per_copy);
-    if (startsWith(name, "StMatrix")) return nvgpu.warpStMatrix(name, config.dtype, config.bits_per_copy);
-    if (startsWith(name, "Ld") or startsWith(name, "LdRed")) return nvgpu.tcgen05Load(name, config.dtype, config.bits_per_copy);
-    if (startsWith(name, "St")) return nvgpu.tcgen05Store(name, config.dtype, config.bits_per_copy);
-    if (startsWith(name, "Cp")) return nvgpu.tcgen05S2T(name, config.dtype, config.bits_per_copy);
+    if (startsWith(name, "LdMatrix"))
+        return nvgpu.warpLdMatrix(name, config.dtype, config.bits_per_copy);
+    if (startsWith(name, "StMatrix"))
+        return nvgpu.warpStMatrix(name, config.dtype, config.bits_per_copy);
+    if (startsWith(name, "Ld") or startsWith(name, "LdRed"))
+        return nvgpu.tcgen05Load(name, config.dtype, config.bits_per_copy);
+    if (startsWith(name, "St"))
+        return nvgpu.tcgen05Store(name, config.dtype, config.bits_per_copy);
+    if (startsWith(name, "Cp"))
+        return nvgpu.tcgen05S2T(name, config.dtype, config.bits_per_copy);
     return Error.UnknownOperation;
 }
 
@@ -292,24 +352,6 @@ pub fn Cp2x64x128b0123Op(config: CopyConfig) Error!atom.CopyAtom {
     return nvgpu.tcgen05S2T("Cp2x64x128b0123Op", config.dtype, 128);
 }
 
-pub fn countExactArchRecords() usize {
-    return arch_manifest.source_arch_record_count;
-}
-
-pub fn countConstructibleRecords() usize {
-    var count: usize = 0;
-    for (arch_manifest.records) |record| {
-        if (makeKind(record.name) != null) count += 1;
-    }
-    return count;
-}
-
-fn makeKind(name: []const u8) ?atom.OpKind {
-    if (std.mem.indexOf(u8, name, "Mma") != null) return .mma;
-    if (std.mem.indexOf(u8, name, "Copy") != null or startsWith(name, "Ld") or startsWith(name, "St") or startsWith(name, "Cp")) return .copy;
-    return null;
-}
-
 test "arch_ops: source-derived constructors create copy and mma atoms" {
     const copy = try CopyAtomCpAsync(.{ .dtype = typing.Float32, .bits_per_copy = 32 });
     try std.testing.expectEqual(atom.OpKind.copy, copy.atom.kind());
@@ -324,9 +366,4 @@ test "arch_ops: exact class-name dispatch covers tcgen05 and warp matrix familie
     try std.testing.expectEqual(atom.OpKind.copy, st.atom.kind());
     const mx = try makeMmaBySourceName("MmaMXF4Op", .sm100, .{});
     try std.testing.expectEqual(atom.OpKind.mma, mx.atom.kind());
-}
-
-test "arch_ops: manifest is wired into constructibility audit" {
-    try std.testing.expect(countExactArchRecords() >= 380);
-    try std.testing.expect(countConstructibleRecords() >= 60);
 }

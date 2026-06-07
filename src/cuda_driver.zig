@@ -116,31 +116,71 @@ pub const DriverSymbols = struct {
     pub fn load(lib: *std.DynLib) Error!DriverSymbols {
         return .{
             .cuInit = try lookup(lib, Fn.cuInit, "cuInit"),
-            .cuDriverGetVersion = try lookup(lib, Fn.cuDriverGetVersion, "cuDriverGetVersion"),
-            .cuDeviceGetCount = try lookup(lib, Fn.cuDeviceGetCount, "cuDeviceGetCount"),
+            .cuDriverGetVersion = try lookup(
+                lib,
+                Fn.cuDriverGetVersion,
+                "cuDriverGetVersion",
+            ),
+            .cuDeviceGetCount = try lookup(
+                lib,
+                Fn.cuDeviceGetCount,
+                "cuDeviceGetCount",
+            ),
             .cuDeviceGet = try lookup(lib, Fn.cuDeviceGet, "cuDeviceGet"),
             .cuDeviceGetName = try lookup(lib, Fn.cuDeviceGetName, "cuDeviceGetName"),
-            .cuDeviceComputeCapability = try lookup(lib, Fn.cuDeviceComputeCapability, "cuDeviceComputeCapability"),
-            .cuDevicePrimaryCtxRetain = try lookup(lib, Fn.cuDevicePrimaryCtxRetain, "cuDevicePrimaryCtxRetain"),
-            .cuDevicePrimaryCtxRelease = try lookup(lib, Fn.cuDevicePrimaryCtxRelease, "cuDevicePrimaryCtxRelease"),
+            .cuDeviceComputeCapability = try lookup(
+                lib,
+                Fn.cuDeviceComputeCapability,
+                "cuDeviceComputeCapability",
+            ),
+            .cuDevicePrimaryCtxRetain = try lookup(
+                lib,
+                Fn.cuDevicePrimaryCtxRetain,
+                "cuDevicePrimaryCtxRetain",
+            ),
+            .cuDevicePrimaryCtxRelease = try lookup(
+                lib,
+                Fn.cuDevicePrimaryCtxRelease,
+                "cuDevicePrimaryCtxRelease",
+            ),
             .cuCtxCreate_v2 = try lookup(lib, Fn.cuCtxCreate_v2, "cuCtxCreate_v2"),
             .cuCtxDestroy_v2 = try lookup(lib, Fn.cuCtxDestroy_v2, "cuCtxDestroy_v2"),
             .cuCtxSetCurrent = try lookup(lib, Fn.cuCtxSetCurrent, "cuCtxSetCurrent"),
             .cuCtxGetCurrent = try lookup(lib, Fn.cuCtxGetCurrent, "cuCtxGetCurrent"),
             .cuModuleLoad = try lookup(lib, Fn.cuModuleLoad, "cuModuleLoad"),
-            .cuModuleLoadData = try lookup(lib, Fn.cuModuleLoadData, "cuModuleLoadData"),
+            .cuModuleLoadData = try lookup(
+                lib,
+                Fn.cuModuleLoadData,
+                "cuModuleLoadData",
+            ),
             .cuModuleUnload = try lookup(lib, Fn.cuModuleUnload, "cuModuleUnload"),
-            .cuModuleGetFunction = try lookup(lib, Fn.cuModuleGetFunction, "cuModuleGetFunction"),
+            .cuModuleGetFunction = try lookup(
+                lib,
+                Fn.cuModuleGetFunction,
+                "cuModuleGetFunction",
+            ),
             .cuLaunchKernel = try lookup(lib, Fn.cuLaunchKernel, "cuLaunchKernel"),
             .cuStreamCreate = try lookup(lib, Fn.cuStreamCreate, "cuStreamCreate"),
-            .cuStreamDestroy_v2 = try lookup(lib, Fn.cuStreamDestroy_v2, "cuStreamDestroy_v2"),
-            .cuStreamSynchronize = try lookup(lib, Fn.cuStreamSynchronize, "cuStreamSynchronize"),
+            .cuStreamDestroy_v2 = try lookup(
+                lib,
+                Fn.cuStreamDestroy_v2,
+                "cuStreamDestroy_v2",
+            ),
+            .cuStreamSynchronize = try lookup(
+                lib,
+                Fn.cuStreamSynchronize,
+                "cuStreamSynchronize",
+            ),
             .cuMemAlloc_v2 = try lookup(lib, Fn.cuMemAlloc_v2, "cuMemAlloc_v2"),
             .cuMemFree_v2 = try lookup(lib, Fn.cuMemFree_v2, "cuMemFree_v2"),
             .cuMemcpyHtoD_v2 = try lookup(lib, Fn.cuMemcpyHtoD_v2, "cuMemcpyHtoD_v2"),
             .cuMemcpyDtoH_v2 = try lookup(lib, Fn.cuMemcpyDtoH_v2, "cuMemcpyDtoH_v2"),
             .cuMemcpyDtoD_v2 = try lookup(lib, Fn.cuMemcpyDtoD_v2, "cuMemcpyDtoD_v2"),
-            .cuGetErrorString = try lookup(lib, Fn.cuGetErrorString, "cuGetErrorString"),
+            .cuGetErrorString = try lookup(
+                lib,
+                Fn.cuGetErrorString,
+                "cuGetErrorString",
+            ),
         };
     }
 
@@ -243,7 +283,11 @@ pub fn getDeviceInfo(driver: DriverSymbols, ordinal: c_int) Error!DeviceInfo {
     var info: DeviceInfo = .{ .device = dev };
     try driver.check(driver.cuDeviceGetName(&info.name, @intCast(info.name.len), dev));
     info.name_len = std.mem.indexOfScalar(u8, &info.name, 0) orelse info.name.len;
-    try driver.check(driver.cuDeviceComputeCapability(&info.compute_major, &info.compute_minor, dev));
+    try driver.check(driver.cuDeviceComputeCapability(
+        &info.compute_major,
+        &info.compute_minor,
+        dev,
+    ));
     return info;
 }
 
@@ -254,7 +298,11 @@ pub fn retainPrimaryContext(driver: DriverSymbols, device: CUdevice) Error!Conte
     return .{ .handle = ctx, .device = device, .retained_primary = true };
 }
 
-pub fn createContext(driver: DriverSymbols, device: CUdevice, flags: c_uint) Error!Context {
+pub fn createContext(
+    driver: DriverSymbols,
+    device: CUdevice,
+    flags: c_uint,
+) Error!Context {
     var ctx: CUcontext = 0;
     try driver.check(driver.cuCtxCreate_v2(&ctx, flags, device));
     return .{ .handle = ctx, .device = device, .retained_primary = false };
@@ -262,10 +310,17 @@ pub fn createContext(driver: DriverSymbols, device: CUdevice, flags: c_uint) Err
 
 pub fn destroyContext(driver: DriverSymbols, ctx: Context) Error!void {
     if (ctx.handle == 0) return;
-    if (ctx.retained_primary) try driver.check(driver.cuDevicePrimaryCtxRelease(ctx.device)) else try driver.check(driver.cuCtxDestroy_v2(ctx.handle));
+    if (ctx.retained_primary)
+        try driver.check(driver.cuDevicePrimaryCtxRelease(ctx.device))
+    else
+        try driver.check(driver.cuCtxDestroy_v2(ctx.handle));
 }
 
-pub fn loadModuleFromPath(allocator: std.mem.Allocator, driver: DriverSymbols, path: []const u8) Error!Module {
+pub fn loadModuleFromPath(
+    allocator: std.mem.Allocator,
+    driver: DriverSymbols,
+    path: []const u8,
+) Error!Module {
     if (path.len == 0) return Error.InvalidCudaModule;
     const zpath = allocator.dupeZ(u8, path) catch return Error.OutOfMemory;
     defer allocator.free(zpath);
@@ -285,7 +340,12 @@ pub fn unloadModule(driver: DriverSymbols, module: Module) Error!void {
     if (module.handle != 0) try driver.check(driver.cuModuleUnload(module.handle));
 }
 
-pub fn getFunction(allocator: std.mem.Allocator, driver: DriverSymbols, module: Module, symbol: []const u8) Error!Function {
+pub fn getFunction(
+    allocator: std.mem.Allocator,
+    driver: DriverSymbols,
+    module: Module,
+    symbol: []const u8,
+) Error!Function {
     if (module.handle == 0) return Error.InvalidCudaModule;
     if (symbol.len == 0) return Error.InvalidCudaFunction;
     const zsym = allocator.dupeZ(u8, symbol) catch return Error.OutOfMemory;
@@ -302,7 +362,8 @@ pub fn createStream(driver: DriverSymbols, flags: c_uint) Error!Stream {
 }
 
 pub fn destroyStream(driver: DriverSymbols, stream: Stream) Error!void {
-    if (stream.owns and stream.handle != 0) try driver.check(driver.cuStreamDestroy_v2(stream.handle));
+    if (stream.owns and stream.handle != 0)
+        try driver.check(driver.cuStreamDestroy_v2(stream.handle));
 }
 
 pub fn synchronizeStream(driver: DriverSymbols, stream: Stream) Error!void {
@@ -320,7 +381,11 @@ pub fn freeDevice(driver: DriverSymbols, mem: DeviceMemory) Error!void {
     if (mem.ptr != 0) try driver.check(driver.cuMemFree_v2(mem.ptr));
 }
 
-pub fn memcpyHtoD(driver: DriverSymbols, dst: DeviceMemory, src: []const u8) Error!void {
+pub fn memcpyHtoD(
+    driver: DriverSymbols,
+    dst: DeviceMemory,
+    src: []const u8,
+) Error!void {
     if (src.len > dst.bytes) return Error.InvalidCudaMemory;
     if (src.len == 0) return;
     try driver.check(driver.cuMemcpyHtoD_v2(dst.ptr, src.ptr, src.len));
@@ -332,7 +397,12 @@ pub fn memcpyDtoH(driver: DriverSymbols, dst: []u8, src: DeviceMemory) Error!voi
     try driver.check(driver.cuMemcpyDtoH_v2(dst.ptr, src.ptr, dst.len));
 }
 
-pub fn memcpyDtoD(driver: DriverSymbols, dst: DeviceMemory, src: DeviceMemory, bytes: usize) Error!void {
+pub fn memcpyDtoD(
+    driver: DriverSymbols,
+    dst: DeviceMemory,
+    src: DeviceMemory,
+    bytes: usize,
+) Error!void {
     if (bytes > dst.bytes or bytes > src.bytes) return Error.InvalidCudaMemory;
     if (bytes == 0) return;
     try driver.check(driver.cuMemcpyDtoD_v2(dst.ptr, src.ptr, bytes));
@@ -364,7 +434,13 @@ pub const LaunchArguments = struct {
     }
 };
 
-pub fn launchKernel(driver: DriverSymbols, function: Function, config: runtime.LaunchConfig, args: *LaunchArguments, stream: Stream) Error!void {
+pub fn launchKernel(
+    driver: DriverSymbols,
+    function: Function,
+    config: runtime.LaunchConfig,
+    args: *LaunchArguments,
+    stream: Stream,
+) Error!void {
     if (function.handle == 0) return Error.InvalidCudaFunction;
     try driver.check(driver.cuLaunchKernel(
         function.handle,
@@ -394,7 +470,8 @@ pub const ExecutionRequest = struct {
         if (self.driver_library.len == 0) return Error.CudaDriverUnavailable;
         if (self.module_path.len == 0) return Error.InvalidCudaModule;
         if (self.kernel_symbol.len == 0) return Error.InvalidCudaFunction;
-        if (self.launch.grid.volume() == 0 or self.launch.block.volume() == 0) return Error.InvalidLaunchShape;
+        if (self.launch.grid.volume() == 0 or self.launch.block.volume() == 0)
+            return Error.InvalidLaunchShape;
     }
 };
 
@@ -461,15 +538,29 @@ pub const ManagedSession = struct {
         self.driver.close();
     }
 
-    pub fn loadModule(self: *ManagedSession, allocator: std.mem.Allocator, path: []const u8) Error!Module {
+    pub fn loadModule(
+        self: *ManagedSession,
+        allocator: std.mem.Allocator,
+        path: []const u8,
+    ) Error!Module {
         return loadModuleFromPath(allocator, self.driver.symbols, path);
     }
 
-    pub fn loadFunction(self: *ManagedSession, allocator: std.mem.Allocator, module: Module, symbol: []const u8) Error!Function {
+    pub fn loadFunction(
+        self: *ManagedSession,
+        allocator: std.mem.Allocator,
+        module: Module,
+        symbol: []const u8,
+    ) Error!Function {
         return getFunction(allocator, self.driver.symbols, module, symbol);
     }
 
-    pub fn launch(self: *ManagedSession, function: Function, config: runtime.LaunchConfig, args: *LaunchArguments) Error!void {
+    pub fn launch(
+        self: *ManagedSession,
+        function: Function,
+        config: runtime.LaunchConfig,
+        args: *LaunchArguments,
+    ) Error!void {
         try launchKernel(self.driver.symbols, function, config, args, self.stream);
     }
 };
@@ -488,8 +579,16 @@ pub fn writeCDriverDeclarations(out: anytype) Error!void {
 }
 
 test "cuda_driver: dry-run execution request emits launch JSON" {
-    const cfg = try runtime.LaunchConfig.init(try runtime.Dim3.init(2, 1, 1), try runtime.Dim3.init(128, 1, 1), 4096, runtime.Stream.default());
-    const report = try dryRun(.{ .module_path = "kernel.cubin", .kernel_symbol = "kernel", .launch = cfg }, 3);
+    const cfg = try runtime.LaunchConfig.init(
+        try runtime.Dim3.init(2, 1, 1),
+        try runtime.Dim3.init(128, 1, 1),
+        4096,
+        runtime.Stream.default(),
+    );
+    const report = try dryRun(
+        .{ .module_path = "kernel.cubin", .kernel_symbol = "kernel", .launch = cfg },
+        3,
+    );
     var out: @import("mlir_text.zig").TextBuffer(1024) = .{};
     try report.writeJson(&out);
     try std.testing.expect(std.mem.indexOf(u8, out.slice(), "kernel.cubin") != null);

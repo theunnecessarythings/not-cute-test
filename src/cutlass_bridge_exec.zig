@@ -35,7 +35,11 @@ pub const BridgeRunResult = struct {
     term: ?std.process.Child.Term = null,
 };
 
-pub fn runInvocation(allocator: std.mem.Allocator, inv: mlir_harness.Invocation, max_output_bytes: usize) !OwnedBridgeResult {
+pub fn runInvocation(
+    allocator: std.mem.Allocator,
+    inv: mlir_harness.Invocation,
+    max_output_bytes: usize,
+) !OwnedBridgeResult {
     _ = max_output_bytes;
     const io = std.Io.Threaded.global_single_threaded.io();
     var child = try std.process.spawn(io, .{
@@ -52,20 +56,36 @@ pub fn runInvocation(allocator: std.mem.Allocator, inv: mlir_harness.Invocation,
     };
 }
 
-pub fn discoverMaybe(allocator: std.mem.Allocator, config: cutlass_bridge.PythonBridgeConfig, enabled: bool) !BridgeRunResult {
+pub fn discoverMaybe(
+    allocator: std.mem.Allocator,
+    config: cutlass_bridge.PythonBridgeConfig,
+    enabled: bool,
+) !BridgeRunResult {
     if (!enabled) return .{ .status = .skipped };
     const inv = try cutlass_bridge.discoveryInvocation(config);
     const result = try runInvocation(allocator, inv, config.max_output_bytes);
     defer result.deinit(allocator);
-    return .{ .status = if (result.success()) .passed else .failed, .term = result.term };
+    return .{
+        .status = if (result.success()) .passed else .failed,
+        .term = result.term,
+    };
 }
 
-pub fn verifyMaybe(allocator: std.mem.Allocator, config: cutlass_bridge.PythonBridgeConfig, input_mlir: []const u8, pipeline: []const u8, enabled: bool) !BridgeRunResult {
+pub fn verifyMaybe(
+    allocator: std.mem.Allocator,
+    config: cutlass_bridge.PythonBridgeConfig,
+    input_mlir: []const u8,
+    pipeline: []const u8,
+    enabled: bool,
+) !BridgeRunResult {
     if (!enabled) return .{ .status = .skipped };
     const inv = try cutlass_bridge.verifyInvocation(config, input_mlir, pipeline);
     const result = try runInvocation(allocator, inv, config.max_output_bytes);
     defer result.deinit(allocator);
-    return .{ .status = if (result.success()) .passed else .failed, .term = result.term };
+    return .{
+        .status = if (result.success()) .passed else .failed,
+        .term = result.term,
+    };
 }
 
 test "cutlass_bridge exec can skip external bridge" {

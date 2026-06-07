@@ -28,14 +28,22 @@ pub const Fixture = struct {
     mlir_text: []const u8,
 
     pub fn validate(self: Fixture) Error!void {
-        if (self.name.len == 0 or self.mlir_text.len == 0) return Error.Invalidcutlass_emitFixture;
-        if (std.mem.indexOf(u8, self.mlir_text, "module") == null) return Error.Invalidcutlass_emitFixture;
-        if (std.mem.indexOf(u8, self.mlir_text, "!cute.tensor") != null) return Error.Invalidcutlass_emitFixture;
-        if (std.mem.indexOf(u8, self.mlir_text, "cute.memref_load") != null) return Error.Invalidcutlass_emitFixture;
-        if (std.mem.indexOf(u8, self.mlir_text, "cute.memref_store") != null) return Error.Invalidcutlass_emitFixture;
-        if (std.mem.indexOf(u8, self.mlir_text, "cute.tiled_copy_") != null) return Error.Invalidcutlass_emitFixture;
-        if (std.mem.indexOf(u8, self.mlir_text, "cute.tiled_mma_") != null) return Error.Invalidcutlass_emitFixture;
-        if (std.mem.indexOf(u8, self.mlir_text, "cute.mma_make_fragment") != null) return Error.Invalidcutlass_emitFixture;
+        if (self.name.len == 0 or self.mlir_text.len == 0)
+            return Error.Invalidcutlass_emitFixture;
+        if (std.mem.indexOf(u8, self.mlir_text, "module") == null)
+            return Error.Invalidcutlass_emitFixture;
+        if (std.mem.indexOf(u8, self.mlir_text, "!cute.tensor") != null)
+            return Error.Invalidcutlass_emitFixture;
+        if (std.mem.indexOf(u8, self.mlir_text, "cute.memref_load") != null)
+            return Error.Invalidcutlass_emitFixture;
+        if (std.mem.indexOf(u8, self.mlir_text, "cute.memref_store") != null)
+            return Error.Invalidcutlass_emitFixture;
+        if (std.mem.indexOf(u8, self.mlir_text, "cute.tiled_copy_") != null)
+            return Error.Invalidcutlass_emitFixture;
+        if (std.mem.indexOf(u8, self.mlir_text, "cute.tiled_mma_") != null)
+            return Error.Invalidcutlass_emitFixture;
+        if (std.mem.indexOf(u8, self.mlir_text, "cute.mma_make_fragment") != null)
+            return Error.Invalidcutlass_emitFixture;
     }
 };
 
@@ -107,10 +115,22 @@ pub const mma_atom_fixture =
 ;
 
 pub const fixtures = [_]Fixture{
-    .{ .name = "tensor_scalar_case", .kind = .tensor_scalar, .mlir_text = tensor_scalar_fixture },
-    .{ .name = "tensor_vector_case", .kind = .tensor_vector, .mlir_text = tensor_vector_fixture },
+    .{
+        .name = "tensor_scalar_case",
+        .kind = .tensor_scalar,
+        .mlir_text = tensor_scalar_fixture,
+    },
+    .{
+        .name = "tensor_vector_case",
+        .kind = .tensor_vector,
+        .mlir_text = tensor_vector_fixture,
+    },
     .{ .name = "copy_atom_case", .kind = .copy_atom, .mlir_text = copy_atom_fixture },
-    .{ .name = "tiled_copy_case", .kind = .tiled_copy, .mlir_text = tiled_copy_fixture },
+    .{
+        .name = "tiled_copy_case",
+        .kind = .tiled_copy,
+        .mlir_text = tiled_copy_fixture,
+    },
     .{ .name = "mma_atom_case", .kind = .mma_atom, .mlir_text = mma_atom_fixture },
 };
 
@@ -145,13 +165,30 @@ pub fn writeLayoutPayload(out: anytype, value: *const layout.Layout) Error!void 
     try writeTreePayload(out, &value.stride);
 }
 
-pub fn writeMemRefTypeForLayout(out: anytype, dtype: typing.Numeric, memspace: typing.AddressSpace, alignment: usize, value: *const layout.Layout) Error!void {
+pub fn writeMemRefTypeForLayout(
+    out: anytype,
+    dtype: typing.Numeric,
+    memspace: typing.AddressSpace,
+    alignment: usize,
+    value: *const layout.Layout,
+) Error!void {
     var payload: mlir.TextBuffer(512) = .{};
     try writeLayoutPayload(&payload, value);
-    try writeMemRefType(out, if (dtype.width == 1) "i8" else dtype.mlir_type, memspace.mlirName(), alignment, payload.slice());
+    try writeMemRefType(
+        out,
+        if (dtype.width == 1) "i8" else dtype.mlir_type,
+        memspace.mlirName(),
+        alignment,
+        payload.slice(),
+    );
 }
 
-pub fn memRefTypeForLayout(dtype: typing.Numeric, memspace: typing.AddressSpace, alignment: usize, value: *const layout.Layout) Error!mlir.TextBuffer(512) {
+pub fn memRefTypeForLayout(
+    dtype: typing.Numeric,
+    memspace: typing.AddressSpace,
+    alignment: usize,
+    value: *const layout.Layout,
+) Error!mlir.TextBuffer(512) {
     var out: mlir.TextBuffer(512) = .{};
     try writeMemRefTypeForLayout(&out, dtype, memspace, alignment, value);
     return out;
@@ -167,7 +204,10 @@ pub fn writeCoordTypeFromScalar(out: anytype, offset: layout.Scalar) Error!void 
     try writeCoordType(out, payload.slice());
 }
 
-pub fn makeCoordFromScalar(builder: anytype, offset: layout.Scalar) Error!struct { value: mlir.Value, ty: mlir.Type } {
+pub fn makeCoordFromScalar(
+    builder: anytype,
+    offset: layout.Scalar,
+) Error!struct { value: mlir.Value, ty: mlir.Type } {
     var ty_buf: mlir.TextBuffer(128) = .{};
     try writeCoordTypeFromScalar(&ty_buf, offset);
     const result = builder.freshValue();
@@ -178,7 +218,14 @@ pub fn makeCoordFromScalar(builder: anytype, offset: layout.Scalar) Error!struct
     return .{ .value = result, .ty = mlir.Type.raw(ty_buf.slice()) };
 }
 
-pub fn emitMemrefLoad(builder: anytype, memref: mlir.Value, coord: mlir.Value, memref_ty: mlir.Type, coord_ty: mlir.Type, elem_ty: mlir.Type) Error!mlir.Value {
+pub fn emitMemrefLoad(
+    builder: anytype,
+    memref: mlir.Value,
+    coord: mlir.Value,
+    memref_ty: mlir.Type,
+    coord_ty: mlir.Type,
+    elem_ty: mlir.Type,
+) Error!mlir.Value {
     const result = builder.freshValue();
     try builder.writeResultPrefixFor(&.{elem_ty}, result.id);
     try builder.append("cute.memref.load(");
@@ -195,7 +242,15 @@ pub fn emitMemrefLoad(builder: anytype, memref: mlir.Value, coord: mlir.Value, m
     return result;
 }
 
-pub fn emitMemrefStore(builder: anytype, memref: mlir.Value, coord: mlir.Value, data: mlir.Value, memref_ty: mlir.Type, coord_ty: mlir.Type, elem_ty: mlir.Type) Error!void {
+pub fn emitMemrefStore(
+    builder: anytype,
+    memref: mlir.Value,
+    coord: mlir.Value,
+    data: mlir.Value,
+    memref_ty: mlir.Type,
+    coord_ty: mlir.Type,
+    elem_ty: mlir.Type,
+) Error!void {
     try builder.writeResultPrefixFor(&.{}, 0);
     try builder.append("cute.memref.store(");
     try memref.writeTo(builder);
@@ -213,7 +268,12 @@ pub fn emitMemrefStore(builder: anytype, memref: mlir.Value, coord: mlir.Value, 
     try builder.newline();
 }
 
-pub fn emitMemrefLoadVec(builder: anytype, memref: mlir.Value, memref_ty: mlir.Type, result_ty: mlir.Type) Error!mlir.Value {
+pub fn emitMemrefLoadVec(
+    builder: anytype,
+    memref: mlir.Value,
+    memref_ty: mlir.Type,
+    result_ty: mlir.Type,
+) Error!mlir.Value {
     const result = builder.freshValue();
     try builder.writeResultPrefixFor(&.{result_ty}, result.id);
     try builder.append("cute.memref.load_vec(");
@@ -226,7 +286,13 @@ pub fn emitMemrefLoadVec(builder: anytype, memref: mlir.Value, memref_ty: mlir.T
     return result;
 }
 
-pub fn emitMemrefStoreVec(builder: anytype, data: mlir.Value, memref: mlir.Value, data_ty: mlir.Type, memref_ty: mlir.Type) Error!void {
+pub fn emitMemrefStoreVec(
+    builder: anytype,
+    data: mlir.Value,
+    memref: mlir.Value,
+    data_ty: mlir.Type,
+    memref_ty: mlir.Type,
+) Error!void {
     try builder.writeResultPrefixFor(&.{}, 0);
     try builder.append("cute.memref.store_vec(");
     try data.writeTo(builder);
@@ -240,7 +306,11 @@ pub fn emitMemrefStoreVec(builder: anytype, data: mlir.Value, memref: mlir.Value
     try builder.newline();
 }
 
-pub fn emitMakeUniversalCopyAtom(builder: anytype, dtype: typing.Numeric, bits: usize) Error!struct { value: mlir.Value, ty: mlir.Type } {
+pub fn emitMakeUniversalCopyAtom(
+    builder: anytype,
+    dtype: typing.Numeric,
+    bits: usize,
+) Error!struct { value: mlir.Value, ty: mlir.Type } {
     var ty_buf: mlir.TextBuffer(256) = .{};
     try writeUniversalCopyAtomType(&ty_buf, dtype.mlir_type, bits);
     const result = builder.freshValue();
@@ -251,7 +321,13 @@ pub fn emitMakeUniversalCopyAtom(builder: anytype, dtype: typing.Numeric, bits: 
     return .{ .value = result, .ty = mlir.Type.raw(ty_buf.slice()) };
 }
 
-pub fn emitMakeUniversalFmaAtom(builder: anytype, dtype: typing.Numeric, m: usize, n: usize, k: usize) Error!struct { value: mlir.Value, ty: mlir.Type } {
+pub fn emitMakeUniversalFmaAtom(
+    builder: anytype,
+    dtype: typing.Numeric,
+    m: usize,
+    n: usize,
+    k: usize,
+) Error!struct { value: mlir.Value, ty: mlir.Type } {
     var ty_buf: mlir.TextBuffer(256) = .{};
     try writeUniversalFmaAtomType(&ty_buf, dtype.mlir_type, m, n, k);
     const result = builder.freshValue();
@@ -262,7 +338,15 @@ pub fn emitMakeUniversalFmaAtom(builder: anytype, dtype: typing.Numeric, m: usiz
     return .{ .value = result, .ty = mlir.Type.raw(ty_buf.slice()) };
 }
 
-pub fn emitCopyAtomCall(builder: anytype, atom_value: mlir.Value, atom_ty: mlir.Type, src: mlir.Value, dst: mlir.Value, src_ty: mlir.Type, dst_ty: mlir.Type) Error!void {
+pub fn emitCopyAtomCall(
+    builder: anytype,
+    atom_value: mlir.Value,
+    atom_ty: mlir.Type,
+    src: mlir.Value,
+    dst: mlir.Value,
+    src_ty: mlir.Type,
+    dst_ty: mlir.Type,
+) Error!void {
     try builder.writeResultPrefixFor(&.{}, 0);
     try builder.append("cute.copy_atom_call(");
     try atom_value.writeTo(builder);
@@ -280,7 +364,19 @@ pub fn emitCopyAtomCall(builder: anytype, atom_value: mlir.Value, atom_ty: mlir.
     try builder.newline();
 }
 
-pub fn emitMmaAtomCall(builder: anytype, atom_value: mlir.Value, atom_ty: mlir.Type, d: mlir.Value, a: mlir.Value, b: mlir.Value, c: mlir.Value, d_ty: mlir.Type, a_ty: mlir.Type, b_ty: mlir.Type, c_ty: mlir.Type) Error!void {
+pub fn emitMmaAtomCall(
+    builder: anytype,
+    atom_value: mlir.Value,
+    atom_ty: mlir.Type,
+    d: mlir.Value,
+    a: mlir.Value,
+    b: mlir.Value,
+    c: mlir.Value,
+    d_ty: mlir.Type,
+    a_ty: mlir.Type,
+    b_ty: mlir.Type,
+    c_ty: mlir.Type,
+) Error!void {
     try builder.writeResultPrefixFor(&.{}, 0);
     try builder.append("cute.mma_atom_call(");
     try atom_value.writeTo(builder);
@@ -313,7 +409,13 @@ pub fn writeCoordType(out: anytype, coord: []const u8) Error!void {
     try out.append(">");
 }
 
-pub fn writeMemRefType(out: anytype, elem: []const u8, memory_space: []const u8, alignment: usize, layout_text: []const u8) Error!void {
+pub fn writeMemRefType(
+    out: anytype,
+    elem: []const u8,
+    memory_space: []const u8,
+    alignment: usize,
+    layout_text: []const u8,
+) Error!void {
     try validateElementType(elem);
     try validateMemorySpace(memory_space);
     try validateCutePayload(layout_text);
@@ -332,7 +434,11 @@ pub fn writeMemRefType(out: anytype, elem: []const u8, memory_space: []const u8,
     try out.append(">");
 }
 
-pub fn writeUniversalCopyAtomType(out: anytype, elem: []const u8, bits: usize) Error!void {
+pub fn writeUniversalCopyAtomType(
+    out: anytype,
+    elem: []const u8,
+    bits: usize,
+) Error!void {
     try validateElementType(elem);
     if (bits == 0) return Error.InvalidAtomType;
     try out.append("!cute_nvgpu.atom.universal_copy<");
@@ -342,7 +448,13 @@ pub fn writeUniversalCopyAtomType(out: anytype, elem: []const u8, bits: usize) E
     try out.append(" b>");
 }
 
-pub fn writeUniversalFmaAtomType(out: anytype, elem: []const u8, m: usize, n: usize, k: usize) Error!void {
+pub fn writeUniversalFmaAtomType(
+    out: anytype,
+    elem: []const u8,
+    m: usize,
+    n: usize,
+    k: usize,
+) Error!void {
     try validateElementType(elem);
     if (m == 0 or n == 0 or k == 0) return Error.InvalidAtomType;
     try out.append("!cute_nvgpu.atom.universal_fma<");
@@ -360,8 +472,14 @@ pub fn writeUniversalFmaAtomType(out: anytype, elem: []const u8, m: usize, n: us
     try out.append(" >");
 }
 
-pub fn writeTiledCopyType(out: anytype, copy_atom_type: []const u8, layout_copy_tv: []const u8, tiler_mn: []const u8) Error!void {
-    if (std.mem.indexOf(u8, copy_atom_type, "!cute_nvgpu.atom.universal_copy") == null) return Error.InvalidAtomType;
+pub fn writeTiledCopyType(
+    out: anytype,
+    copy_atom_type: []const u8,
+    layout_copy_tv: []const u8,
+    tiler_mn: []const u8,
+) Error!void {
+    if (std.mem.indexOf(u8, copy_atom_type, "!cute_nvgpu.atom.universal_copy") == null)
+        return Error.InvalidAtomType;
     try validateCutePayload(layout_copy_tv);
     try validateTilePayload(tiler_mn);
     try out.append("!cute.tiled_copy<");
@@ -379,7 +497,8 @@ pub fn validateCutePayload(payload: []const u8) Error!void {
         '0'...'9', 'a'...'z', 'A'...'Z', '(', ')', ',', ':', '@', '_', '-', '+', '*', '/', ' ', '.', '[', ']', ';' => {},
         else => return Error.InvalidCuteTypePayload,
     };
-    if (std.mem.indexOfScalar(u8, payload, '"') != null) return Error.InvalidCuteTypePayload;
+    if (std.mem.indexOfScalar(u8, payload, '"') != null)
+        return Error.InvalidCuteTypePayload;
 }
 
 pub fn validateElementType(elem: []const u8) Error!void {
@@ -404,7 +523,8 @@ fn validateTilePayload(payload: []const u8) Error!void {
         '0'...'9', 'a'...'z', 'A'...'Z', '(', ')', '[', ']', ',', ':', ';', '@', '_', '-', '+', '*', '/', ' ', '.' => {},
         else => return Error.InvalidCuteTypePayload,
     };
-    if (std.mem.indexOfScalar(u8, payload, '"') != null) return Error.InvalidCuteTypePayload;
+    if (std.mem.indexOfScalar(u8, payload, '"') != null)
+        return Error.InvalidCuteTypePayload;
 }
 
 pub fn emitTensorScalarModule(out: anytype) Error!void {

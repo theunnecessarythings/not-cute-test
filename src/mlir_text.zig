@@ -132,19 +132,27 @@ pub const Type = struct {
     }
 
     pub fn cutePtr(comptime elem: []const u8, comptime space: []const u8) Type {
-        return .{ .text = comptime std.fmt.comptimePrint("!cute.ptr<{s}, {s}>", .{ elem, space }) };
+        return .{
+            .text = comptime std.fmt.comptimePrint("!cute.ptr<{s}, {s}>", .{ elem, space }),
+        };
     }
 
     pub fn cuteLayout(comptime shape: []const u8, comptime stride: []const u8) Type {
-        return .{ .text = comptime std.fmt.comptimePrint("!cute.layout<{s}, {s}>", .{ shape, stride }) };
+        return .{
+            .text = comptime std.fmt.comptimePrint("!cute.layout<{s}, {s}>", .{ shape, stride }),
+        };
     }
 
     pub fn vector(comptime shape_and_elem: []const u8) Type {
-        return .{ .text = comptime std.fmt.comptimePrint("vector<{s}>", .{shape_and_elem}) };
+        return .{
+            .text = comptime std.fmt.comptimePrint("vector<{s}>", .{shape_and_elem}),
+        };
     }
 
     pub fn memref(comptime shape_and_elem: []const u8) Type {
-        return .{ .text = comptime std.fmt.comptimePrint("memref<{s}>", .{shape_and_elem}) };
+        return .{
+            .text = comptime std.fmt.comptimePrint("memref<{s}>", .{shape_and_elem}),
+        };
     }
 };
 
@@ -165,7 +173,10 @@ pub const Attribute = struct {
     }
 
     pub fn i32_(comptime key: []const u8, comptime value: i32) Attribute {
-        return .{ .key = key, .value = comptime std.fmt.comptimePrint("{} : i32", .{value}) };
+        return .{
+            .key = key,
+            .value = comptime std.fmt.comptimePrint("{} : i32", .{value}),
+        };
     }
 
     pub fn str(comptime key: []const u8, comptime value: []const u8) Attribute {
@@ -339,7 +350,11 @@ pub fn Builder(comptime capacity: usize) type {
             try self.endRegion();
         }
 
-        pub fn beginGpuModule(self: *Self, name: []const u8, attrs: []const Attribute) Error!void {
+        pub fn beginGpuModule(
+            self: *Self,
+            name: []const u8,
+            attrs: []const Attribute,
+        ) Error!void {
             try validateSymbol(name);
             try self.writeIndent();
             try self.append("gpu.module @");
@@ -364,7 +379,8 @@ pub fn Builder(comptime capacity: usize) type {
         }
 
         pub fn endRegion(self: *Self) Error!void {
-            if (self.open_regions == 0 or self.indent == 0) return Error.RegionUnderflow;
+            if (self.open_regions == 0 or self.indent == 0)
+                return Error.RegionUnderflow;
             self.open_regions -= 1;
             self.indent -= 1;
             try self.writeIndent();
@@ -373,16 +389,33 @@ pub fn Builder(comptime capacity: usize) type {
         }
 
         pub fn finish(self: *Self) Error![]const u8 {
-            if (self.open_regions != 0 or self.indent != 0) return Error.UnbalancedRegion;
+            if (self.open_regions != 0 or self.indent != 0)
+                return Error.UnbalancedRegion;
             try validateBalancedText(self.slice());
             return self.slice();
         }
 
-        pub fn beginFunc(self: *Self, name: []const u8, args: []const Type, return_type: ?Type) Error!void {
-            try self.beginFuncWithAttrs(name, args, if (return_type) |r| &.{r} else &.{}, &.{});
+        pub fn beginFunc(
+            self: *Self,
+            name: []const u8,
+            args: []const Type,
+            return_type: ?Type,
+        ) Error!void {
+            try self.beginFuncWithAttrs(
+                name,
+                args,
+                if (return_type) |r| &.{r} else &.{},
+                &.{},
+            );
         }
 
-        pub fn beginFuncWithAttrs(self: *Self, name: []const u8, args: []const Type, return_types: []const Type, attrs: []const Attribute) Error!void {
+        pub fn beginFuncWithAttrs(
+            self: *Self,
+            name: []const u8,
+            args: []const Type,
+            return_types: []const Type,
+            attrs: []const Attribute,
+        ) Error!void {
             try validateSymbol(name);
             try self.writeIndent();
             try self.append("func.func @");
@@ -408,7 +441,13 @@ pub fn Builder(comptime capacity: usize) type {
             self.open_regions += 1;
         }
 
-        pub fn beginLlvmFunc(self: *Self, name: []const u8, args: []const Type, return_types: []const Type, attrs: []const Attribute) Error!void {
+        pub fn beginLlvmFunc(
+            self: *Self,
+            name: []const u8,
+            args: []const Type,
+            return_types: []const Type,
+            attrs: []const Attribute,
+        ) Error!void {
             try validateSymbol(name);
             try self.writeIndent();
             try self.append("llvm.func @");
@@ -437,7 +476,11 @@ pub fn Builder(comptime capacity: usize) type {
             try self.endRegion();
         }
 
-        pub fn ret(self: *Self, operands: []const Operand, types: []const Type) Error!void {
+        pub fn ret(
+            self: *Self,
+            operands: []const Operand,
+            types: []const Type,
+        ) Error!void {
             if (operands.len != types.len) return Error.RankMismatch;
             try self.writeIndent();
             try self.append("return");
@@ -450,7 +493,11 @@ pub fn Builder(comptime capacity: usize) type {
             try self.newline();
         }
 
-        pub fn funcReturn(self: *Self, operands: []const Operand, types: []const Type) Error!void {
+        pub fn funcReturn(
+            self: *Self,
+            operands: []const Operand,
+            types: []const Type,
+        ) Error!void {
             try self.ret(operands, types);
         }
 
@@ -458,7 +505,11 @@ pub fn Builder(comptime capacity: usize) type {
             try self.rawLine("gpu.return");
         }
 
-        pub fn llvmReturn(self: *Self, operands: []const Operand, types: []const Type) Error!void {
+        pub fn llvmReturn(
+            self: *Self,
+            operands: []const Operand,
+            types: []const Type,
+        ) Error!void {
             if (operands.len != types.len) return Error.RankMismatch;
             try self.writeIndent();
             try self.append("llvm.return");
@@ -517,7 +568,10 @@ pub fn Builder(comptime capacity: usize) type {
             for (spec.result_types) |ty| try validateTypeText(ty.text);
 
             const range = try self.freshRange(spec.result_types.len);
-            try self.writeResultPrefixFor(spec.result_types, if (spec.result_types.len == 0) 0 else range.values[0].id);
+            try self.writeResultPrefixFor(
+                spec.result_types,
+                if (spec.result_types.len == 0) 0 else range.values[0].id,
+            );
             if (spec.quoted) try self.append("\"");
             try self.append(spec.name);
             if (spec.quoted) try self.append("\"");
@@ -543,17 +597,30 @@ pub fn Builder(comptime capacity: usize) type {
             _ = try self.operation(spec);
         }
 
-        pub fn cuteMakeLayout(self: *Self, shape_type: []const u8, stride_type: []const u8) Error!Value {
+        pub fn cuteMakeLayout(
+            self: *Self,
+            shape_type: []const u8,
+            stride_type: []const u8,
+        ) Error!Value {
             return cute.makeLayout(self, shape_type, stride_type);
         }
 
-        pub fn call(self: *Self, callee: []const u8, operands: []const Operand, operand_types: []const Type, result_types: []const Type) Error!ValueRange {
+        pub fn call(
+            self: *Self,
+            callee: []const u8,
+            operands: []const Operand,
+            operand_types: []const Type,
+            result_types: []const Type,
+        ) Error!ValueRange {
             try validateSymbol(callee);
             if (operands.len != operand_types.len) return Error.RankMismatch;
             for (operand_types) |ty| try validateTypeText(ty.text);
             for (result_types) |ty| try validateTypeText(ty.text);
             const range = try self.freshRange(result_types.len);
-            try self.writeResultPrefixFor(result_types, if (result_types.len == 0) 0 else range.values[0].id);
+            try self.writeResultPrefixFor(
+                result_types,
+                if (result_types.len == 0) 0 else range.values[0].id,
+            );
             try self.append("func.call @");
             try self.append(callee);
             try self.append("(");
@@ -578,12 +645,20 @@ pub fn Builder(comptime capacity: usize) type {
             const base = self.next_value;
             self.next_value += 1;
             for (0..len) |i| {
-                result.values[i] = .{ .id = base, .result_index = i, .multi_result = len > 1 };
+                result.values[i] = .{
+                    .id = base,
+                    .result_index = i,
+                    .multi_result = len > 1,
+                };
             }
             return result;
         }
 
-        pub fn writeResultPrefixFor(self: *Self, result_types: []const Type, result_id: usize) Error!void {
+        pub fn writeResultPrefixFor(
+            self: *Self,
+            result_types: []const Type,
+            result_id: usize,
+        ) Error!void {
             try self.writeIndent();
             if (result_types.len == 0) return;
             try self.append("%");
@@ -602,7 +677,11 @@ pub fn Builder(comptime capacity: usize) type {
             }
         }
 
-        fn writeTypeList(self: *Self, types: []const Type, parens_for_multi: bool) Error!void {
+        fn writeTypeList(
+            self: *Self,
+            types: []const Type,
+            parens_for_multi: bool,
+        ) Error!void {
             if (parens_for_multi and types.len != 1) try self.append("(");
             for (types, 0..) |ty, i| {
                 if (i != 0) try self.append(", ");
@@ -617,7 +696,11 @@ pub fn Builder(comptime capacity: usize) type {
             try self.writeTypeList(return_types, true);
         }
 
-        pub fn writeFunctionType(self: *Self, operand_types: []const Type, result_types: []const Type) Error!void {
+        pub fn writeFunctionType(
+            self: *Self,
+            operand_types: []const Type,
+            result_types: []const Type,
+        ) Error!void {
             try self.append("(");
             for (operand_types, 0..) |ty, i| {
                 if (i != 0) try self.append(", ");
@@ -672,7 +755,13 @@ pub const arith = struct {
         return binary(builder, "arith.addf", lhs, rhs, ty);
     }
 
-    pub fn cmpi(builder: anytype, predicate: []const u8, lhs: Operand, rhs: Operand, ty: Type) Error!Value {
+    pub fn cmpi(
+        builder: anytype,
+        predicate: []const u8,
+        lhs: Operand,
+        rhs: Operand,
+        ty: Type,
+    ) Error!Value {
         try validateSymbol(predicate);
         const result = builder.freshValue();
         try builder.writeResultPrefixFor(&.{Type.i(1)}, result.id);
@@ -688,7 +777,13 @@ pub const arith = struct {
         return result;
     }
 
-    pub fn select(builder: anytype, cond: Operand, if_value: Operand, else_value: Operand, ty: Type) Error!Value {
+    pub fn select(
+        builder: anytype,
+        cond: Operand,
+        if_value: Operand,
+        else_value: Operand,
+        ty: Type,
+    ) Error!Value {
         const result = builder.freshValue();
         try builder.writeResultPrefixFor(&.{ty}, result.id);
         try builder.append("arith.select ");
@@ -703,13 +798,24 @@ pub const arith = struct {
         return result;
     }
 
-    fn binary(builder: anytype, name: []const u8, lhs: Operand, rhs: Operand, ty: Type) Error!Value {
+    fn binary(
+        builder: anytype,
+        name: []const u8,
+        lhs: Operand,
+        rhs: Operand,
+        ty: Type,
+    ) Error!Value {
         return builder.genericOp(name, &.{ lhs, rhs }, &.{}, &.{ ty, ty }, &.{ty});
     }
 };
 
 pub const builtin = struct {
-    pub fn unrealizedConversionCast(builder: anytype, operands: []const Operand, operand_types: []const Type, result_types: []const Type) Error!ValueRange {
+    pub fn unrealizedConversionCast(
+        builder: anytype,
+        operands: []const Operand,
+        operand_types: []const Type,
+        result_types: []const Type,
+    ) Error!ValueRange {
         return builder.operation(.{
             .name = "builtin.unrealized_conversion_cast",
             .operands = operands,
@@ -720,44 +826,121 @@ pub const builtin = struct {
 };
 
 pub const vector = struct {
-    pub fn fromElements(builder: anytype, operands: []const Operand, scalar_type: Type, result_type: Type) Error!Value {
+    pub fn fromElements(
+        builder: anytype,
+        operands: []const Operand,
+        scalar_type: Type,
+        result_type: Type,
+    ) Error!Value {
         var operand_types: [64]Type = undefined;
         if (operands.len > operand_types.len) return Error.OutOfCapacity;
         for (0..operands.len) |i| operand_types[i] = scalar_type;
-        return builder.genericOp("vector.from_elements", operands, &.{}, operand_types[0..operands.len], &.{result_type});
+        return builder.genericOp(
+            "vector.from_elements",
+            operands,
+            &.{},
+            operand_types[0..operands.len],
+            &.{result_type},
+        );
     }
 
-    pub fn broadcast(builder: anytype, value: Operand, src_type: Type, result_type: Type) Error!Value {
-        return builder.genericOp("vector.broadcast", &.{value}, &.{}, &.{src_type}, &.{result_type});
+    pub fn broadcast(
+        builder: anytype,
+        value: Operand,
+        src_type: Type,
+        result_type: Type,
+    ) Error!Value {
+        return builder.genericOp(
+            "vector.broadcast",
+            &.{value},
+            &.{},
+            &.{src_type},
+            &.{result_type},
+        );
     }
 };
 
 pub const cute = struct {
-    pub fn makeLayout(builder: anytype, shape_type: []const u8, stride_type: []const u8) Error!Value {
+    pub fn makeLayout(
+        builder: anytype,
+        shape_type: []const u8,
+        stride_type: []const u8,
+    ) Error!Value {
         const result_type = Type.raw("!cute.layout");
         return builder.genericOp(
             "cute.make_layout",
             &.{},
-            &.{ .{ .key = "shape", .value = shape_type }, .{ .key = "stride", .value = stride_type } },
+            &.{
+                .{ .key = "shape", .value = shape_type },
+                .{ .key = "stride", .value = stride_type },
+            },
             &.{},
             &.{result_type},
         );
     }
 
-    pub fn makeIntTuple(builder: anytype, operands: []const Operand, operand_types: []const Type, result_type: Type) Error!Value {
-        return builder.genericOp("cute.make_int_tuple", operands, &.{}, operand_types, &.{result_type});
+    pub fn makeIntTuple(
+        builder: anytype,
+        operands: []const Operand,
+        operand_types: []const Type,
+        result_type: Type,
+    ) Error!Value {
+        return builder.genericOp(
+            "cute.make_int_tuple",
+            operands,
+            &.{},
+            operand_types,
+            &.{result_type},
+        );
     }
 
-    pub fn tupleAdd(builder: anytype, lhs: Operand, rhs: Operand, ty: Type) Error!Value {
-        return builder.genericOp("cute.tuple_add", &.{ lhs, rhs }, &.{}, &.{ ty, ty }, &.{ty});
+    pub fn tupleAdd(
+        builder: anytype,
+        lhs: Operand,
+        rhs: Operand,
+        ty: Type,
+    ) Error!Value {
+        return builder.genericOp(
+            "cute.tuple_add",
+            &.{ lhs, rhs },
+            &.{},
+            &.{ ty, ty },
+            &.{ty},
+        );
     }
 
-    pub fn slice(builder: anytype, layout_value: Operand, coord_value: Operand, layout_type: Type, coord_type: Type, result_type: Type) Error!Value {
-        return builder.genericOp("cute.slice", &.{ layout_value, coord_value }, &.{}, &.{ layout_type, coord_type }, &.{result_type});
+    pub fn slice(
+        builder: anytype,
+        layout_value: Operand,
+        coord_value: Operand,
+        layout_type: Type,
+        coord_type: Type,
+        result_type: Type,
+    ) Error!Value {
+        return builder.genericOp(
+            "cute.slice",
+            &.{ layout_value, coord_value },
+            &.{},
+            &.{ layout_type, coord_type },
+            &.{result_type},
+        );
     }
 
-    pub fn tileToShape(builder: anytype, layout_value: Operand, shape_value: Operand, layout_type: Type, shape_type: Type, result_type: Type) Error!Value {
-        return builder.genericOp("cute.tile_to_shape", &.{ layout_value, shape_value }, &.{}, &.{ layout_type, shape_type }, &.{result_type});
+    pub fn tileToShape(
+        builder: anytype,
+        layout_value: Operand,
+        shape_value: Operand,
+        layout_type: Type,
+        shape_type: Type,
+        result_type: Type,
+    ) Error!Value {
+        return builder.genericOp(
+            "cute.tile_to_shape",
+            &.{ layout_value, shape_value },
+            &.{},
+            &.{ layout_type, shape_type },
+            &.{result_type},
+        );
     }
 };
 
@@ -785,7 +968,10 @@ pub const llvm = struct {
     ) Error!ValueRange {
         if (operands.len != operand_types.len) return Error.RankMismatch;
         const range = try builder.freshRange(result_types.len);
-        try builder.writeResultPrefixFor(result_types, if (result_types.len == 0) 0 else range.values[0].id);
+        try builder.writeResultPrefixFor(
+            result_types,
+            if (result_types.len == 0) 0 else range.values[0].id,
+        );
         try builder.append("llvm.inline_asm ");
         try builder.text.appendQuotedString(asm_string);
         try builder.append(", ");
@@ -862,7 +1048,12 @@ pub const Pipeline = struct {
         try out.append(")");
     }
 
-    pub fn writeCommand(self: Pipeline, out: anytype, input_path: []const u8, output_path: ?[]const u8) Error!void {
+    pub fn writeCommand(
+        self: Pipeline,
+        out: anytype,
+        input_path: []const u8,
+        output_path: ?[]const u8,
+    ) Error!void {
         try out.append(self.opt);
         if (self.raw_pipeline) |pipeline_text| {
             try out.append(" --pass-pipeline=");
@@ -899,7 +1090,8 @@ fn defaultLirToCuteToNvvmPipeline(options: CompileOptions) []const u8 {
 pub fn validateSymbol(name: []const u8) Error!void {
     if (name.len == 0) return Error.InvalidMlirIdentifier;
     const first = name[0];
-    if (!isIdentHead(first) and first != '$' and first != '.') return Error.InvalidMlirIdentifier;
+    if (!isIdentHead(first) and first != '$' and first != '.')
+        return Error.InvalidMlirIdentifier;
     for (name[1..]) |c| {
         const ok = isIdentTail(c) or c == '$' or c == '.';
         if (!ok) return Error.InvalidMlirIdentifier;
@@ -998,7 +1190,8 @@ pub fn validateBalancedText(text: []const u8) Error!void {
         }
     }
     if (in_string) return Error.UnterminatedString;
-    if (braces != 0 or parens != 0 or brackets != 0 or angles != 0) return Error.UnbalancedRegion;
+    if (braces != 0 or parens != 0 or brackets != 0 or angles != 0)
+        return Error.UnbalancedRegion;
 }
 
 fn isIdentHead(c: u8) bool {
@@ -1050,7 +1243,10 @@ test "mlir_text: multi-result generic op uses MLIR result group syntax" {
         .result_types = &.{ Type.i(16), Type.i(16) },
         .quoted = true,
     });
-    try b.ret(&.{ .{ .value = values.at(0) }, .{ .value = values.at(1) } }, &.{ Type.i(16), Type.i(16) });
+    try b.ret(
+        &.{ .{ .value = values.at(0) }, .{ .value = values.at(1) } },
+        &.{ Type.i(16), Type.i(16) },
+    );
     try b.endFunc();
     try b.endModule();
     _ = try b.finish();
@@ -1081,8 +1277,16 @@ test "mlir_text: every result-producing path enforces max_results" {
 test "mlir_text: GPU module, cute op, and cuda pipeline" {
     var b: Builder(4096) = .{};
     try b.beginModuleWithAttrs(&.{Attribute.str("cute.source", "zig-port")});
-    try b.beginGpuModule("kernels", &.{Attribute.raw("cc_attr", "#core.compute_capability<arch = sm_90>")});
-    try b.beginFuncWithAttrs("kernel", &.{ Type.ptr(3), Type.i(32) }, &.{}, &.{Attribute.raw("gpu.kernel", "unit")});
+    try b.beginGpuModule(
+        "kernels",
+        &.{Attribute.raw("cc_attr", "#core.compute_capability<arch = sm_90>")},
+    );
+    try b.beginFuncWithAttrs(
+        "kernel",
+        &.{ Type.ptr(3), Type.i(32) },
+        &.{},
+        &.{Attribute.raw("gpu.kernel", "unit")},
+    );
     const tid = try gpu.threadId(&b, "x");
     const one = try arith.constantInt(&b, 1, Type.index());
     _ = try arith.addi(&b, .{ .value = tid }, .{ .value = one }, Type.index());
@@ -1096,7 +1300,10 @@ test "mlir_text: GPU module, cute op, and cuda pipeline" {
     try std.testing.expect(std.mem.indexOf(u8, b.slice(), "gpu.thread_id x : index") != null);
 
     var out: TextBuffer(512) = .{};
-    const p = Pipeline.default(.cute_to_nvvm, .{ .enable_cuda_dialect = true, .cuda_dialect_external_module = true });
+    const p = Pipeline.default(
+        .cute_to_nvvm,
+        .{ .enable_cuda_dialect = true, .cuda_dialect_external_module = true },
+    );
     try p.writeCommand(&out, "in.mlir", "out.mlir");
     try std.testing.expect(std.mem.indexOf(u8, out.slice(), "--pass-pipeline=") != null);
     try std.testing.expect(std.mem.indexOf(u8, out.slice(), "cute-to-nvvm") != null);
@@ -1104,14 +1311,29 @@ test "mlir_text: GPU module, cute op, and cuda pipeline" {
 
 test "mlir_text: pass pipeline command preserves legacy pass-list behavior" {
     var out: TextBuffer(512) = .{};
-    const p: Pipeline = .{ .opt = "cute-opt", .passes = &.{ "canonicalize", "cse", "convert-vector-to-llvm" } };
+    const p: Pipeline = .{
+        .opt = "cute-opt",
+        .passes = &.{ "canonicalize", "cse", "convert-vector-to-llvm" },
+    };
     try p.writeCommand(&out, "in.mlir", "out.mlir");
-    try std.testing.expectEqualStrings("cute-opt --canonicalize --cse --convert-vector-to-llvm in.mlir -o out.mlir", out.slice());
+    try std.testing.expectEqualStrings(
+        "cute-opt --canonicalize --cse --convert-vector-to-llvm in.mlir -o out.mlir",
+        out.slice(),
+    );
 }
 
 test "mlir_text: validation catches malformed names and unbalanced text" {
-    try std.testing.expectError(Error.InvalidMlirOperation, validateOperationName("arith addi"));
+    try std.testing.expectError(
+        Error.InvalidMlirOperation,
+        validateOperationName("arith addi"),
+    );
     try std.testing.expectError(Error.InvalidMlirIdentifier, validateSymbol("9bad"));
-    try std.testing.expectError(Error.InvalidMlirType, validateTypeText("vector<4xi32"));
-    try std.testing.expectError(Error.UnbalancedRegion, validateBalancedText("module {"));
+    try std.testing.expectError(
+        Error.InvalidMlirType,
+        validateTypeText("vector<4xi32"),
+    );
+    try std.testing.expectError(
+        Error.UnbalancedRegion,
+        validateBalancedText("module {"),
+    );
 }

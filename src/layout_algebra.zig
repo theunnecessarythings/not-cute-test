@@ -53,7 +53,10 @@ pub const Selector = struct {
         if (parts.len > max_children) return Error.OutOfCapacity;
         var out: Self = .{};
         var child_ids: [max_children]u16 = undefined;
-        for (parts, 0..) |*part, i| child_ids[i] = try out.copySubtreeFrom(part, part.root);
+        for (parts, 0..) |*part, i| child_ids[i] = try out.copySubtreeFrom(
+            part,
+            part.root,
+        );
         const child_start = out.children.len;
         for (child_ids[0..parts.len]) |child_id| try out.children.append(child_id);
         const root_index = out.nodes.len;
@@ -94,7 +97,9 @@ pub const Selector = struct {
                 const child_start = self.children.len;
                 for (child_ids) |child_id| try self.children.append(child_id);
                 const index = self.nodes.len;
-                try self.nodes.append(.{ .tuple = .{ .start = child_start, .len = info.fields.len } });
+                try self.nodes.append(.{
+                    .tuple = .{ .start = child_start, .len = info.fields.len },
+                });
                 return @intCast(index);
             },
             .array => |info| {
@@ -103,7 +108,9 @@ pub const Selector = struct {
                 const child_start = self.children.len;
                 for (child_ids) |child_id| try self.children.append(child_id);
                 const index = self.nodes.len;
-                try self.nodes.append(.{ .tuple = .{ .start = child_start, .len = info.len } });
+                try self.nodes.append(.{
+                    .tuple = .{ .start = child_start, .len = info.len },
+                });
                 return @intCast(index);
             },
             else => @compileError("selector leaves must be ints or layout_algebra.keep"),
@@ -120,11 +127,16 @@ pub const Selector = struct {
             .tuple => |span| {
                 var child_ids: [max_children]u16 = undefined;
                 if (span.len > max_children) return Error.OutOfCapacity;
-                for (0..span.len) |i| child_ids[i] = try self.copySubtreeFrom(src, src.children.at(span.start + i));
+                for (0..span.len) |i| child_ids[i] = try self.copySubtreeFrom(
+                    src,
+                    src.children.at(span.start + i),
+                );
                 const child_start = self.children.len;
                 for (child_ids[0..span.len]) |child_id| try self.children.append(child_id);
                 const index = self.nodes.len;
-                try self.nodes.append(.{ .tuple = .{ .start = child_start, .len = span.len } });
+                try self.nodes.append(.{
+                    .tuple = .{ .start = child_start, .len = span.len },
+                });
                 return @intCast(index);
             },
         }
@@ -146,15 +158,30 @@ pub fn groupModes(input: *const Tree, begin_raw: isize, end_raw: ?isize) Error!T
 
     var grouped_parts: [max_children]Tree = undefined;
     var grouped_count: usize = 0;
-    for (range.begin..range.end) |i| try appendTreePart(&grouped_parts, &grouped_count, try input.topMode(i));
-    try appendTreePart(&parts, &count, try Tree.initTuple(grouped_parts[0..grouped_count]));
+    for (range.begin..range.end) |i| try appendTreePart(
+        &grouped_parts,
+        &grouped_count,
+        try input.topMode(i),
+    );
+    try appendTreePart(
+        &parts,
+        &count,
+        try Tree.initTuple(grouped_parts[0..grouped_count]),
+    );
 
     for (range.end..r) |i| try appendTreePart(&parts, &count, try input.topMode(i));
     return Tree.initTuple(parts[0..count]);
 }
 
-pub fn groupModesLayout(input: *const Layout, begin_raw: isize, end_raw: ?isize) Error!Layout {
-    return Layout.init(try groupModes(&input.shape, begin_raw, end_raw), try groupModes(&input.stride, begin_raw, end_raw));
+pub fn groupModesLayout(
+    input: *const Layout,
+    begin_raw: isize,
+    end_raw: ?isize,
+) Error!Layout {
+    return Layout.init(
+        try groupModes(&input.shape, begin_raw, end_raw),
+        try groupModes(&input.stride, begin_raw, end_raw),
+    );
 }
 
 pub fn selectModes(input: *const Tree, modes: []const usize) Error!Tree {
@@ -165,20 +192,39 @@ pub fn selectModes(input: *const Tree, modes: []const usize) Error!Tree {
 }
 
 pub fn selectModesLayout(input: *const Layout, modes: []const usize) Error!Layout {
-    return Layout.init(try selectModes(&input.shape, modes), try selectModes(&input.stride, modes));
+    return Layout.init(
+        try selectModes(&input.shape, modes),
+        try selectModes(&input.stride, modes),
+    );
 }
 
 pub fn sliceTree(src: *const Tree, selector: *const Selector) Error!Tree {
     var parts: [max_children]Tree = undefined;
     var count: usize = 0;
-    try collectTreeBySelector(src, src.root, selector, selector.root, .slice, &parts, &count);
+    try collectTreeBySelector(
+        src,
+        src.root,
+        selector,
+        selector.root,
+        .slice,
+        &parts,
+        &count,
+    );
     return Tree.initTuple(parts[0..count]);
 }
 
 pub fn diceTree(src: *const Tree, selector: *const Selector) Error!Tree {
     var parts: [max_children]Tree = undefined;
     var count: usize = 0;
-    try collectTreeBySelector(src, src.root, selector, selector.root, .dice, &parts, &count);
+    try collectTreeBySelector(
+        src,
+        src.root,
+        selector,
+        selector.root,
+        .dice,
+        &parts,
+        &count,
+    );
     return Tree.initTuple(parts[0..count]);
 }
 
@@ -187,7 +233,17 @@ pub fn sliceAndOffset(src: *const Layout, selector: *const Selector) Error!Slice
     var stride_parts: [max_children]Tree = undefined;
     var count: usize = 0;
     var offset: Scalar = 0;
-    try collectLayoutSlice(src, src.shape.root, src.stride.root, selector, selector.root, &shape_parts, &stride_parts, &count, &offset);
+    try collectLayoutSlice(
+        src,
+        src.shape.root,
+        src.stride.root,
+        selector,
+        selector.root,
+        &shape_parts,
+        &stride_parts,
+        &count,
+        &offset,
+    );
     const shape = try treeFromSelectedParts(shape_parts[0..count], true);
     const stride = try treeFromSelectedParts(stride_parts[0..count], false);
     return .{ .layout = try Layout.init(shape, stride), .offset = offset };
@@ -201,8 +257,20 @@ pub fn diceLayout(src: *const Layout, selector: *const Selector) Error!Layout {
     var shape_parts: [max_children]Tree = undefined;
     var stride_parts: [max_children]Tree = undefined;
     var count: usize = 0;
-    try collectLayoutDice(src, src.shape.root, src.stride.root, selector, selector.root, &shape_parts, &stride_parts, &count);
-    return Layout.init(try treeFromSelectedParts(shape_parts[0..count], true), try treeFromSelectedParts(stride_parts[0..count], false));
+    try collectLayoutDice(
+        src,
+        src.shape.root,
+        src.stride.root,
+        selector,
+        selector.root,
+        &shape_parts,
+        &stride_parts,
+        &count,
+    );
+    return Layout.init(
+        try treeFromSelectedParts(shape_parts[0..count], true),
+        try treeFromSelectedParts(stride_parts[0..count], false),
+    );
 }
 
 pub fn shapeOf(input: *const Layout, mode: ?usize) Error!Tree {
@@ -265,7 +333,11 @@ pub fn incrementCoord(coord: *const Tree, shape: *const Tree) Error!Tree {
     return Tree.fromProfileAndLeaves(shape, out.slice());
 }
 
-pub fn prependLayout(input: *const Layout, elem: Layout, up_to_rank: ?usize) Error!Layout {
+pub fn prependLayout(
+    input: *const Layout,
+    elem: Layout,
+    up_to_rank: ?usize,
+) Error!Layout {
     const target = up_to_rank orelse (input.rank() + 1);
     if (target < input.rank()) return Error.InvalidSelection;
     var parts: [max_children]Layout = undefined;
@@ -275,7 +347,11 @@ pub fn prependLayout(input: *const Layout, elem: Layout, up_to_rank: ?usize) Err
     return Layout.concatenate(parts[0..count]);
 }
 
-pub fn appendLayout(input: *const Layout, elem: Layout, up_to_rank: ?usize) Error!Layout {
+pub fn appendLayout(
+    input: *const Layout,
+    elem: Layout,
+    up_to_rank: ?usize,
+) Error!Layout {
     const target = up_to_rank orelse (input.rank() + 1);
     if (target < input.rank()) return Error.InvalidSelection;
     var parts: [max_children]Layout = undefined;
@@ -299,7 +375,11 @@ pub fn makeLayoutLike(input: *const Layout) Error!Layout {
 
 pub fn sizeInBytes(type_bits: Unsigned, maybe_layout: ?*const Layout) Error!Unsigned {
     const l = maybe_layout orelse return 0;
-    const bits = std.math.mul(Unsigned, try l.cosize(), type_bits) catch return Error.Overflow;
+    const bits = std.math.mul(
+        Unsigned,
+        try l.cosize(),
+        type_bits,
+    ) catch return Error.Overflow;
     return (bits + 7) / 8;
 }
 
@@ -350,16 +430,28 @@ fn appendTreePart(parts: *[max_children]Tree, count: *usize, part: Tree) Error!v
     count.* += 1;
 }
 
-fn appendLayoutPart(parts: *[max_children]Layout, count: *usize, part: Layout) Error!void {
+fn appendLayoutPart(
+    parts: *[max_children]Layout,
+    count: *usize,
+    part: Layout,
+) Error!void {
     if (count.* >= parts.len) return Error.OutOfCapacity;
     parts[count.*] = part;
     count.* += 1;
 }
 
-fn appendLayoutTopModes(parts: *[max_children]Layout, count: *usize, input: *const Layout) Error!void {
+fn appendLayoutTopModes(
+    parts: *[max_children]Layout,
+    count: *usize,
+    input: *const Layout,
+) Error!void {
     switch (input.shape.nodes.at(input.shape.root)) {
         .leaf => try appendLayoutPart(parts, count, input.*),
-        .tuple => |span| for (0..span.len) |i| try appendLayoutPart(parts, count, try input.topMode(i)),
+        .tuple => |span| for (0..span.len) |i| try appendLayoutPart(
+            parts,
+            count,
+            try input.topMode(i),
+        ),
     }
 }
 
@@ -434,8 +526,16 @@ fn collectLayoutSlice(
                     .tuple => return Error.UnsupportedDynamicOperation,
                 };
                 if (fixed < 0 or fixed >= extent) return Error.CoordinateOutOfBounds;
-                const term = std.math.mul(Scalar, fixed, stride_value) catch return Error.Overflow;
-                offset.* = std.math.add(Scalar, offset.*, term) catch return Error.Overflow;
+                const term = std.math.mul(
+                    Scalar,
+                    fixed,
+                    stride_value,
+                ) catch return Error.Overflow;
+                offset.* = std.math.add(
+                    Scalar,
+                    offset.*,
+                    term,
+                ) catch return Error.Overflow;
             },
         },
         .tuple => |sel_span| {
@@ -447,7 +547,8 @@ fn collectLayoutSlice(
                 .tuple => |span| span,
                 .leaf => return Error.ProfileMismatch,
             };
-            if (shape_span.len != sel_span.len or stride_span.len != sel_span.len) return Error.ProfileMismatch;
+            if (shape_span.len != sel_span.len or stride_span.len != sel_span.len)
+                return Error.ProfileMismatch;
             for (0..sel_span.len) |i| try collectLayoutSlice(
                 src,
                 src.shape.children.at(shape_span.start + i),
@@ -490,7 +591,8 @@ fn collectLayoutDice(
                 .tuple => |span| span,
                 .leaf => return Error.ProfileMismatch,
             };
-            if (shape_span.len != sel_span.len or stride_span.len != sel_span.len) return Error.ProfileMismatch;
+            if (shape_span.len != sel_span.len or stride_span.len != sel_span.len)
+                return Error.ProfileMismatch;
             for (0..sel_span.len) |i| try collectLayoutDice(
                 src,
                 src.shape.children.at(shape_span.start + i),
@@ -516,12 +618,24 @@ test "layout_algebra: group and select modes for tree and layout" {
     const g = try groupModes(&t, 1, 3);
     try std.testing.expectEqual(@as(usize, 3), g.rank());
     const middle = try g.topMode(1);
-    try std.testing.expectEqualSlices(Scalar, &.{ 3, 4 }, (try middle.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 3, 4 },
+        (try middle.flattenLeaves()).slice(),
+    );
 
     const l = layout.makeLayout(.{ 2, 3, 4 }, .{ 1, 2, 6 });
     const s = try selectModesLayout(&l, &.{ 2, 0 });
-    try std.testing.expectEqualSlices(Scalar, &.{ 4, 2 }, (try s.shape.flattenLeaves()).slice());
-    try std.testing.expectEqualSlices(Scalar, &.{ 6, 1 }, (try s.stride.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 4, 2 },
+        (try s.shape.flattenLeaves()).slice(),
+    );
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 6, 1 },
+        (try s.stride.flattenLeaves()).slice(),
+    );
 }
 
 test "layout_algebra: slice and dice static tuples" {
@@ -529,10 +643,18 @@ test "layout_algebra: slice and dice static tuples" {
     const selector = Selector.fromComptime(.{ keep, .{ 1, keep }, 0 });
     const sliced = try sliceTree(&t, &selector);
     try std.testing.expectEqual(@as(usize, 2), sliced.rank());
-    try std.testing.expectEqualSlices(Scalar, &.{ 2, 4 }, (try sliced.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 2, 4 },
+        (try sliced.flattenLeaves()).slice(),
+    );
 
     const diced = try diceTree(&t, &selector);
-    try std.testing.expectEqualSlices(Scalar, &.{ 3, 5 }, (try diced.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 3, 5 },
+        (try diced.flattenLeaves()).slice(),
+    );
 }
 
 test "layout_algebra: slice layout returns residual layout and offset" {
@@ -540,8 +662,16 @@ test "layout_algebra: slice layout returns residual layout and offset" {
     const selector = Selector.fromComptime(.{ 2, keep });
     const result = try sliceAndOffset(&l, &selector);
     try std.testing.expectEqual(@as(Scalar, 10), result.offset);
-    try std.testing.expectEqualSlices(Scalar, &.{5}, (try result.layout.shape.flattenLeaves()).slice());
-    try std.testing.expectEqualSlices(Scalar, &.{1}, (try result.layout.stride.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{5},
+        (try result.layout.shape.flattenLeaves()).slice(),
+    );
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{1},
+        (try result.layout.stride.flattenLeaves()).slice(),
+    );
     try std.testing.expectEqual(@as(Scalar, 3), try result.layout.crd2idxFlat(&.{3}));
 }
 
@@ -549,27 +679,51 @@ test "layout_algebra: dice layout keeps fixed-tagged modes" {
     const l = layout.makeLayout(.{ 4, 5, 6 }, .{ 30, 6, 1 });
     const selector = Selector.fromComptime(.{ 1, keep, 1 });
     const d = try diceLayout(&l, &selector);
-    try std.testing.expectEqualSlices(Scalar, &.{ 4, 6 }, (try d.shape.flattenLeaves()).slice());
-    try std.testing.expectEqualSlices(Scalar, &.{ 30, 1 }, (try d.stride.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 4, 6 },
+        (try d.shape.flattenLeaves()).slice(),
+    );
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 30, 1 },
+        (try d.stride.flattenLeaves()).slice(),
+    );
 }
 
 test "layout_algebra: idx2crd shape and increment coord" {
     const shape = Tree.fromComptime(.{ 5, 4 });
     const coord = try idx2crdShape(11, &shape);
-    try std.testing.expectEqualSlices(Scalar, &.{ 1, 2 }, (try coord.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 1, 2 },
+        (try coord.flattenLeaves()).slice(),
+    );
 
     const c0 = Tree.fromComptime(.{ 2, 0, 0 });
     const s0 = Tree.fromComptime(.{ 3, 3, 3 });
     const c1 = try incrementCoord(&c0, &s0);
-    try std.testing.expectEqualSlices(Scalar, &.{ 0, 1, 0 }, (try c1.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 0, 1, 0 },
+        (try c1.flattenLeaves()).slice(),
+    );
 }
 
 test "layout_algebra: append/prepend layouts and size in bytes" {
     const l = layout.makeCompactLayout(.{ 8, 8 });
     const appended = try appendOnesLayout(&l, 4);
-    try std.testing.expectEqualSlices(Scalar, &.{ 8, 8, 1, 1 }, (try appended.shape.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 8, 8, 1, 1 },
+        (try appended.shape.flattenLeaves()).slice(),
+    );
     const prepended = try prependOnesLayout(&l, 3);
-    try std.testing.expectEqualSlices(Scalar, &.{ 1, 8, 8 }, (try prepended.shape.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 1, 8, 8 },
+        (try prepended.shape.flattenLeaves()).slice(),
+    );
     try std.testing.expectEqual(@as(Unsigned, 128), try sizeInBytes(16, &l));
 }
 
@@ -577,7 +731,11 @@ test "layout_algebra: static tiler shape transforms" {
     const target = Tree.fromComptime(.{ 128, 64, 7 });
     const tiler = Tree.fromComptime(.{ 8, 8 });
     const z = try zippedDivideShape(&target, &tiler);
-    try std.testing.expectEqualSlices(Scalar, &.{ 8, 8, 16, 8, 7 }, (try z.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 8, 8, 16, 8, 7 },
+        (try z.flattenLeaves()).slice(),
+    );
     const flat = try flatDivideShape(&target, &tiler);
     try std.testing.expectEqual(@as(usize, 5), flat.rank());
 }

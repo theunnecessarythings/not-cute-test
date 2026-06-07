@@ -65,9 +65,11 @@ pub const CompileRequest = struct {
     dump_lowered_mlir: bool = true,
 
     pub fn validate(self: CompileRequest) Error!void {
-        if (self.input_mlir.len == 0 or self.work_dir.len == 0 or self.arch.len == 0) return Error.InvalidCompileRequest;
+        if (self.input_mlir.len == 0 or self.work_dir.len == 0 or self.arch.len == 0)
+            return Error.InvalidCompileRequest;
         try mlir.validateSymbol(self.function_name);
-        if (!self.keep_ptx and !self.keep_cubin and !self.keep_object and !self.dump_lowered_mlir) return Error.InvalidCompileRequest;
+        if (!self.keep_ptx and !self.keep_cubin and !self.keep_object and !self.dump_lowered_mlir)
+            return Error.InvalidCompileRequest;
     }
 
     pub fn compileOptions(self: CompileRequest) runtime_plan.CompileOptions {
@@ -91,7 +93,11 @@ pub const CompileRequest = struct {
         }
     }
 
-    pub fn artifactPath(self: CompileRequest, comptime kind: ArtifactKind, out: anytype) Error!void {
+    pub fn artifactPath(
+        self: CompileRequest,
+        comptime kind: ArtifactKind,
+        out: anytype,
+    ) Error!void {
         try self.validate();
         try out.append(self.work_dir);
         if (!std.mem.endsWith(u8, self.work_dir, "/")) try out.append("/");
@@ -106,7 +112,11 @@ pub const CompileRequest = struct {
         }
     }
 
-    pub fn fullArtifactPath(self: CompileRequest, comptime kind: ArtifactKind, out: anytype) Error!void {
+    pub fn fullArtifactPath(
+        self: CompileRequest,
+        comptime kind: ArtifactKind,
+        out: anytype,
+    ) Error!void {
         try self.validate();
         try out.append(self.work_dir);
         if (!std.mem.endsWith(u8, self.work_dir, "/")) try out.append("/");
@@ -209,7 +219,10 @@ pub const ArtifactSet = struct {
         return self.find(kind) != null;
     }
 
-    pub fn toExecutionArtifacts(self: *const ArtifactSet, input_mlir: []const u8) Error!execution.ArtifactSet {
+    pub fn toExecutionArtifacts(
+        self: *const ArtifactSet,
+        input_mlir: []const u8,
+    ) Error!execution.ArtifactSet {
         const cubin = self.find(.cubin) orelse return Error.MissingArtifactPath;
         return .{
             .mlir_path = input_mlir,
@@ -253,7 +266,10 @@ pub const CompileOutcome = struct {
     }
 };
 
-pub fn bridgeCompileInvocation(config: cutlass_bridge.PythonBridgeConfig, request: CompileRequest) Error!mlir_harness.Invocation {
+pub fn bridgeCompileInvocation(
+    config: cutlass_bridge.PythonBridgeConfig,
+    request: CompileRequest,
+) Error!mlir_harness.Invocation {
     try config.validate();
     try request.validate();
     var pipeline: mlir.TextBuffer(4096) = .{};
@@ -279,7 +295,10 @@ pub fn bridgeCompileInvocation(config: cutlass_bridge.PythonBridgeConfig, reques
     return inv;
 }
 
-pub fn planBridgeCompilation(config: cutlass_bridge.PythonBridgeConfig, request: CompileRequest) Error!CompileOutcome {
+pub fn planBridgeCompilation(
+    config: cutlass_bridge.PythonBridgeConfig,
+    request: CompileRequest,
+) Error!CompileOutcome {
     return .{
         .request = request,
         .artifacts = try request.expectedArtifacts(),
@@ -287,7 +306,11 @@ pub fn planBridgeCompilation(config: cutlass_bridge.PythonBridgeConfig, request:
     };
 }
 
-pub fn bridgeCompileCommandText(config: cutlass_bridge.PythonBridgeConfig, request: CompileRequest, out: anytype) Error!void {
+pub fn bridgeCompileCommandText(
+    config: cutlass_bridge.PythonBridgeConfig,
+    request: CompileRequest,
+    out: anytype,
+) Error!void {
     const inv = try bridgeCompileInvocation(config, request);
     try inv.writeShell(out);
 }
@@ -297,7 +320,12 @@ pub fn writeExpectedArtifactManifest(request: CompileRequest, out: anytype) Erro
     try artifacts.writeJson(out);
 }
 
-pub fn defaultKernelCompileRequest(input_mlir: []const u8, work_dir: []const u8, function_name: []const u8, arch: []const u8) CompileRequest {
+pub fn defaultKernelCompileRequest(
+    input_mlir: []const u8,
+    work_dir: []const u8,
+    function_name: []const u8,
+    arch: []const u8,
+) CompileRequest {
     return .{
         .input_mlir = input_mlir,
         .work_dir = work_dir,
@@ -325,7 +353,13 @@ pub fn writeCompileRunbook(out: anytype, outcome: CompileOutcome) Error!void {
 }
 
 test "compile_pipeline: cute-to-nvvm pipeline command and artifacts are wired" {
-    const req: CompileRequest = .{ .input_mlir = "gemm.mlir", .work_dir = "zig-cache/not-cute", .function_name = "gemm", .keep_ptx = true, .keep_cubin = true };
+    const req: CompileRequest = .{
+        .input_mlir = "gemm.mlir",
+        .work_dir = "zig-cache/not-cute",
+        .function_name = "gemm",
+        .keep_ptx = true,
+        .keep_cubin = true,
+    };
     var pipe: mlir.TextBuffer(4096) = .{};
     try req.writePipeline(&pipe);
     try std.testing.expect(std.mem.indexOf(u8, pipe.slice(), "cute-to-nvvm") != null);
@@ -339,7 +373,13 @@ test "compile_pipeline: cute-to-nvvm pipeline command and artifacts are wired" {
 }
 
 test "compile_pipeline: LIR pipeline and execution artifact conversion" {
-    const req: CompileRequest = .{ .input_mlir = "kernel.mlir", .work_dir = "out", .function_name = "kernel", .pipeline_kind = .lir_to_cute_to_nvvm, .keep_ptx = false };
+    const req: CompileRequest = .{
+        .input_mlir = "kernel.mlir",
+        .work_dir = "out",
+        .function_name = "kernel",
+        .pipeline_kind = .lir_to_cute_to_nvvm,
+        .keep_ptx = false,
+    };
     var pipe: mlir.TextBuffer(4096) = .{};
     try req.writePipeline(&pipe);
     try std.testing.expect(std.mem.indexOf(u8, pipe.slice(), "lir-to-cute") != null);

@@ -79,9 +79,7 @@ See [docs/RUNTIME_EXECUTION_WIRING.md](docs/RUNTIME_EXECUTION_WIRING.md).
 ## Port status
 
 Current gaps and compatibility limits are tracked in
-[docs/REMAINING_FULL_PORT.md](docs/REMAINING_FULL_PORT.md). Upstream example
-coverage is documented in
-[docs/UPSTREAM_EXAMPLE_PARITY.md](docs/UPSTREAM_EXAMPLE_PARITY.md).
+[docs/REMAINING_FULL_PORT.md](docs/REMAINING_FULL_PORT.md).
 
 For the validation commands used on the current tree, see
 [VALIDATION.md](VALIDATION.md).

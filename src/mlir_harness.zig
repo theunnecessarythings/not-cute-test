@@ -8,7 +8,7 @@ const tensor_ssa = @import("tensor_ssa.zig");
 const copy_mma = @import("copy_mma.zig");
 const options = @import("build_options");
 
-pub const integration_audit_layout_case_mlir =
+pub const layout_case_mlir =
     \\module {
     \\  func.func @layout_case() {
     \\    %0 = cute.make_shape() : () -> !cute.shape<"(2,3)">
@@ -20,7 +20,7 @@ pub const integration_audit_layout_case_mlir =
     \\
 ;
 
-pub const integration_audit_tensor_case_mlir =
+pub const tensor_case_mlir =
     \\module {
     \\  func.func @tensor_case(%arg0: !cute.memref<f32, gmem, align<16>, "(4):(1)">, %arg1: vector<4xf32>) {
     \\    %0 = cute.memref.load_vec(%arg0) : (!cute.memref<f32, gmem, align<16>, "(4):(1)">) -> vector<4xf32>
@@ -32,7 +32,7 @@ pub const integration_audit_tensor_case_mlir =
     \\
 ;
 
-pub const integration_audit_copy_case_mlir =
+pub const copy_case_mlir =
     \\module {
     \\  func.func @copy_case(%arg0: !cute.memref<f32, gmem, align<16>, "(1):(1)">, %arg1: !cute.memref<f32, gmem, align<16>, "(1):(1)">) {
     \\    %atom = cute.make_atom() : () -> !cute_nvgpu.atom.universal_copy<f32, 32 b>
@@ -43,7 +43,7 @@ pub const integration_audit_copy_case_mlir =
     \\
 ;
 
-pub const integration_audit_mma_case_mlir =
+pub const mma_case_mlir =
     \\module {
     \\  func.func @mma_case(%arg0: !cute.memref<f32, generic, "(1):(1)">, %arg1: !cute.memref<f32, generic, "(1):(1)">, %arg2: !cute.memref<f32, generic, "(1):(1)">, %arg3: !cute.memref<f32, generic, "(1):(1)">) {
     \\    %atom = cute.make_atom() : () -> !cute_nvgpu.atom.universal_fma<1x1x1, (f32, f32) -> f32 >
@@ -88,7 +88,11 @@ pub const ToolConfig = struct {
     assume_tools_present: bool = options.assume_mlir_tools_present,
     max_output_bytes: usize = 1 << 20,
 
-    pub fn pathFor(self: ToolConfig, kind: ToolKind, custom_path: ?[]const u8) Error![]const u8 {
+    pub fn pathFor(
+        self: ToolConfig,
+        kind: ToolKind,
+        custom_path: ?[]const u8,
+    ) Error![]const u8 {
         return switch (kind) {
             .cute_opt => self.cute_opt,
             .mlir_opt => self.mlir_opt,
@@ -141,7 +145,8 @@ pub fn expectGolden(actual: []const u8, expected: []const u8) Error!void {
 }
 
 pub fn expectContains(haystack: []const u8, needle: []const u8) Error!void {
-    if (std.mem.indexOf(u8, haystack, needle) == null) return Error.MissingExpectedDiagnostic;
+    if (std.mem.indexOf(u8, haystack, needle) == null)
+        return Error.MissingExpectedDiagnostic;
 }
 
 pub fn validateGeneratedMlir(text: []const u8) Error!void {
@@ -150,7 +155,10 @@ pub fn validateGeneratedMlir(text: []const u8) Error!void {
     try expectContains(text, "module");
 }
 
-pub fn cuteOptVerifyInvocation(config: ToolConfig, input_path: []const u8) Error!Invocation {
+pub fn cuteOptVerifyInvocation(
+    config: ToolConfig,
+    input_path: []const u8,
+) Error!Invocation {
     var inv = Invocation.init();
     try inv.append(try config.pathFor(.cute_opt, null));
     try inv.append("--verify-diagnostics");
@@ -158,7 +166,12 @@ pub fn cuteOptVerifyInvocation(config: ToolConfig, input_path: []const u8) Error
     return inv;
 }
 
-pub fn cuteOptPipelineInvocation(config: ToolConfig, input_path: []const u8, output_path: []const u8, pipeline: []const u8) Error!Invocation {
+pub fn cuteOptPipelineInvocation(
+    config: ToolConfig,
+    input_path: []const u8,
+    output_path: []const u8,
+    pipeline: []const u8,
+) Error!Invocation {
     var inv = Invocation.init();
     try inv.append(try config.pathFor(.cute_opt, null));
     try inv.append(pipeline);
@@ -168,7 +181,12 @@ pub fn cuteOptPipelineInvocation(config: ToolConfig, input_path: []const u8, out
     return inv;
 }
 
-pub fn mlirOptPipelineInvocation(config: ToolConfig, input_path: []const u8, output_path: []const u8, pass_pipeline: []const u8) Error!Invocation {
+pub fn mlirOptPipelineInvocation(
+    config: ToolConfig,
+    input_path: []const u8,
+    output_path: []const u8,
+    pass_pipeline: []const u8,
+) Error!Invocation {
     var inv = Invocation.init();
     try inv.append(try config.pathFor(.mlir_opt, null));
     try inv.append(pass_pipeline);
@@ -178,7 +196,11 @@ pub fn mlirOptPipelineInvocation(config: ToolConfig, input_path: []const u8, out
     return inv;
 }
 
-pub fn fileCheckInvocation(config: ToolConfig, input_path: []const u8, check_file: []const u8) Error!Invocation {
+pub fn fileCheckInvocation(
+    config: ToolConfig,
+    input_path: []const u8,
+    check_file: []const u8,
+) Error!Invocation {
     var inv = Invocation.init();
     try inv.append(try config.pathFor(.filecheck, null));
     try inv.append(check_file);
@@ -188,19 +210,19 @@ pub fn fileCheckInvocation(config: ToolConfig, input_path: []const u8, check_fil
 }
 
 pub fn emitLayoutCase(builder: anytype) Error!void {
-    try builder.append(integration_audit_layout_case_mlir);
+    try builder.append(layout_case_mlir);
 }
 
 pub fn emitTensorCase(builder: anytype) Error!void {
-    try builder.append(integration_audit_tensor_case_mlir);
+    try builder.append(tensor_case_mlir);
 }
 
 pub fn emitCopyCase(builder: anytype) Error!void {
-    try builder.append(integration_audit_copy_case_mlir);
+    try builder.append(copy_case_mlir);
 }
 
 pub fn emitMmaCase(builder: anytype) Error!void {
-    try builder.append(integration_audit_mma_case_mlir);
+    try builder.append(mma_case_mlir);
 }
 
 pub fn emitNegativeCase(builder: anytype) Error!void {
@@ -216,20 +238,38 @@ fn tensorValue(meta: tensor_ssa.TensorMeta, value: mlir.Value) tensor_ssa.Tensor
     return tensor_ssa.TensorValue.init(meta, value, "");
 }
 
-fn makeGenericCopyAtom(dtype: typing.Numeric, src_space: typing.AddressSpace, dst_space: typing.AddressSpace) Error!atom.CopyAtom {
+fn makeGenericCopyAtom(
+    dtype: typing.Numeric,
+    src_space: typing.AddressSpace,
+    dst_space: typing.AddressSpace,
+) Error!atom.CopyAtom {
     const thr = layout.makeCompactLayout(.{4});
     const tv = layout.makeCompactLayout(.{ 4, 1 });
     var tr: atom.Trait = .{ .name = "copy", .thr_id = thr };
     tr = tr.withCopyLayouts(tv, tv);
-    return atom.makeCopyAtom(atom.OpDescriptor.copyTyped("copy", "generic", "unit", dtype, src_space, dst_space, dtype.width, &.{}), tr);
+    return atom.makeCopyAtom(
+        atom.OpDescriptor.copyTyped("copy", "generic", "unit", dtype, src_space, dst_space, dtype.width, &.{}),
+        tr,
+    );
 }
 
 fn makeGenericMmaAtom() Error!atom.MmaAtom {
     const thr = layout.makeCompactLayout(.{32});
     const tv = layout.makeCompactLayout(.{ 32, 1 });
-    var tr: atom.Trait = .{ .name = "mma", .thr_id = thr, .shape_mnk = layout.Tree.fromComptime(.{ 16, 8, 8 }) };
+    var tr: atom.Trait = .{
+        .name = "mma",
+        .thr_id = thr,
+        .shape_mnk = layout.Tree.fromComptime(.{ 16, 8, 8 }),
+    };
     tr = tr.withMmaLayouts(tv, tv, tv);
-    return atom.makeMmaAtom(atom.OpDescriptor.mmaTyped("mma", "generic", "unit", layout.Tree.fromComptime(.{ 16, 8, 8 }), typing.Float16, typing.Float16, typing.Float32, &.{.accumulate}), tr);
+    return atom.makeMmaAtom(
+        atom.OpDescriptor.mmaTyped("mma", "generic", "unit", layout.Tree.fromComptime(.{
+            16,
+            8,
+            8,
+        }), typing.Float16, typing.Float16, typing.Float32, &.{.accumulate}),
+        tr,
+    );
 }
 
 fn appendShellQuoted(out: anytype, arg: []const u8) !void {
@@ -293,16 +333,28 @@ test "mlir_harness: negative golden case intentionally fails local structural va
     try emitNegativeCase(&b);
     const expected = @embedFile("testdata/golden/negative_case.mlir");
     try std.testing.expectEqualStrings(expected, b.slice());
-    try std.testing.expectError(mlir.Error.UnbalancedRegion, mlir.validateBalancedText(b.slice()));
+    try std.testing.expectError(
+        mlir.Error.UnbalancedRegion,
+        mlir.validateBalancedText(b.slice()),
+    );
 }
 
 test "mlir_harness: tool invocation builders are deterministic" {
-    const config: ToolConfig = .{ .cute_opt = "/opt/cute/bin/cute-opt", .mlir_opt = "/opt/llvm/bin/mlir-opt", .filecheck = "/opt/llvm/bin/FileCheck" };
+    const config: ToolConfig = .{
+        .cute_opt = "/opt/cute/bin/cute-opt",
+        .mlir_opt = "/opt/llvm/bin/mlir-opt",
+        .filecheck = "/opt/llvm/bin/FileCheck",
+    };
     const verify = try cuteOptVerifyInvocation(config, "case.mlir");
     try std.testing.expectEqualStrings("/opt/cute/bin/cute-opt", verify.args()[0]);
     try std.testing.expectEqualStrings("--verify-diagnostics", verify.args()[1]);
 
-    const pipe = try mlirOptPipelineInvocation(config, "in.mlir", "out.mlir", "--pass-pipeline=builtin.module(canonicalize,cse)");
+    const pipe = try mlirOptPipelineInvocation(
+        config,
+        "in.mlir",
+        "out.mlir",
+        "--pass-pipeline=builtin.module(canonicalize,cse)",
+    );
     var shell: mlir.TextBuffer(512) = .{};
     try pipe.writeShell(&shell);
     try std.testing.expect(std.mem.indexOf(u8, shell.slice(), "mlir-opt") != null);

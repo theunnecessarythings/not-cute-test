@@ -15,9 +15,17 @@ pub fn main() !void {
     try meta.tensorTypeText(&tensor_type);
 
     try builder.beginModule();
-    try builder.beginFunc("add_one", &.{cute.mlir_text.Type.raw(tensor_type.slice())}, null);
+    try builder.beginFunc(
+        "add_one",
+        &.{cute.mlir_text.Type.raw(tensor_type.slice())},
+        null,
+    );
 
-    const tensor = cute.tensor_ssa.TensorValue.init(meta, cute.mlir_text.Value.arg(0), tensor_type.slice());
+    const tensor = cute.tensor_ssa.TensorValue.init(
+        meta,
+        cute.mlir_text.Value.arg(0),
+        tensor_type.slice(),
+    );
     const values = try tensor.load(&builder, null, null);
     const one = try builder.constantF(1.0, cute.mlir_text.Type.f(32));
     const ones = try cute.tensor_ssa.SsaTensor.full(

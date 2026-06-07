@@ -31,8 +31,18 @@ pub const Tensor = struct {
     dtype: typing.Numeric,
     memspace: typing.AddressSpace = .generic,
 
-    pub fn init(engine: Engine, layout_value: layout.Layout, dtype: typing.Numeric, memspace: typing.AddressSpace) Tensor {
-        return .{ .engine = engine, .layout_value = layout_value, .dtype = dtype, .memspace = memspace };
+    pub fn init(
+        engine: Engine,
+        layout_value: layout.Layout,
+        dtype: typing.Numeric,
+        memspace: typing.AddressSpace,
+    ) Tensor {
+        return .{
+            .engine = engine,
+            .layout_value = layout_value,
+            .dtype = dtype,
+            .memspace = memspace,
+        };
     }
 
     pub fn shape(self: Tensor) layout.Tree {
@@ -97,10 +107,21 @@ pub const Tensor = struct {
     }
 
     pub fn makeTypedTensor(self: Tensor) Error!typing.TypedTensor {
-        return typing.TypedTensor.init(self.dtype, self.layout_value.shape, self.layout_value.stride, self.memspace, self.dtype.bytes());
+        return typing.TypedTensor.init(
+            self.dtype,
+            self.layout_value.shape,
+            self.layout_value.stride,
+            self.memspace,
+            self.dtype.bytes(),
+        );
     }
 
-    pub fn emitMakeTensor(self: Tensor, builder: anytype, engine_value: mlir.Operand, engine_type: mlir.Type) Error!mlir.Value {
+    pub fn emitMakeTensor(
+        self: Tensor,
+        builder: anytype,
+        engine_value: mlir.Operand,
+        engine_type: mlir.Type,
+    ) Error!mlir.Value {
         var type_buf: mlir.TextBuffer(512) = .{};
         const tt = try self.makeTypedTensor();
         try tt.writeMlirType(&type_buf);
@@ -113,20 +134,51 @@ pub const Tensor = struct {
         );
     }
 
-    pub fn emitLoad(self: Tensor, builder: anytype, tensor_value: mlir.Operand, tensor_type: mlir.Type, coord: mlir.Operand, coord_type: mlir.Type) Error!mlir.Value {
-        return builder.genericOp("cute.tensor_load", &.{ tensor_value, coord }, &.{}, &.{ tensor_type, coord_type }, &.{mlir.Type.raw(self.dtype.mlir_type)});
+    pub fn emitLoad(
+        self: Tensor,
+        builder: anytype,
+        tensor_value: mlir.Operand,
+        tensor_type: mlir.Type,
+        coord: mlir.Operand,
+        coord_type: mlir.Type,
+    ) Error!mlir.Value {
+        return builder.genericOp(
+            "cute.tensor_load",
+            &.{ tensor_value, coord },
+            &.{},
+            &.{ tensor_type, coord_type },
+            &.{mlir.Type.raw(self.dtype.mlir_type)},
+        );
     }
 
-    pub fn emitStore(self: Tensor, builder: anytype, tensor_value: mlir.Operand, tensor_type: mlir.Type, coord: mlir.Operand, coord_type: mlir.Type, value: mlir.Operand) Error!void {
+    pub fn emitStore(
+        self: Tensor,
+        builder: anytype,
+        tensor_value: mlir.Operand,
+        tensor_type: mlir.Type,
+        coord: mlir.Operand,
+        coord_type: mlir.Type,
+        value: mlir.Operand,
+    ) Error!void {
         try builder.operationNoResult(.{
             .name = "cute.tensor_store",
             .operands = &.{ tensor_value, coord, value },
-            .operand_types = &.{ tensor_type, coord_type, mlir.Type.raw(self.dtype.mlir_type) },
+            .operand_types = &.{
+                tensor_type,
+                coord_type,
+                mlir.Type.raw(self.dtype.mlir_type),
+            },
             .result_types = &.{},
         });
     }
 
-    pub fn emitFill(self: Tensor, builder: anytype, tensor_value: mlir.Operand, tensor_type: mlir.Type, value: mlir.Operand) Error!void {
+    pub fn emitFill(
+        self: Tensor,
+        builder: anytype,
+        tensor_value: mlir.Operand,
+        tensor_type: mlir.Type,
+        value: mlir.Operand,
+    ) Error!void {
         try builder.operationNoResult(.{
             .name = "cute.tensor_fill",
             .operands = &.{ tensor_value, value },
@@ -141,7 +193,11 @@ pub const TensorSsa = struct {
     shape_value: layout.Tree,
     dtype: typing.Numeric,
 
-    pub fn init(value: mlir.Value, shape_value: layout.Tree, dtype: typing.Numeric) Error!TensorSsa {
+    pub fn init(
+        value: mlir.Value,
+        shape_value: layout.Tree,
+        dtype: typing.Numeric,
+    ) Error!TensorSsa {
         try shape_value.assertPositive();
         return .{ .value = value, .shape_value = shape_value, .dtype = dtype };
     }
@@ -158,42 +214,84 @@ pub const TensorSsa = struct {
         return self.value;
     }
 
-    pub fn broadcastTo(self: TensorSsa, builder: anytype, result_shape: layout.Tree) Error!TensorSsa {
+    pub fn broadcastTo(
+        self: TensorSsa,
+        builder: anytype,
+        result_shape: layout.Tree,
+    ) Error!TensorSsa {
         const result_elems = try result_shape.product();
         const src_elems = try self.shape_value.product();
-        if (src_elems != 1 and src_elems != result_elems) return Error.BroadcastMismatch;
+        if (src_elems != 1 and src_elems != result_elems)
+            return Error.BroadcastMismatch;
         var type_buf: mlir.TextBuffer(128) = .{};
         try type_buf.append("vector<");
         try type_buf.appendUnsigned(@intCast(result_elems));
         try type_buf.append("x");
         try type_buf.append(self.dtype.mlir_type);
         try type_buf.append(">");
-        const result = try mlir.vector.broadcast(builder, .{ .value = self.value }, mlir.Type.raw(self.dtype.mlir_type), mlir.Type.raw(type_buf.slice()));
+        const result = try mlir.vector.broadcast(
+            builder,
+            .{ .value = self.value },
+            mlir.Type.raw(self.dtype.mlir_type),
+            mlir.Type.raw(type_buf.slice()),
+        );
         return TensorSsa.init(result, result_shape, self.dtype);
     }
 
-    pub fn applyBinary(self: TensorSsa, builder: anytype, op: BinaryOp, rhs: TensorSsa) Error!TensorSsa {
+    pub fn applyBinary(
+        self: TensorSsa,
+        builder: anytype,
+        op: BinaryOp,
+        rhs: TensorSsa,
+    ) Error!TensorSsa {
         const res_shape = try inferBroadcastShape(self.shape_value, rhs.shape_value);
-        const lhs_b = if (self.shape_value.equals(&res_shape)) self else try self.broadcastTo(builder, res_shape);
-        const rhs_b = if (rhs.shape_value.equals(&res_shape)) rhs else try rhs.broadcastTo(builder, res_shape);
+        const lhs_b = if (self.shape_value.equals(&res_shape)) self else try self.broadcastTo(
+            builder,
+            res_shape,
+        );
+        const rhs_b = if (rhs.shape_value.equals(&res_shape)) rhs else try rhs.broadcastTo(
+            builder,
+            res_shape,
+        );
         var vt: mlir.TextBuffer(128) = .{};
         try lhs_b.vectorType(&vt);
         const ty = mlir.Type.raw(vt.slice());
         const name = op.mlirName(lhs_b.dtype);
-        const value = try builder.genericOp(name, &.{ .{ .value = lhs_b.value }, .{ .value = rhs_b.value } }, op.attrs(), &.{ ty, ty }, &.{ty});
-        return TensorSsa.init(value, res_shape, op.resultDtype(lhs_b.dtype, rhs_b.dtype));
+        const value = try builder.genericOp(
+            name,
+            &.{ .{ .value = lhs_b.value }, .{ .value = rhs_b.value } },
+            op.attrs(),
+            &.{ ty, ty },
+            &.{ty},
+        );
+        return TensorSsa.init(
+            value,
+            res_shape,
+            op.resultDtype(lhs_b.dtype, rhs_b.dtype),
+        );
     }
 
     pub fn applyUnary(self: TensorSsa, builder: anytype, op: UnaryOp) Error!TensorSsa {
         var vt: mlir.TextBuffer(128) = .{};
         try self.vectorType(&vt);
         const ty = mlir.Type.raw(vt.slice());
-        const value = try builder.genericOp(op.mlirName(self.dtype), &.{.{ .value = self.value }}, &.{}, &.{ty}, &.{ty});
+        const value = try builder.genericOp(
+            op.mlirName(self.dtype),
+            &.{.{ .value = self.value }},
+            &.{},
+            &.{ty},
+            &.{ty},
+        );
         return TensorSsa.init(value, self.shape_value, self.dtype);
     }
 
-    pub fn reshape(self: TensorSsa, builder: anytype, new_shape: layout.Tree) Error!TensorSsa {
-        if (try self.shape_value.product() != try new_shape.product()) return Error.InvalidTensorShape;
+    pub fn reshape(
+        self: TensorSsa,
+        builder: anytype,
+        new_shape: layout.Tree,
+    ) Error!TensorSsa {
+        if (try self.shape_value.product() != try new_shape.product())
+            return Error.InvalidTensorShape;
         var old_type: mlir.TextBuffer(128) = .{};
         var new_type: mlir.TextBuffer(128) = .{};
         try self.vectorType(&old_type);
@@ -202,14 +300,26 @@ pub const TensorSsa = struct {
         try new_type.append("x");
         try new_type.append(self.dtype.mlir_type);
         try new_type.append(">");
-        const v = try builder.genericOp("vector.shape_cast", &.{.{ .value = self.value }}, &.{}, &.{mlir.Type.raw(old_type.slice())}, &.{mlir.Type.raw(new_type.slice())});
+        const v = try builder.genericOp(
+            "vector.shape_cast",
+            &.{.{ .value = self.value }},
+            &.{},
+            &.{mlir.Type.raw(old_type.slice())},
+            &.{mlir.Type.raw(new_type.slice())},
+        );
         return TensorSsa.init(v, new_shape, self.dtype);
     }
 
     pub fn reduce(self: TensorSsa, builder: anytype, op: ReduceOp) Error!mlir.Value {
         var vt: mlir.TextBuffer(128) = .{};
         try self.vectorType(&vt);
-        return builder.genericOp(op.mlirName(), &.{.{ .value = self.value }}, &.{}, &.{mlir.Type.raw(vt.slice())}, &.{mlir.Type.raw(self.dtype.mlir_type)});
+        return builder.genericOp(
+            op.mlirName(),
+            &.{.{ .value = self.value }},
+            &.{},
+            &.{mlir.Type.raw(vt.slice())},
+            &.{mlir.Type.raw(self.dtype.mlir_type)},
+        );
     }
 };
 
@@ -259,7 +369,11 @@ pub const BinaryOp = enum {
         };
     }
 
-    pub fn resultDtype(self: BinaryOp, lhs: typing.Numeric, _: typing.Numeric) typing.Numeric {
+    pub fn resultDtype(
+        self: BinaryOp,
+        lhs: typing.Numeric,
+        _: typing.Numeric,
+    ) typing.Numeric {
         return switch (self) {
             .eq, .ne, .lt, .le, .gt, .ge => typing.Boolean,
             else => lhs,
@@ -299,7 +413,12 @@ pub const ReduceOp = enum {
     }
 };
 
-pub fn makeTensor(engine: Engine, layout_value: layout.Layout, dtype: typing.Numeric, memspace: typing.AddressSpace) Tensor {
+pub fn makeTensor(
+    engine: Engine,
+    layout_value: layout.Layout,
+    dtype: typing.Numeric,
+    memspace: typing.AddressSpace,
+) Tensor {
     return Tensor.init(engine, layout_value, dtype, memspace);
 }
 
@@ -334,7 +453,12 @@ pub fn domainOffset(source: Tensor, coord: layout.Tree) Error!Tensor {
     return source.domainOffset(coord);
 }
 
-pub fn full(builder: anytype, shape: layout.Tree, dtype: typing.Numeric, value: mlir.Operand) Error!TensorSsa {
+pub fn full(
+    builder: anytype,
+    shape: layout.Tree,
+    dtype: typing.Numeric,
+    value: mlir.Operand,
+) Error!TensorSsa {
     const elems = try shape.product();
     if (elems > 64) return Error.TooManyTensorElements;
     var type_buf: mlir.TextBuffer(128) = .{};
@@ -343,7 +467,12 @@ pub fn full(builder: anytype, shape: layout.Tree, dtype: typing.Numeric, value: 
     try type_buf.append("x");
     try type_buf.append(dtype.mlir_type);
     try type_buf.append(">");
-    const v = try mlir.vector.broadcast(builder, value, mlir.Type.raw(dtype.mlir_type), mlir.Type.raw(type_buf.slice()));
+    const v = try mlir.vector.broadcast(
+        builder,
+        value,
+        mlir.Type.raw(dtype.mlir_type),
+        mlir.Type.raw(type_buf.slice()),
+    );
     return TensorSsa.init(v, shape, dtype);
 }
 
@@ -357,14 +486,38 @@ pub fn onesLike(builder: anytype, source: TensorSsa) Error!TensorSsa {
     return full(builder, source.shape_value, source.dtype, .{ .value = one });
 }
 
-pub fn where(builder: anytype, cond: TensorSsa, if_value: TensorSsa, else_value: TensorSsa) Error!TensorSsa {
+pub fn where(
+    builder: anytype,
+    cond: TensorSsa,
+    if_value: TensorSsa,
+    else_value: TensorSsa,
+) Error!TensorSsa {
     const shape = try inferBroadcastShape(if_value.shape_value, else_value.shape_value);
-    const a = if (if_value.shape_value.equals(&shape)) if_value else try if_value.broadcastTo(builder, shape);
-    const b = if (else_value.shape_value.equals(&shape)) else_value else try else_value.broadcastTo(builder, shape);
-    const c = if (cond.shape_value.equals(&shape)) cond else try cond.broadcastTo(builder, shape);
+    const a = if (if_value.shape_value.equals(&shape)) if_value else try if_value.broadcastTo(
+        builder,
+        shape,
+    );
+    const b = if (else_value.shape_value.equals(&shape)) else_value else try else_value.broadcastTo(
+        builder,
+        shape,
+    );
+    const c = if (cond.shape_value.equals(&shape)) cond else try cond.broadcastTo(
+        builder,
+        shape,
+    );
     var vt: mlir.TextBuffer(128) = .{};
     try a.vectorType(&vt);
-    const v = try builder.genericOp("arith.select", &.{ .{ .value = c.value }, .{ .value = a.value }, .{ .value = b.value } }, &.{}, &.{ mlir.Type.raw("vector<?xi1>"), mlir.Type.raw(vt.slice()), mlir.Type.raw(vt.slice()) }, &.{mlir.Type.raw(vt.slice())});
+    const v = try builder.genericOp(
+        "arith.select",
+        &.{ .{ .value = c.value }, .{ .value = a.value }, .{ .value = b.value } },
+        &.{},
+        &.{
+            mlir.Type.raw("vector<?xi1>"),
+            mlir.Type.raw(vt.slice()),
+            mlir.Type.raw(vt.slice()),
+        },
+        &.{mlir.Type.raw(vt.slice())},
+    );
     return TensorSsa.init(v, shape, a.dtype);
 }
 
@@ -373,18 +526,43 @@ pub fn gather(builder: anytype, source: TensorSsa, indices: TensorSsa) Error!Ten
     var idx_ty: mlir.TextBuffer(128) = .{};
     try source.vectorType(&src_ty);
     try indices.vectorType(&idx_ty);
-    const v = try builder.genericOp("cute.gather", &.{ .{ .value = source.value }, .{ .value = indices.value } }, &.{}, &.{ mlir.Type.raw(src_ty.slice()), mlir.Type.raw(idx_ty.slice()) }, &.{mlir.Type.raw(src_ty.slice())});
+    const v = try builder.genericOp(
+        "cute.gather",
+        &.{ .{ .value = source.value }, .{ .value = indices.value } },
+        &.{},
+        &.{ mlir.Type.raw(src_ty.slice()), mlir.Type.raw(idx_ty.slice()) },
+        &.{mlir.Type.raw(src_ty.slice())},
+    );
     return TensorSsa.init(v, source.shape_value, source.dtype);
 }
 
-pub fn scatter(builder: anytype, source: TensorSsa, indices: TensorSsa, values: TensorSsa) Error!TensorSsa {
+pub fn scatter(
+    builder: anytype,
+    source: TensorSsa,
+    indices: TensorSsa,
+    values: TensorSsa,
+) Error!TensorSsa {
     var src_ty: mlir.TextBuffer(128) = .{};
     var idx_ty: mlir.TextBuffer(128) = .{};
     var val_ty: mlir.TextBuffer(128) = .{};
     try source.vectorType(&src_ty);
     try indices.vectorType(&idx_ty);
     try values.vectorType(&val_ty);
-    const v = try builder.genericOp("cute.scatter", &.{ .{ .value = source.value }, .{ .value = indices.value }, .{ .value = values.value } }, &.{}, &.{ mlir.Type.raw(src_ty.slice()), mlir.Type.raw(idx_ty.slice()), mlir.Type.raw(val_ty.slice()) }, &.{mlir.Type.raw(src_ty.slice())});
+    const v = try builder.genericOp(
+        "cute.scatter",
+        &.{
+            .{ .value = source.value },
+            .{ .value = indices.value },
+            .{ .value = values.value },
+        },
+        &.{},
+        &.{
+            mlir.Type.raw(src_ty.slice()),
+            mlir.Type.raw(idx_ty.slice()),
+            mlir.Type.raw(val_ty.slice()),
+        },
+        &.{mlir.Type.raw(src_ty.slice())},
+    );
     return TensorSsa.init(v, source.shape_value, source.dtype);
 }
 
@@ -403,7 +581,10 @@ test "tensor: make tensor and domain offset" {
     const ptr = try runtime.Pointer.init(0x1000, typing.Float32, .gmem, null);
     const t = makeTensor(.{ .pointer = ptr }, l, typing.Float32, .gmem);
     const shifted = try t.domainOffset(layout.Tree.fromComptime(.{ 2, 1 }));
-    try std.testing.expectEqual(@as(usize, 0x1000 + 6 * 4), shifted.engine.pointer.address);
+    try std.testing.expectEqual(
+        @as(usize, 0x1000 + 6 * 4),
+        shifted.engine.pointer.address,
+    );
 }
 
 test "tensor: TensorSSA emits binary and reduction operations" {
@@ -421,8 +602,19 @@ test "tensor: TensorSSA emits binary and reduction operations" {
 test "tensor: reshape preserves element count" {
     var b: mlir.Builder(1024) = .{};
     const c0 = try b.constantI(0, mlir.Type.i(32));
-    const src = try full(&b, layout.Tree.fromComptime(.{ 2, 3 }), typing.Int32, .{ .value = c0 });
+    const src = try full(
+        &b,
+        layout.Tree.fromComptime(.{ 2, 3 }),
+        typing.Int32,
+        .{ .value = c0 },
+    );
     const reshaped = try src.reshape(&b, layout.Tree.fromComptime(.{6}));
-    try std.testing.expectEqual(@as(layout.Unsigned, 6), try reshaped.shape_value.product());
-    try std.testing.expectError(Error.InvalidTensorShape, src.reshape(&b, layout.Tree.fromComptime(.{5})));
+    try std.testing.expectEqual(
+        @as(layout.Unsigned, 6),
+        try reshaped.shape_value.product(),
+    );
+    try std.testing.expectError(
+        Error.InvalidTensorShape,
+        src.reshape(&b, layout.Tree.fromComptime(.{5})),
+    );
 }

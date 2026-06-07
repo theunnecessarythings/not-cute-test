@@ -21,7 +21,10 @@ pub const CompileCallable = *const fn () void;
 pub const PostCompileHookContext = struct { artifact_path: []const u8 = "", cubin_hash: u64 = 0 };
 pub const Compiler = struct { opt: OptLevel = .O2, arch: GPUArch = .sm90 };
 
-pub fn makeCompilePlan(function_name: []const u8, pipeline: []const u8) runtime_plan.CompilePlan {
+pub fn makeCompilePlan(
+    function_name: []const u8,
+    pipeline: []const u8,
+) runtime_plan.CompilePlan {
     return .{ .function_name = function_name, .pipeline = pipeline };
 }
 pub fn option(key: []const u8, value: []const u8) CompileOption {

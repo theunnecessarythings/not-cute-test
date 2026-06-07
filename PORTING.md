@@ -23,19 +23,12 @@ The integrated library now includes `cuda_driver.zig` and `execution.zig`. These
 
 ## Latest integrated pipeline/API/architecture pass
 
-The library now includes `compile_pipeline.zig`, `pipeline_verify.zig`,
-`semantics.zig`, and `arch_validation.zig`. These add CUTLASS bridge artifact
-planning/extraction commands, sharded parser/pipeline verification, deeper
+The library includes `compile_pipeline.zig`, `semantics.zig`, and
+`arch_catalog.zig`. These add CUTLASS bridge artifact planning, deeper
 shape/stride/coordinate semantics, and stricter architecture operation
-validation for cp.async/TMA/WGMMA/tcgen05-style descriptors. See
-`docs/PIPELINE_API_ARCH_IMPLEMENTATION.md`.
+validation for cp.async/TMA/WGMMA/tcgen05-style descriptors.
 
 
 ## Kernel builders and memory model integrated pass
 
 Added `src/kernel_builders.zig` for full-module Zig-native kernel builders and `src/memory_model.zig` for host/device/managed/external buffer ownership, DLPack-like interop, tensor views, and host↔device transfer planning. Build targets: `kernel-builders`, `memory-model`, and `verify-kernel-builders-parse`.
-
-
-## Upstream example parity
-
-The uploaded source archive itself contained no examples/tests directories. The integrated port therefore maps the packaged/upstream CUTLASS CuTeDSL examples present under `examples/python/CuTeDSL`: notebooks plus the FFI tensor example. The Zig ports emit full MLIR modules and golden files; CUDA graph capture remains dry-run because it depends on external CUDA graph runtime integration.

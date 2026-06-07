@@ -40,7 +40,12 @@ pub const PythonBridgeConfig = struct {
         // Package module names are Python identifiers separated by dots.
         var start: usize = 0;
         while (start < self.package_module.len) {
-            const dot = std.mem.indexOfScalarPos(u8, self.package_module, start, '.') orelse self.package_module.len;
+            const dot = std.mem.indexOfScalarPos(
+                u8,
+                self.package_module,
+                start,
+                '.',
+            ) orelse self.package_module.len;
             if (dot == start) return Error.InvalidPackageModule;
             try mlir.validateSymbol(self.package_module[start..dot]);
             start = dot + 1;
@@ -58,8 +63,10 @@ pub const DiscoveryRecord = struct {
     cuda_version: ?[]const u8 = null,
 
     pub fn validate(self: DiscoveryRecord) Error!void {
-        if (self.python_exe.len == 0 or self.package_module.len == 0) return Error.InvalidDiscoveryJson;
-        if (self.package_file.len == 0 or self.mlir_libs_dir.len == 0) return Error.InvalidDiscoveryJson;
+        if (self.python_exe.len == 0 or self.package_module.len == 0)
+            return Error.InvalidDiscoveryJson;
+        if (self.package_file.len == 0 or self.mlir_libs_dir.len == 0)
+            return Error.InvalidDiscoveryJson;
         try validateCutlassIrSharedLibrary(self.cutlass_ir_so);
     }
 
@@ -130,7 +137,8 @@ pub const BridgePlan = struct {
 
 pub fn validateCutlassIrSharedLibrary(path: []const u8) Error!void {
     if (path.len == 0) return Error.MissingCutlassIrLibrary;
-    if (std.mem.indexOf(u8, path, "_cutlass_ir") == null) return Error.InvalidSharedLibrary;
+    if (std.mem.indexOf(u8, path, "_cutlass_ir") == null)
+        return Error.InvalidSharedLibrary;
     const good_suffix = std.mem.endsWith(u8, path, ".so") or
         std.mem.indexOf(u8, path, ".so.") != null or
         (std.mem.indexOf(u8, path, ".cpython") != null and std.mem.endsWith(u8, path, ".so"));
@@ -146,9 +154,11 @@ pub fn validateDiscoveryJson(text: []const u8) Error!void {
         "\"cutlass_ir_so\"",
     };
     for (required) |needle| {
-        if (std.mem.indexOf(u8, text, needle) == null) return Error.InvalidDiscoveryJson;
+        if (std.mem.indexOf(u8, text, needle) == null)
+            return Error.InvalidDiscoveryJson;
     }
-    if (std.mem.indexOf(u8, text, "_cutlass_ir") == null) return Error.MissingCutlassIrLibrary;
+    if (std.mem.indexOf(u8, text, "_cutlass_ir") == null)
+        return Error.MissingCutlassIrLibrary;
 }
 
 pub fn discoveryInvocation(config: PythonBridgeConfig) Error!mlir_harness.Invocation {
@@ -174,7 +184,11 @@ pub fn metadataInvocation(config: PythonBridgeConfig) Error!mlir_harness.Invocat
     return inv;
 }
 
-pub fn verifyInvocation(config: PythonBridgeConfig, input_mlir: []const u8, pipeline: []const u8) Error!mlir_harness.Invocation {
+pub fn verifyInvocation(
+    config: PythonBridgeConfig,
+    input_mlir: []const u8,
+    pipeline: []const u8,
+) Error!mlir_harness.Invocation {
     try config.validate();
     if (input_mlir.len == 0 or pipeline.len == 0) return Error.InvalidBridgeConfig;
     var inv = mlir_harness.Invocation.init();
@@ -191,9 +205,15 @@ pub fn verifyInvocation(config: PythonBridgeConfig, input_mlir: []const u8, pipe
     return inv;
 }
 
-pub fn lowerInvocation(config: PythonBridgeConfig, input_mlir: []const u8, output_mlir: []const u8, pipeline: []const u8) Error!mlir_harness.Invocation {
+pub fn lowerInvocation(
+    config: PythonBridgeConfig,
+    input_mlir: []const u8,
+    output_mlir: []const u8,
+    pipeline: []const u8,
+) Error!mlir_harness.Invocation {
     try config.validate();
-    if (input_mlir.len == 0 or output_mlir.len == 0 or pipeline.len == 0) return Error.InvalidBridgeConfig;
+    if (input_mlir.len == 0 or output_mlir.len == 0 or pipeline.len == 0)
+        return Error.InvalidBridgeConfig;
     var inv = mlir_harness.Invocation.init();
     try inv.append(config.python_exe);
     try inv.append(config.bridge_script);
@@ -232,7 +252,12 @@ pub fn writeBridgeUsage(out: anytype) Error!void {
     try out.append("zig build verify-cutlass -Dcutlass-python=python3\n");
 }
 
-fn writeJsonField(out: anytype, key: []const u8, value: []const u8, comma: bool) Error!void {
+fn writeJsonField(
+    out: anytype,
+    key: []const u8,
+    value: []const u8,
+    comma: bool,
+) Error!void {
     try out.append("  ");
     try out.appendQuotedString(key);
     try out.append(": ");
@@ -243,12 +268,21 @@ fn writeJsonField(out: anytype, key: []const u8, value: []const u8, comma: bool)
 
 test "cutlass_bridge validates cutlass shared library candidates" {
     try validateCutlassIrSharedLibrary("/pkg/cutlass/_mlir/_mlir_libs/_cutlass_ir.cpython-310-x86_64-linux-gnu.so");
-    try std.testing.expectError(Error.InvalidSharedLibrary, validateCutlassIrSharedLibrary("/tmp/libmlir.so"));
-    try std.testing.expectError(Error.MissingCutlassIrLibrary, validateCutlassIrSharedLibrary(""));
+    try std.testing.expectError(
+        Error.InvalidSharedLibrary,
+        validateCutlassIrSharedLibrary("/tmp/libmlir.so"),
+    );
+    try std.testing.expectError(
+        Error.MissingCutlassIrLibrary,
+        validateCutlassIrSharedLibrary(""),
+    );
 }
 
 test "cutlass_bridge builds discovery and verify invocations" {
-    const cfg: PythonBridgeConfig = .{ .python_exe = "python", .bridge_script = "tools/cutlass_mlir_bridge.py" };
+    const cfg: PythonBridgeConfig = .{
+        .python_exe = "python",
+        .bridge_script = "tools/cutlass_mlir_bridge.py",
+    };
     const discover = try discoveryInvocation(cfg);
     try std.testing.expectEqualStrings("python", discover.args()[0]);
     try std.testing.expectEqualStrings("discover", discover.args()[2]);

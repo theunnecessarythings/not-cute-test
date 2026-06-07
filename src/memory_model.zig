@@ -53,11 +53,16 @@ pub const BufferDescriptor = struct {
     pub fn validate(self: BufferDescriptor) Error!void {
         if (self.bytes == 0) return Error.InvalidBuffer;
         try self.alignment.validateAddress(self.address);
-        if (self.kind == .device and self.device_ordinal == null) return Error.InvalidBuffer;
-        if (self.ownership == .borrowed and self.address == 0) return Error.InvalidOwnership;
+        if (self.kind == .device and self.device_ordinal == null)
+            return Error.InvalidBuffer;
+        if (self.ownership == .borrowed and self.address == 0)
+            return Error.InvalidOwnership;
     }
 
-    pub fn runtimePointer(self: BufferDescriptor, dtype: typing.Numeric) Error!runtime.Pointer {
+    pub fn runtimePointer(
+        self: BufferDescriptor,
+        dtype: typing.Numeric,
+    ) Error!runtime.Pointer {
         try self.validate();
         const memspace: typing.AddressSpace = switch (self.kind) {
             .host => .generic,
@@ -65,7 +70,12 @@ pub const BufferDescriptor = struct {
             .managed => .generic,
             .external => .generic,
         };
-        return runtime.Pointer.init(self.address, dtype, memspace, self.alignment.bytes);
+        return runtime.Pointer.init(
+            self.address,
+            dtype,
+            memspace,
+            self.alignment.bytes,
+        );
     }
 };
 
@@ -75,11 +85,24 @@ pub const HostBuffer = struct {
     ownership: Ownership = .borrowed,
     alignment: AlignmentPolicy = .{},
 
-    pub fn allocate(allocator: std.mem.Allocator, byte_count: usize, alignment: AlignmentPolicy) Error!HostBuffer {
+    pub fn allocate(
+        allocator: std.mem.Allocator,
+        byte_count: usize,
+        alignment: AlignmentPolicy,
+    ) Error!HostBuffer {
         if (byte_count == 0) return Error.InvalidBuffer;
-        const ptr = allocator.rawAlloc(byte_count, std.mem.Alignment.fromByteUnits(alignment.bytes), @returnAddress()) orelse return Error.OutOfMemory;
+        const ptr = allocator.rawAlloc(
+            byte_count,
+            std.mem.Alignment.fromByteUnits(alignment.bytes),
+            @returnAddress(),
+        ) orelse return Error.OutOfMemory;
         const mem = ptr[0..byte_count];
-        return .{ .allocator = allocator, .bytes = mem, .ownership = .owned, .alignment = alignment };
+        return .{
+            .allocator = allocator,
+            .bytes = mem,
+            .ownership = .owned,
+            .alignment = alignment,
+        };
     }
 
     pub fn borrow(bytes: []u8, alignment: AlignmentPolicy) Error!HostBuffer {
@@ -99,7 +122,13 @@ pub const HostBuffer = struct {
 
     pub fn descriptor(self: HostBuffer) Error!BufferDescriptor {
         if (self.bytes.len == 0) return Error.InvalidBuffer;
-        return .{ .kind = .host, .ownership = self.ownership, .address = @intFromPtr(self.bytes.ptr), .bytes = self.bytes.len, .alignment = self.alignment };
+        return .{
+            .kind = .host,
+            .ownership = self.ownership,
+            .address = @intFromPtr(self.bytes.ptr),
+            .bytes = self.bytes.len,
+            .alignment = self.alignment,
+        };
     }
 };
 
@@ -109,26 +138,56 @@ pub const DeviceBuffer = struct {
     device_ordinal: i32 = 0,
     alignment: AlignmentPolicy = .{},
 
-    pub fn external(ptr: cuda.CUdeviceptr, byte_count: usize, device_ordinal: i32, alignment: AlignmentPolicy) Error!DeviceBuffer {
+    pub fn external(
+        ptr: cuda.CUdeviceptr,
+        byte_count: usize,
+        device_ordinal: i32,
+        alignment: AlignmentPolicy,
+    ) Error!DeviceBuffer {
         if (ptr == 0 or byte_count == 0) return Error.InvalidBuffer;
-        return .{ .handle = .{ .ptr = ptr, .bytes = byte_count }, .ownership = .external, .device_ordinal = device_ordinal, .alignment = alignment };
+        return .{
+            .handle = .{ .ptr = ptr, .bytes = byte_count },
+            .ownership = .external,
+            .device_ordinal = device_ordinal,
+            .alignment = alignment,
+        };
     }
 
-    pub fn allocate(driver: cuda.DriverSymbols, byte_count: usize, device_ordinal: i32, alignment: AlignmentPolicy) Error!DeviceBuffer {
+    pub fn allocate(
+        driver: cuda.DriverSymbols,
+        byte_count: usize,
+        device_ordinal: i32,
+        alignment: AlignmentPolicy,
+    ) Error!DeviceBuffer {
         if (byte_count == 0) return Error.InvalidBuffer;
         const mem = try cuda.allocateDevice(driver, byte_count);
-        return .{ .handle = mem, .ownership = .owned, .device_ordinal = device_ordinal, .alignment = alignment };
+        return .{
+            .handle = mem,
+            .ownership = .owned,
+            .device_ordinal = device_ordinal,
+            .alignment = alignment,
+        };
     }
 
     pub fn deinit(self: *DeviceBuffer, driver: cuda.DriverSymbols) Error!void {
-        if (self.ownership == .owned and self.handle.ptr != 0) try cuda.freeDevice(driver, self.handle);
+        if (self.ownership == .owned and self.handle.ptr != 0) try cuda.freeDevice(
+            driver,
+            self.handle,
+        );
         self.handle = .{};
         self.ownership = .borrowed;
     }
 
     pub fn descriptor(self: DeviceBuffer) Error!BufferDescriptor {
         if (self.handle.ptr == 0 or self.handle.bytes == 0) return Error.InvalidBuffer;
-        return .{ .kind = .device, .ownership = self.ownership, .address = @intCast(self.handle.ptr), .bytes = self.handle.bytes, .alignment = self.alignment, .device_ordinal = self.device_ordinal };
+        return .{
+            .kind = .device,
+            .ownership = self.ownership,
+            .address = @intCast(self.handle.ptr),
+            .bytes = self.handle.bytes,
+            .alignment = self.alignment,
+            .device_ordinal = self.device_ordinal,
+        };
     }
 };
 
@@ -138,14 +197,24 @@ pub const ManagedPointer = struct {
     ownership: Ownership = .managed,
     alignment: AlignmentPolicy = .{},
 
-    pub fn init(address: usize, bytes: usize, alignment: AlignmentPolicy) Error!ManagedPointer {
+    pub fn init(
+        address: usize,
+        bytes: usize,
+        alignment: AlignmentPolicy,
+    ) Error!ManagedPointer {
         if (address == 0 or bytes == 0) return Error.InvalidBuffer;
         try alignment.validateAddress(address);
         return .{ .address = address, .bytes = bytes, .alignment = alignment };
     }
 
     pub fn descriptor(self: ManagedPointer) Error!BufferDescriptor {
-        return .{ .kind = .managed, .ownership = self.ownership, .address = self.address, .bytes = self.bytes, .alignment = self.alignment };
+        return .{
+            .kind = .managed,
+            .ownership = self.ownership,
+            .address = self.address,
+            .bytes = self.bytes,
+            .alignment = self.alignment,
+        };
     }
 };
 
@@ -156,15 +225,34 @@ pub const ExternalPointer = struct {
     device_ordinal: ?i32 = null,
     alignment: AlignmentPolicy = .{},
 
-    pub fn init(address: usize, bytes: usize, kind: MemoryKind, alignment: AlignmentPolicy, device_ordinal: ?i32) Error!ExternalPointer {
+    pub fn init(
+        address: usize,
+        bytes: usize,
+        kind: MemoryKind,
+        alignment: AlignmentPolicy,
+        device_ordinal: ?i32,
+    ) Error!ExternalPointer {
         if (address == 0 or bytes == 0) return Error.InvalidBuffer;
         try alignment.validateAddress(address);
         if (kind == .device and device_ordinal == null) return Error.InvalidBuffer;
-        return .{ .address = address, .bytes = bytes, .kind = kind, .alignment = alignment, .device_ordinal = device_ordinal };
+        return .{
+            .address = address,
+            .bytes = bytes,
+            .kind = kind,
+            .alignment = alignment,
+            .device_ordinal = device_ordinal,
+        };
     }
 
     pub fn descriptor(self: ExternalPointer) Error!BufferDescriptor {
-        return .{ .kind = self.kind, .ownership = .external, .address = self.address, .bytes = self.bytes, .alignment = self.alignment, .device_ordinal = self.device_ordinal };
+        return .{
+            .kind = self.kind,
+            .ownership = .external,
+            .address = self.address,
+            .bytes = self.bytes,
+            .alignment = self.alignment,
+            .device_ordinal = self.device_ordinal,
+        };
     }
 };
 
@@ -201,7 +289,8 @@ pub const DLPackDescriptor = struct {
     byte_offset: usize = 0,
 
     pub fn validate(self: DLPackDescriptor) Error!void {
-        if (self.data == 0 or self.ndim == 0 or self.ndim > self.shape.len) return Error.InvalidInteropDescriptor;
+        if (self.data == 0 or self.ndim == 0 or self.ndim > self.shape.len)
+            return Error.InvalidInteropDescriptor;
         for (0..self.ndim) |i| if (self.shape[i] <= 0) return Error.InvalidInteropDescriptor;
     }
 };
@@ -213,16 +302,32 @@ pub const TensorView = struct {
     stride: layout.Tree,
     byte_offset: usize = 0,
 
-    pub fn init(buffer: BufferDescriptor, dtype: typing.Numeric, shape: layout.Tree, stride: layout.Tree, byte_offset: usize) Error!TensorView {
+    pub fn init(
+        buffer: BufferDescriptor,
+        dtype: typing.Numeric,
+        shape: layout.Tree,
+        stride: layout.Tree,
+        byte_offset: usize,
+    ) Error!TensorView {
         try buffer.validate();
         if (!shape.sameProfile(&stride)) return Error.InvalidBuffer;
         const elems = try shape.product();
         const need = @as(usize, @intCast(elems)) * dtype.bytes() + byte_offset;
         if (need > buffer.bytes) return Error.OutOfBounds;
-        return .{ .buffer = buffer, .dtype = dtype, .shape = shape, .stride = stride, .byte_offset = byte_offset };
+        return .{
+            .buffer = buffer,
+            .dtype = dtype,
+            .shape = shape,
+            .stride = stride,
+            .byte_offset = byte_offset,
+        };
     }
 
-    pub fn compact(buffer: BufferDescriptor, dtype: typing.Numeric, shape: layout.Tree) Error!TensorView {
+    pub fn compact(
+        buffer: BufferDescriptor,
+        dtype: typing.Numeric,
+        shape: layout.Tree,
+    ) Error!TensorView {
         const compact_layout = try layout.Layout.makeCompact(shape);
         return init(buffer, dtype, compact_layout.shape, compact_layout.stride, 0);
     }
@@ -241,7 +346,8 @@ pub const TensorView = struct {
         try self.buffer.validate();
         const shape_flat = try self.shape.flattenLeaves();
         const stride_flat = try self.stride.flattenLeaves();
-        if (shape_flat.len > 8 or stride_flat.len > 8) return Error.InvalidInteropDescriptor;
+        if (shape_flat.len > 8 or stride_flat.len > 8)
+            return Error.InvalidInteropDescriptor;
         var out: DLPackDescriptor = .{
             .data = self.buffer.address,
             .device_type = switch (self.buffer.kind) {
@@ -276,14 +382,20 @@ pub const TransferPlan = struct {
     dst_address: usize,
 
     pub fn validate(self: TransferPlan) Error!void {
-        if (self.bytes == 0 or self.src_address == 0 or self.dst_address == 0) return Error.InvalidTransfer;
+        if (self.bytes == 0 or self.src_address == 0 or self.dst_address == 0)
+            return Error.InvalidTransfer;
     }
 };
 
-pub fn transferPlan(dst: BufferDescriptor, src: BufferDescriptor, bytes: usize) Error!TransferPlan {
+pub fn transferPlan(
+    dst: BufferDescriptor,
+    src: BufferDescriptor,
+    bytes: usize,
+) Error!TransferPlan {
     try dst.validate();
     try src.validate();
-    if (bytes == 0 or bytes > dst.bytes or bytes > src.bytes) return Error.InvalidTransfer;
+    if (bytes == 0 or bytes > dst.bytes or bytes > src.bytes)
+        return Error.InvalidTransfer;
     const kind: TransferKind = switch (dst.kind) {
         .host => switch (src.kind) {
             .device => .device_to_host,
@@ -295,18 +407,36 @@ pub fn transferPlan(dst: BufferDescriptor, src: BufferDescriptor, bytes: usize) 
         },
         .managed, .external => .host_to_host,
     };
-    return .{ .kind = kind, .bytes = bytes, .src_address = src.address, .dst_address = dst.address };
+    return .{
+        .kind = kind,
+        .bytes = bytes,
+        .src_address = src.address,
+        .dst_address = dst.address,
+    };
 }
 
-pub fn copyHostToDevice(driver: cuda.DriverSymbols, dst: DeviceBuffer, src: HostBuffer) Error!void {
+pub fn copyHostToDevice(
+    driver: cuda.DriverSymbols,
+    dst: DeviceBuffer,
+    src: HostBuffer,
+) Error!void {
     try cuda.memcpyHtoD(driver, dst.handle, src.bytes);
 }
 
-pub fn copyDeviceToHost(driver: cuda.DriverSymbols, dst: HostBuffer, src: DeviceBuffer) Error!void {
+pub fn copyDeviceToHost(
+    driver: cuda.DriverSymbols,
+    dst: HostBuffer,
+    src: DeviceBuffer,
+) Error!void {
     try cuda.memcpyDtoH(driver, dst.bytes, src.handle);
 }
 
-pub fn copyDeviceToDevice(driver: cuda.DriverSymbols, dst: DeviceBuffer, src: DeviceBuffer, bytes: usize) Error!void {
+pub fn copyDeviceToDevice(
+    driver: cuda.DriverSymbols,
+    dst: DeviceBuffer,
+    src: DeviceBuffer,
+    bytes: usize,
+) Error!void {
     try cuda.memcpyDtoD(driver, dst.handle, src.handle, bytes);
 }
 
@@ -360,5 +490,8 @@ test "memory_model: tensor view rejects out of bounds" {
     var storage: [8]u8 align(16) = undefined;
     const host = try HostBuffer.borrow(storage[0..], alignment);
     const shape = layout.Tree.fromComptime(.{4});
-    try std.testing.expectError(Error.OutOfBounds, TensorView.compact(try host.descriptor(), typing.Float32, shape));
+    try std.testing.expectError(
+        Error.OutOfBounds,
+        TensorView.compact(try host.descriptor(), typing.Float32, shape),
+    );
 }

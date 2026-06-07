@@ -154,7 +154,11 @@ pub const OpDescriptor = struct {
         };
     }
 
-    pub fn copy(name: []const u8, arch: []const u8, value_type: typing.Numeric) OpDescriptor {
+    pub fn copy(
+        name: []const u8,
+        arch: []const u8,
+        value_type: typing.Numeric,
+    ) OpDescriptor {
         return .{ .name = name, .kind = .copy, .arch = arch, .value_type = value_type };
     }
 
@@ -211,7 +215,12 @@ pub const Trait = struct {
     state: RuntimeState = .{},
     type_name: []const u8 = "!cute.atom_trait",
 
-    pub fn withMmaLayouts(self: Trait, a: layout.Layout, b: layout.Layout, c: layout.Layout) Trait {
+    pub fn withMmaLayouts(
+        self: Trait,
+        a: layout.Layout,
+        b: layout.Layout,
+        c: layout.Layout,
+    ) Trait {
         var out = self;
         out.tv_layout_a = a;
         out.tv_layout_b = b;
@@ -256,7 +265,11 @@ pub const Trait = struct {
         return Error.MissingRuntimeField;
     }
 
-    pub fn withRuntimeField(self: Trait, field: RuntimeField, value: RuntimeValue) Error!Trait {
+    pub fn withRuntimeField(
+        self: Trait,
+        field: RuntimeField,
+        value: RuntimeValue,
+    ) Error!Trait {
         var out = self;
         try out.set(field, value);
         return out;
@@ -297,7 +310,11 @@ pub const Atom = struct {
         return self.trait.get(field);
     }
 
-    pub fn withRuntimeField(self: Atom, field: RuntimeField, value: RuntimeValue) Error!Atom {
+    pub fn withRuntimeField(
+        self: Atom,
+        field: RuntimeField,
+        value: RuntimeValue,
+    ) Error!Atom {
         var out = self;
         try out.set(field, value);
         return out;
@@ -324,7 +341,9 @@ pub const MmaAtom = struct {
     pub fn init(desc: OpDescriptor, tr: Trait) Error!MmaAtom {
         if (desc.kind != .mma) return Error.WrongAtomKind;
         try desc.validate();
-        if (tr.shape_mnk == null or tr.tv_layout_a == null or tr.tv_layout_b == null or tr.tv_layout_c == null) return Error.MissingTraitLayout;
+        if (tr.shape_mnk == null or tr.tv_layout_a == null or tr.tv_layout_b == null or
+            tr.tv_layout_c == null)
+            return Error.MissingTraitLayout;
         if (tr.shape_mnk.?.rank() != 3) return Error.InvalidAtomLayout;
         return .{ .atom = .{ .op = desc, .trait = tr } };
     }
@@ -365,10 +384,24 @@ pub const MmaAtom = struct {
         return self.atom.trait.tv_layout_c.?;
     }
 
-    pub fn makeFragmentMlir(self: MmaAtom, comptime operand: Operand, builder: anytype, input: mlir.Operand, input_type: mlir.Type, result_type: mlir.Type) Error!mlir.Value {
-        if (operand != .A and operand != .B and operand != .C) return Error.InvalidOperand;
+    pub fn makeFragmentMlir(
+        self: MmaAtom,
+        comptime operand: Operand,
+        builder: anytype,
+        input: mlir.Operand,
+        input_type: mlir.Type,
+        result_type: mlir.Type,
+    ) Error!mlir.Value {
+        if (operand != .A and operand != .B and operand != .C)
+            return Error.InvalidOperand;
         _ = self;
-        return try builder.genericOp("cute.mma.make_fragment", &.{input}, &.{mlir.Attribute.str("operand", operand.irName())}, &.{input_type}, &.{result_type});
+        return try builder.genericOp(
+            "cute.mma.make_fragment",
+            &.{input},
+            &.{mlir.Attribute.str("operand", operand.irName())},
+            &.{input_type},
+            &.{result_type},
+        );
     }
 };
 
@@ -378,7 +411,8 @@ pub const CopyAtom = struct {
     pub fn init(desc: OpDescriptor, tr: Trait) Error!CopyAtom {
         if (desc.kind != .copy) return Error.WrongAtomKind;
         try desc.validate();
-        if (tr.layout_src_tv == null or tr.layout_dst_tv == null) return Error.MissingTraitLayout;
+        if (tr.layout_src_tv == null or tr.layout_dst_tv == null)
+            return Error.MissingTraitLayout;
         return .{ .atom = .{ .op = desc, .trait = tr } };
     }
 
@@ -424,18 +458,34 @@ pub const TiledMma = struct {
     tv_layout_b_tiled: layout.Layout,
     tv_layout_c_tiled: layout.Layout,
 
-    pub fn init(base: MmaAtom, atom_layout_mnk: layout.Layout, permutation_mnk: ?layout.Tree) Error!TiledMma {
+    pub fn init(
+        base: MmaAtom,
+        atom_layout_mnk: layout.Layout,
+        permutation_mnk: ?layout.Tree,
+    ) Error!TiledMma {
         if (atom_layout_mnk.rank() != 3) return Error.InvalidAtomLayout;
         const atom_shape = base.shapeMnk();
         const atom_layout_shape = atom_layout_mnk.shape;
-        const vmnk_shape = try prependTree(&atom_layout_shape, layout.Tree.fromComptime(1));
+        const vmnk_shape = try prependTree(
+            &atom_layout_shape,
+            layout.Tree.fromComptime(1),
+        );
         const thr_layout_vmnk = try layout.Layout.makeCompact(vmnk_shape);
 
         // Textual zero-dependency model: tiled TV layouts preserve the atom TV layout and extend the
         // value mode by the static product of the atom tiler for the participating MNK modes.
-        const a_tiler = try layout.Tree.initTuple(&.{ try modeTile(&atom_shape, &atom_layout_shape, 0), try modeTile(&atom_shape, &atom_layout_shape, 2) });
-        const b_tiler = try layout.Tree.initTuple(&.{ try modeTile(&atom_shape, &atom_layout_shape, 1), try modeTile(&atom_shape, &atom_layout_shape, 2) });
-        const c_tiler = try layout.Tree.initTuple(&.{ try modeTile(&atom_shape, &atom_layout_shape, 0), try modeTile(&atom_shape, &atom_layout_shape, 1) });
+        const a_tiler = try layout.Tree.initTuple(&.{
+            try modeTile(&atom_shape, &atom_layout_shape, 0),
+            try modeTile(&atom_shape, &atom_layout_shape, 2),
+        });
+        const b_tiler = try layout.Tree.initTuple(&.{
+            try modeTile(&atom_shape, &atom_layout_shape, 1),
+            try modeTile(&atom_shape, &atom_layout_shape, 2),
+        });
+        const c_tiler = try layout.Tree.initTuple(&.{
+            try modeTile(&atom_shape, &atom_layout_shape, 0),
+            try modeTile(&atom_shape, &atom_layout_shape, 1),
+        });
 
         return .{
             .base = base,
@@ -458,16 +508,25 @@ pub const TiledMma = struct {
             const m = try perm.topMode(mode_idx);
             if (!(m.rank() == 0 and (try m.product()) == 1)) return m.product();
         }
-        return try (try modeTile(&self.base.shapeMnk(), &self.atom_layout_mnk.shape, mode_idx)).product();
+        return try (try modeTile(
+            &self.base.shapeMnk(),
+            &self.atom_layout_mnk.shape,
+            mode_idx,
+        )).product();
     }
 
     pub fn getSlice(self: TiledMma, thread_index: layout.Scalar) Error!ThrMma {
         const n = try self.size();
-        if (thread_index < 0 or @as(layout.Unsigned, @intCast(thread_index)) >= n) return Error.InvalidThreadIndex;
+        if (thread_index < 0 or @as(layout.Unsigned, @intCast(thread_index)) >= n)
+            return Error.InvalidThreadIndex;
         return .{ .base = self, .thr_idx = thread_index };
     }
 
-    pub fn partitionShape(self: TiledMma, operand: Operand, shape: layout.Tree) Error!layout.Tree {
+    pub fn partitionShape(
+        self: TiledMma,
+        operand: Operand,
+        shape: layout.Tree,
+    ) Error!layout.Tree {
         const m = try self.getTileSize(0);
         const n = try self.getTileSize(1);
         const k = try self.getTileSize(2);
@@ -489,15 +548,35 @@ pub const TiledMma = struct {
         return self.partitionShape(.C, shape_mn);
     }
 
-    pub fn thrfrgLayout(self: TiledMma, operand: Operand, input: layout.Layout) Error!layout.Layout {
+    pub fn thrfrgLayout(
+        self: TiledMma,
+        operand: Operand,
+        input: layout.Layout,
+    ) Error!layout.Layout {
         const part_shape = try self.partitionShape(operand, input.shape);
         return layout.Layout.makeCompact(part_shape);
     }
 
-    pub fn emitPartition(self: TiledMma, comptime operand: Operand, builder: anytype, tensor: mlir.Operand, thr_idx: mlir.Operand, tensor_type: mlir.Type, idx_type: mlir.Type, result_type: mlir.Type) Error!mlir.Value {
+    pub fn emitPartition(
+        self: TiledMma,
+        comptime operand: Operand,
+        builder: anytype,
+        tensor: mlir.Operand,
+        thr_idx: mlir.Operand,
+        tensor_type: mlir.Type,
+        idx_type: mlir.Type,
+        result_type: mlir.Type,
+    ) Error!mlir.Value {
         _ = self;
-        if (operand != .A and operand != .B and operand != .C) return Error.InvalidOperand;
-        return try builder.genericOp("cute.tiled.mma.partition", &.{ tensor, thr_idx }, &.{mlir.Attribute.str("operand", operand.irName())}, &.{ tensor_type, idx_type }, &.{result_type});
+        if (operand != .A and operand != .B and operand != .C)
+            return Error.InvalidOperand;
+        return try builder.genericOp(
+            "cute.tiled.mma.partition",
+            &.{ tensor, thr_idx },
+            &.{mlir.Attribute.str("operand", operand.irName())},
+            &.{ tensor_type, idx_type },
+            &.{result_type},
+        );
     }
 };
 
@@ -523,7 +602,11 @@ pub const TiledCopy = struct {
     layout_src_tv_tiled: layout.Layout,
     layout_dst_tv_tiled: layout.Layout,
 
-    pub fn init(base: CopyAtom, layout_tv_tiled: layout.Layout, tiler_mn: layout.Tree) Error!TiledCopy {
+    pub fn init(
+        base: CopyAtom,
+        layout_tv_tiled: layout.Layout,
+        tiler_mn: layout.Tree,
+    ) Error!TiledCopy {
         if (layout_tv_tiled.rank() != 2) return Error.InvalidTiler;
         if (tiler_mn.rank() == 0 or tiler_mn.rank() > 2) return Error.InvalidTiler;
         try tiler_mn.assertPositive();
@@ -542,7 +625,8 @@ pub const TiledCopy = struct {
 
     pub fn getSlice(self: TiledCopy, thread_index: layout.Scalar) Error!ThrCopy {
         const n = try self.size();
-        if (thread_index < 0 or @as(layout.Unsigned, @intCast(thread_index)) >= n) return Error.InvalidThreadIndex;
+        if (thread_index < 0 or @as(layout.Unsigned, @intCast(thread_index)) >= n)
+            return Error.InvalidThreadIndex;
         return .{ .base = self, .thr_idx = thread_index };
     }
 
@@ -551,9 +635,21 @@ pub const TiledCopy = struct {
         return input;
     }
 
-    pub fn emitRetile(self: TiledCopy, builder: anytype, input: mlir.Operand, input_type: mlir.Type, result_type: mlir.Type) Error!mlir.Value {
+    pub fn emitRetile(
+        self: TiledCopy,
+        builder: anytype,
+        input: mlir.Operand,
+        input_type: mlir.Type,
+        result_type: mlir.Type,
+    ) Error!mlir.Value {
         _ = self;
-        return try builder.genericOp("cute.tiled.copy.retile", &.{input}, &.{}, &.{input_type}, &.{result_type});
+        return try builder.genericOp(
+            "cute.tiled.copy.retile",
+            &.{input},
+            &.{},
+            &.{input_type},
+            &.{result_type},
+        );
     }
 };
 
@@ -571,10 +667,28 @@ pub const ThrCopy = struct {
         return dst;
     }
 
-    pub fn emitPartition(self: ThrCopy, comptime operand: Operand, builder: anytype, tensor: mlir.Operand, thr_idx: mlir.Operand, tensor_type: mlir.Type, idx_type: mlir.Type, result_type: mlir.Type) Error!mlir.Value {
+    pub fn emitPartition(
+        self: ThrCopy,
+        comptime operand: Operand,
+        builder: anytype,
+        tensor: mlir.Operand,
+        thr_idx: mlir.Operand,
+        tensor_type: mlir.Type,
+        idx_type: mlir.Type,
+        result_type: mlir.Type,
+    ) Error!mlir.Value {
         _ = self;
         if (operand != .S and operand != .D) return Error.InvalidOperand;
-        return try builder.genericOp(if (operand == .S) "cute.tiled.copy.partition_S" else "cute.tiled.copy.partition_D", &.{ tensor, thr_idx }, &.{}, &.{ tensor_type, idx_type }, &.{result_type});
+        return try builder.genericOp(
+            if (operand == .S)
+                "cute.tiled.copy.partition_S"
+            else
+                "cute.tiled.copy.partition_D",
+            &.{ tensor, thr_idx },
+            &.{},
+            &.{ tensor_type, idx_type },
+            &.{result_type},
+        );
     }
 };
 
@@ -593,31 +707,58 @@ pub fn makeCopyAtom(op: OpDescriptor, trait: Trait) Error!CopyAtom {
     return CopyAtom.init(op, trait);
 }
 
-pub fn makeTiledMma(atom: MmaAtom, atom_layout_mnk: layout.Layout, permutation_mnk: ?layout.Tree) Error!TiledMma {
+pub fn makeTiledMma(
+    atom: MmaAtom,
+    atom_layout_mnk: layout.Layout,
+    permutation_mnk: ?layout.Tree,
+) Error!TiledMma {
     return TiledMma.init(atom, atom_layout_mnk, permutation_mnk);
 }
 
-pub fn makeTiledCopy(atom: CopyAtom, layout_tv_tiled: layout.Layout, tiler_mn: layout.Tree) Error!TiledCopy {
+pub fn makeTiledCopy(
+    atom: CopyAtom,
+    layout_tv_tiled: layout.Layout,
+    tiler_mn: layout.Tree,
+) Error!TiledCopy {
     return TiledCopy.init(atom, layout_tv_tiled, tiler_mn);
 }
 
-pub fn makeTiledCopyTv(atom: CopyAtom, thr_layout: layout.Layout, val_layout: layout.Layout) Error!TiledCopy {
-    const tv_shape = try layout.Tree.initTuple(&.{ thr_layout.shape, val_layout.shape });
+pub fn makeTiledCopyTv(
+    atom: CopyAtom,
+    thr_layout: layout.Layout,
+    val_layout: layout.Layout,
+) Error!TiledCopy {
+    const tv_shape = try layout.Tree.initTuple(&.{
+        thr_layout.shape,
+        val_layout.shape,
+    });
     const layout_tv = try layout.Layout.makeCompact(tv_shape);
     const tiler = try productEachTuple(&.{ thr_layout.shape, val_layout.shape });
     return makeTiledCopy(atom, layout_tv, tiler);
 }
 
 pub fn makeTiledCopyA(atom: CopyAtom, tiled_mma: TiledMma) Error!TiledCopy {
-    return makeTiledCopy(atom, tiled_mma.tv_layout_a_tiled, try makeTile2(try tiled_mma.getTileSize(0), try tiled_mma.getTileSize(2)));
+    return makeTiledCopy(
+        atom,
+        tiled_mma.tv_layout_a_tiled,
+        try makeTile2(try tiled_mma.getTileSize(0), try tiled_mma.getTileSize(2)),
+    );
 }
 
 pub fn makeTiledCopyB(atom: CopyAtom, tiled_mma: TiledMma) Error!TiledCopy {
-    return makeTiledCopy(atom, tiled_mma.tv_layout_b_tiled, try makeTile2(try tiled_mma.getTileSize(1), try tiled_mma.getTileSize(2)));
+    return makeTiledCopy(
+        atom,
+        tiled_mma.tv_layout_b_tiled,
+        try makeTile2(try tiled_mma.getTileSize(1), try tiled_mma.getTileSize(2)),
+    );
 }
 
 pub fn makeTiledCopyC(atom: CopyAtom, tiled_mma: TiledMma) Error!TiledCopy {
-    return makeTiledCopy(atom, tiled_mma.tv_layout_c_tiled, try makeTile2(try tiled_mma.getTileSize(0), try tiled_mma.getTileSize(1)));
+    return makeTiledCopy(
+        atom,
+        tiled_mma.tv_layout_c_tiled,
+        try makeTile2(try tiled_mma.getTileSize(0), try tiled_mma.getTileSize(1)),
+    );
 }
 
 pub fn makeTiledCopyS(atom: CopyAtom, tiled_copy: TiledCopy) Error!TiledCopy {
@@ -628,10 +769,17 @@ pub fn makeTiledCopyD(atom: CopyAtom, tiled_copy: TiledCopy) Error!TiledCopy {
     return makeTiledCopy(atom, tiled_copy.layout_dst_tv_tiled, tiled_copy.tiler_mn);
 }
 
-pub fn copyAtomCall(builder: anytype, atom: CopyAtom, src: []const TensorOperand, dst: []const TensorOperand, pred: ?TensorOperand) Error!void {
+pub fn copyAtomCall(
+    builder: anytype,
+    atom: CopyAtom,
+    src: []const TensorOperand,
+    dst: []const TensorOperand,
+    pred: ?TensorOperand,
+) Error!void {
     _ = atom;
     if (src.len == 0 or dst.len == 0) return Error.InvalidOperandCount;
-    if (dst.len == 1 and src[0].element.width != dst[0].element.width) return Error.TypeWidthMismatch;
+    if (dst.len == 1 and src[0].element.width != dst[0].element.width)
+        return Error.TypeWidthMismatch;
     if (src[0].v_rank > 2 or dst[0].v_rank > 2) return Error.UnsupportedRank;
     var operands: [17]mlir.Operand = undefined;
     var types: [17]mlir.Type = undefined;
@@ -651,10 +799,22 @@ pub fn copyAtomCall(builder: anytype, atom: CopyAtom, src: []const TensorOperand
         types[count] = p.ty;
         count += 1;
     }
-    try builder.operationNoResult(.{ .name = "cute.copy_atom_call", .operands = operands[0..count], .operand_types = types[0..count], .result_types = &.{} });
+    try builder.operationNoResult(.{
+        .name = "cute.copy_atom_call",
+        .operands = operands[0..count],
+        .operand_types = types[0..count],
+        .result_types = &.{},
+    });
 }
 
-pub fn mmaAtomCall(builder: anytype, atom: MmaAtom, d: TensorOperand, a: []const TensorOperand, b: []const TensorOperand, c: TensorOperand) Error!void {
+pub fn mmaAtomCall(
+    builder: anytype,
+    atom: MmaAtom,
+    d: TensorOperand,
+    a: []const TensorOperand,
+    b: []const TensorOperand,
+    c: TensorOperand,
+) Error!void {
     _ = atom;
     if (a.len == 0 or b.len == 0) return Error.InvalidOperandCount;
     var operands: [33]mlir.Operand = undefined;
@@ -676,7 +836,12 @@ pub fn mmaAtomCall(builder: anytype, atom: MmaAtom, d: TensorOperand, a: []const
     operands[count] = c.value;
     types[count] = c.ty;
     count += 1;
-    try builder.operationNoResult(.{ .name = "cute.mma_atom_call", .operands = operands[0..count], .operand_types = types[0..count], .result_types = &.{} });
+    try builder.operationNoResult(.{
+        .name = "cute.mma_atom_call",
+        .operands = operands[0..count],
+        .operand_types = types[0..count],
+        .result_types = &.{},
+    });
 }
 
 fn makeTile2(a: layout.Unsigned, b: layout.Unsigned) Error!layout.Tree {
@@ -694,7 +859,11 @@ fn prependTree(tree: *const layout.Tree, elem: layout.Tree) Error!layout.Tree {
     return layout.Tree.initTuple(parts[0 .. r + 1]);
 }
 
-fn modeTile(atom_shape: *const layout.Tree, atom_layout_shape: *const layout.Tree, mode_idx: usize) Error!layout.Tree {
+fn modeTile(
+    atom_shape: *const layout.Tree,
+    atom_layout_shape: *const layout.Tree,
+    mode_idx: usize,
+) Error!layout.Tree {
     const a = try atom_shape.topMode(mode_idx);
     const b = try atom_layout_shape.topMode(mode_idx);
     const prod = (try a.product()) * (try b.product());
@@ -704,7 +873,8 @@ fn modeTile(atom_shape: *const layout.Tree, atom_layout_shape: *const layout.Tre
 fn retileTv(tv: layout.Layout, tiler: layout.Tree) Error!layout.Layout {
     const threads = try tv.shape.topMode(0);
     const values = try tv.shape.topMode(1);
-    const new_values = layout.Tree.initLeaf(@intCast((try values.product()) * (try tiler.product()))) catch unreachable;
+    const new_values = layout.Tree.initLeaf(@intCast((try values.product()) *
+        (try tiler.product()))) catch unreachable;
     const shape = try layout.Tree.initTuple(&.{ threads, new_values });
     return layout.Layout.makeCompact(shape);
 }
@@ -713,13 +883,23 @@ fn divideCeil(a: layout.Unsigned, b: layout.Unsigned) layout.Unsigned {
     return (a + b - 1) / b;
 }
 
-fn divideShape2(shape: layout.Tree, d0: layout.Unsigned, d1: layout.Unsigned) Error!layout.Tree {
+fn divideShape2(
+    shape: layout.Tree,
+    d0: layout.Unsigned,
+    d1: layout.Unsigned,
+) Error!layout.Tree {
     if (shape.rank() != 2) return Error.InvalidAtomLayout;
     const s0 = try shape.topMode(0);
     const s1 = try shape.topMode(1);
     return layout.Tree.initTuple(&.{
-        try layout.Tree.initTuple(&.{ layout.Tree.initLeaf(@intCast(d0)) catch unreachable, layout.Tree.initLeaf(@intCast(divideCeil(try s0.product(), d0))) catch unreachable }),
-        try layout.Tree.initTuple(&.{ layout.Tree.initLeaf(@intCast(d1)) catch unreachable, layout.Tree.initLeaf(@intCast(divideCeil(try s1.product(), d1))) catch unreachable }),
+        try layout.Tree.initTuple(&.{
+            layout.Tree.initLeaf(@intCast(d0)) catch unreachable,
+            layout.Tree.initLeaf(@intCast(divideCeil(try s0.product(), d0))) catch unreachable,
+        }),
+        try layout.Tree.initTuple(&.{
+            layout.Tree.initLeaf(@intCast(d1)) catch unreachable,
+            layout.Tree.initLeaf(@intCast(divideCeil(try s1.product(), d1))) catch unreachable,
+        }),
     });
 }
 
@@ -739,31 +919,61 @@ test "atom: mma and copy descriptors validate trait completeness and runtime fie
         .admissible_fields = &.{ .accumulate, .negate_a },
     };
     trait_value = trait_value.withMmaLayouts(tv, tv, tv);
-    const mma_atom = try makeMmaAtom(OpDescriptor.mmaTyped("mma.sync.placeholder", "generic", "test", layout.Tree.fromComptime(.{ 16, 8, 8 }), typing.Float16, typing.Float16, typing.Float32, &.{ .accumulate, .negate_a }), trait_value);
-    try std.testing.expectEqual(@as(layout.Scalar, 16), (try mma_atom.shapeMnk().flattenLeaves()).at(0));
+    const mma_atom = try makeMmaAtom(
+        OpDescriptor.mmaTyped("mma.sync.placeholder", "generic", "test", layout.Tree.fromComptime(.{
+            16,
+            8,
+            8,
+        }), typing.Float16, typing.Float16, typing.Float32, &.{
+            .accumulate,
+            .negate_a,
+        }),
+        trait_value,
+    );
+    try std.testing.expectEqual(
+        @as(layout.Scalar, 16),
+        (try mma_atom.shapeMnk().flattenLeaves()).at(0),
+    );
 
     var mutable = mma_atom;
     try mutable.set(.accumulate, .{ .bool = true });
     try std.testing.expect((try mutable.get(.accumulate)).eql(.{ .bool = true }));
-    try std.testing.expectError(Error.UnsupportedField, mutable.set(.sfa, .{ .u64 = 1 }));
+    try std.testing.expectError(
+        Error.UnsupportedField,
+        mutable.set(.sfa, .{ .u64 = 1 }),
+    );
 
     var out: mlir.TextBuffer(256) = .{};
     try mma_atom.atom.writeMlirType(&out);
-    try std.testing.expectEqualStrings("!cute.atom<mma, generic, test, mma.sync.placeholder, trait=generic_mma_trait>", out.slice());
+    try std.testing.expectEqualStrings(
+        "!cute.atom<mma, generic, test, mma.sync.placeholder, trait=generic_mma_trait>",
+        out.slice(),
+    );
 
     var copy_trait: Trait = .{ .name = "generic_copy_trait", .thr_id = thr };
     copy_trait = copy_trait.withCopyLayouts(tv, tv);
-    const copy_atom = try makeCopyAtom(OpDescriptor.copy("copy.placeholder", "generic", typing.Float32), copy_trait);
+    const copy_atom = try makeCopyAtom(
+        OpDescriptor.copy("copy.placeholder", "generic", typing.Float32),
+        copy_trait,
+    );
     try std.testing.expectEqualStrings("Float32", copy_atom.valueType().name);
 }
 
 test "atom: tiled mma computes tile sizes, partitions, and copy adapters" {
     const thr = layout.makeCompactLayout(.{32});
     const tv = layout.makeCompactLayout(.{ 32, 1 });
-    var trait_value: Trait = .{ .name = "mma", .thr_id = thr, .shape_mnk = layout.Tree.fromComptime(.{ 16, 8, 8 }) };
+    var trait_value: Trait = .{
+        .name = "mma",
+        .thr_id = thr,
+        .shape_mnk = layout.Tree.fromComptime(.{ 16, 8, 8 }),
+    };
     trait_value = trait_value.withMmaLayouts(tv, tv, tv);
     const atom_value = try makeMmaAtom(OpDescriptor.mma("mma", "generic"), trait_value);
-    const tiled = try makeTiledMma(atom_value, layout.makeCompactLayout(.{ 2, 3, 4 }), null);
+    const tiled = try makeTiledMma(
+        atom_value,
+        layout.makeCompactLayout(.{ 2, 3, 4 }),
+        null,
+    );
     try std.testing.expectEqual(@as(layout.Unsigned, 32), try tiled.getTileSize(0));
     try std.testing.expectEqual(@as(layout.Unsigned, 24), try tiled.getTileSize(1));
     try std.testing.expectEqual(@as(layout.Unsigned, 32), try tiled.getTileSize(2));
@@ -772,7 +982,10 @@ test "atom: tiled mma computes tile sizes, partitions, and copy adapters" {
 
     var copy_trait: Trait = .{ .name = "copy", .thr_id = thr };
     copy_trait = copy_trait.withCopyLayouts(tv, tv);
-    const copy_atom = try makeCopyAtom(OpDescriptor.copy("copy", "generic", typing.Int32), copy_trait);
+    const copy_atom = try makeCopyAtom(
+        OpDescriptor.copy("copy", "generic", typing.Int32),
+        copy_trait,
+    );
     const copy_a = try makeTiledCopyA(copy_atom, tiled);
     const slice = try copy_a.getSlice(0);
     try std.testing.expectEqual(@as(layout.Scalar, 0), slice.thr_idx);
@@ -783,15 +996,26 @@ test "atom: tiled copy thread slices and MLIR call emission are checked" {
     const tv = layout.makeCompactLayout(.{ 4, 1 });
     var copy_trait: Trait = .{ .name = "copy", .thr_id = thr };
     copy_trait = copy_trait.withCopyLayouts(tv, tv);
-    const atom_value = try makeCopyAtom(OpDescriptor.copy("copy", "generic", typing.Int32), copy_trait);
+    const atom_value = try makeCopyAtom(
+        OpDescriptor.copy("copy", "generic", typing.Int32),
+        copy_trait,
+    );
     const tiled = try makeTiledCopy(atom_value, tv, layout.Tree.fromComptime(.{4}));
     const slice = try tiled.getSlice(3);
     try std.testing.expectEqual(@as(layout.Scalar, 3), slice.thr_idx);
     try std.testing.expectError(Error.InvalidThreadIndex, tiled.getSlice(4));
 
     var b: mlir.Builder(1024) = .{};
-    const t: TensorOperand = .{ .value = .named("src"), .ty = .raw("!cute.memref<i32, gmem, \"(1):(1)\">"), .element = typing.Int32 };
-    const d: TensorOperand = .{ .value = .named("dst"), .ty = .raw("!cute.memref<i32, gmem, \"(1):(1)\">"), .element = typing.Int32 };
+    const t: TensorOperand = .{
+        .value = .named("src"),
+        .ty = .raw("!cute.memref<i32, gmem, \"(1):(1)\">"),
+        .element = typing.Int32,
+    };
+    const d: TensorOperand = .{
+        .value = .named("dst"),
+        .ty = .raw("!cute.memref<i32, gmem, \"(1):(1)\">"),
+        .element = typing.Int32,
+    };
     try copyAtomCall(&b, atom_value, &.{t}, &.{d}, null);
     try std.testing.expect(std.mem.indexOf(u8, b.slice(), "cute.copy_atom_call") != null);
 }

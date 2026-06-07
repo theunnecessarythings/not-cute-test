@@ -66,18 +66,39 @@ pub const TensorMeta = struct {
     dtype: typing.Numeric,
     memspace: typing.AddressSpace = .generic,
 
-    pub fn init(engine: tensor.Engine, layout_value: Layout, dtype: typing.Numeric, memspace: typing.AddressSpace) Error!TensorMeta {
+    pub fn init(
+        engine: tensor.Engine,
+        layout_value: Layout,
+        dtype: typing.Numeric,
+        memspace: typing.AddressSpace,
+    ) Error!TensorMeta {
         try layout_value.shape.assertPositive();
-        if (!layout_value.shape.sameProfile(&layout_value.stride)) return Error.ProfileMismatch;
-        return .{ .engine = engine, .layout_value = layout_value, .dtype = dtype, .memspace = memspace };
+        if (!layout_value.shape.sameProfile(&layout_value.stride))
+            return Error.ProfileMismatch;
+        return .{
+            .engine = engine,
+            .layout_value = layout_value,
+            .dtype = dtype,
+            .memspace = memspace,
+        };
     }
 
     pub fn fromTensor(source: tensor.Tensor) TensorMeta {
-        return .{ .engine = source.engine, .layout_value = source.layout_value, .dtype = source.dtype, .memspace = source.memspace };
+        return .{
+            .engine = source.engine,
+            .layout_value = source.layout_value,
+            .dtype = source.dtype,
+            .memspace = source.memspace,
+        };
     }
 
     pub fn toTensor(self: TensorMeta) tensor.Tensor {
-        return tensor.Tensor.init(self.engine, self.layout_value, self.dtype, self.memspace);
+        return tensor.Tensor.init(
+            self.engine,
+            self.layout_value,
+            self.dtype,
+            self.memspace,
+        );
     }
 
     pub fn shape(self: TensorMeta) Tree {
@@ -105,7 +126,13 @@ pub const TensorMeta = struct {
     }
 
     pub fn typedTensor(self: TensorMeta) Error!typing.TypedTensor {
-        return typing.TypedTensor.init(self.dtype, self.layout_value.shape, self.layout_value.stride, self.memspace, self.dtype.bytes());
+        return typing.TypedTensor.init(
+            self.dtype,
+            self.layout_value.shape,
+            self.layout_value.stride,
+            self.memspace,
+            self.dtype.bytes(),
+        );
     }
 
     pub fn tensorTypeText(self: TensorMeta, out: anytype) Error!void {
@@ -113,7 +140,13 @@ pub const TensorMeta = struct {
     }
 
     pub fn cutlassTensorTypeText(self: TensorMeta, out: anytype) Error!void {
-        try cutlass_emit.writeMemRefTypeForLayout(out, self.dtype, self.memspace, self.dtype.bytes(), &self.layout_value);
+        try cutlass_emit.writeMemRefTypeForLayout(
+            out,
+            self.dtype,
+            self.memspace,
+            self.dtype.bytes(),
+            &self.layout_value,
+        );
     }
 
     /// Byte/element reinterpretation of the tensor payload.  Static layout
@@ -121,7 +154,8 @@ pub const TensorMeta = struct {
     /// preserved and the logical element count changes by old_width/new_width.
     /// Nested profiles are conservatively flattened when element count changes.
     pub fn recast(self: TensorMeta, new_dtype: typing.Numeric) Error!TensorMeta {
-        if (new_dtype.width == 0 or self.dtype.width == 0) return Error.InvalidElementType;
+        if (new_dtype.width == 0 or self.dtype.width == 0)
+            return Error.InvalidElementType;
         var out = self;
         out.dtype = new_dtype;
         if (self.dtype.width != new_dtype.width) {
@@ -197,8 +231,17 @@ pub const TensorValue = struct {
     owned_type_text: [512]u8 = undefined,
     owned_type_len: usize = 0,
 
-    pub fn init(meta: TensorMeta, value: mlir.Value, type_text: []const u8) TensorValue {
-        return .{ .meta = meta, .value = value, .type_text = type_text, .owned_type_len = 0 };
+    pub fn init(
+        meta: TensorMeta,
+        value: mlir.Value,
+        type_text: []const u8,
+    ) TensorValue {
+        return .{
+            .meta = meta,
+            .value = value,
+            .type_text = type_text,
+            .owned_type_len = 0,
+        };
     }
 
     pub fn initFromMeta(meta: TensorMeta, value: mlir.Value) Error!TensorValue {
@@ -218,7 +261,11 @@ pub const TensorValue = struct {
         return mlir.Type.raw(self.typeText());
     }
 
-    pub fn access(self: TensorValue, builder: anytype, selector: *const Selector) Error!AccessValue {
+    pub fn access(
+        self: TensorValue,
+        builder: anytype,
+        selector: *const Selector,
+    ) Error!AccessValue {
         return switch (try self.meta.access(selector)) {
             .tensor => |sub| blk: {
                 const offset_val = try builder.constantIndex(try selectorOffset(&self.meta.layout_value, selector));
@@ -250,7 +297,12 @@ pub const TensorValue = struct {
         };
     }
 
-    pub fn storeElement(self: TensorValue, builder: anytype, selector: *const Selector, data: SsaValue) Error!void {
+    pub fn storeElement(
+        self: TensorValue,
+        builder: anytype,
+        selector: *const Selector,
+        data: SsaValue,
+    ) Error!void {
         const access_result = try self.meta.access(selector);
         switch (access_result) {
             .element => |elt| {
@@ -272,30 +324,63 @@ pub const TensorValue = struct {
         }
     }
 
-    pub fn load(self: TensorValue, builder: anytype, mask: ?SsaTensor, pass_thru: ?SsaTensor) Error!SsaTensor {
+    pub fn load(
+        self: TensorValue,
+        builder: anytype,
+        mask: ?SsaTensor,
+        pass_thru: ?SsaTensor,
+    ) Error!SsaTensor {
         try checkVectorLoadStore(self.meta);
-        if (mask) |m| try validateMaskShape(self.meta.layout_value.shape, m.shape_value);
-        if (pass_thru) |p| try expectSameShape(self.meta.layout_value.shape, p.shape_value);
-        if (mask != null or pass_thru != null) return Error.UnsupportedMaskedMemoryOperation;
+        if (mask) |m| try validateMaskShape(
+            self.meta.layout_value.shape,
+            m.shape_value,
+        );
+        if (pass_thru) |p| try expectSameShape(
+            self.meta.layout_value.shape,
+            p.shape_value,
+        );
+        if (mask != null or pass_thru != null)
+            return Error.UnsupportedMaskedMemoryOperation;
 
         const memory_dtype = memoryNumeric(self.meta.dtype);
         var memory_vec_ty: mlir.TextBuffer(128) = .{};
         try writeVectorType(&memory_vec_ty, self.meta.layout_value.shape, memory_dtype);
         var memref_ty_buf: mlir.TextBuffer(512) = .{};
         try self.meta.cutlassTensorTypeText(&memref_ty_buf);
-        const raw_value = try cutlass_emit.emitMemrefLoadVec(builder, self.value, mlir.Type.raw(memref_ty_buf.slice()), mlir.Type.raw(memory_vec_ty.slice()));
+        const raw_value = try cutlass_emit.emitMemrefLoadVec(
+            builder,
+            self.value,
+            mlir.Type.raw(memref_ty_buf.slice()),
+            mlir.Type.raw(memory_vec_ty.slice()),
+        );
         if (self.meta.dtype.kind == .boolean) {
-            const raw = try SsaTensor.init(raw_value, self.meta.layout_value.shape, typing.Int8);
-            const zero = try SsaTensor.zeros(builder, self.meta.layout_value.shape, typing.Int8);
+            const raw = try SsaTensor.init(
+                raw_value,
+                self.meta.layout_value.shape,
+                typing.Int8,
+            );
+            const zero = try SsaTensor.zeros(
+                builder,
+                self.meta.layout_value.shape,
+                typing.Int8,
+            );
             return raw.binary(builder, .ne, zero);
         }
         return SsaTensor.init(raw_value, self.meta.layout_value.shape, self.meta.dtype);
     }
 
-    pub fn store(self: TensorValue, builder: anytype, data: SsaTensor, mask: ?SsaTensor) Error!void {
+    pub fn store(
+        self: TensorValue,
+        builder: anytype,
+        data: SsaTensor,
+        mask: ?SsaTensor,
+    ) Error!void {
         try checkVectorLoadStore(self.meta);
         try expectSameShape(self.meta.layout_value.shape, data.shape_value);
-        if (mask) |m| try validateMaskShape(self.meta.layout_value.shape, m.shape_value);
+        if (mask) |m| try validateMaskShape(
+            self.meta.layout_value.shape,
+            m.shape_value,
+        );
         if (mask != null) return Error.UnsupportedMaskedMemoryOperation;
         const memory_dtype = memoryNumeric(self.meta.dtype);
         try checkNarrowStoreAlignment(memory_dtype, self.meta.layout_value.shape);
@@ -304,11 +389,22 @@ pub const TensorValue = struct {
         try writeVectorType(&vec_ty_buf, self.meta.layout_value.shape, memory_dtype);
         var memref_ty_buf: mlir.TextBuffer(512) = .{};
         try self.meta.cutlassTensorTypeText(&memref_ty_buf);
-        try cutlass_emit.emitMemrefStoreVec(builder, casted.value, self.value, mlir.Type.raw(vec_ty_buf.slice()), mlir.Type.raw(memref_ty_buf.slice()));
+        try cutlass_emit.emitMemrefStoreVec(
+            builder,
+            casted.value,
+            self.value,
+            mlir.Type.raw(vec_ty_buf.slice()),
+            mlir.Type.raw(memref_ty_buf.slice()),
+        );
     }
 
     pub fn fill(self: TensorValue, builder: anytype, scalar: SsaValue) Error!void {
-        const filled = try SsaTensor.full(builder, self.meta.layout_value.shape, self.meta.dtype, .{ .value = scalar.value });
+        const filled = try SsaTensor.full(
+            builder,
+            self.meta.layout_value.shape,
+            self.meta.dtype,
+            .{ .value = scalar.value },
+        );
         try self.store(builder, filled, null);
     }
 };
@@ -326,7 +422,11 @@ pub const SsaValue = struct {
         return .{ .value = value, .dtype = dtype };
     }
 
-    pub fn castTo(self: SsaValue, builder: anytype, target: typing.Numeric) Error!SsaValue {
+    pub fn castTo(
+        self: SsaValue,
+        builder: anytype,
+        target: typing.Numeric,
+    ) Error!SsaValue {
         if (sameNumeric(self.dtype, target)) return self;
         const op_name = conversionOp(self.dtype, target);
         const result = try builder.genericOp(
@@ -350,7 +450,11 @@ pub const SsaTensor = struct {
     shape_value: Tree,
     dtype: typing.Numeric,
 
-    pub fn init(value: mlir.Value, shape_value: Tree, dtype: typing.Numeric) Error!SsaTensor {
+    pub fn init(
+        value: mlir.Value,
+        shape_value: Tree,
+        dtype: typing.Numeric,
+    ) Error!SsaTensor {
         try shape_value.assertPositive();
         return .{ .value = value, .shape_value = shape_value, .dtype = dtype };
     }
@@ -364,25 +468,59 @@ pub const SsaTensor = struct {
         return .{ .value = self.value, .dtype = self.dtype };
     }
 
-    pub fn full(builder: anytype, shape_value: Tree, dtype: typing.Numeric, scalar_operand: mlir.Operand) Error!SsaTensor {
+    pub fn full(
+        builder: anytype,
+        shape_value: Tree,
+        dtype: typing.Numeric,
+        scalar_operand: mlir.Operand,
+    ) Error!SsaTensor {
         var vec_ty: mlir.TextBuffer(128) = .{};
         try writeVectorType(&vec_ty, shape_value, dtype);
-        const result = try mlir.vector.broadcast(builder, scalar_operand, mlir.Type.raw(dtype.mlir_type), mlir.Type.raw(vec_ty.slice()));
+        const result = try mlir.vector.broadcast(
+            builder,
+            scalar_operand,
+            mlir.Type.raw(dtype.mlir_type),
+            mlir.Type.raw(vec_ty.slice()),
+        );
         return SsaTensor.init(result, shape_value, dtype);
     }
 
-    pub fn empty(builder: anytype, shape_value: Tree, dtype: typing.Numeric) Error!SsaTensor {
+    pub fn empty(
+        builder: anytype,
+        shape_value: Tree,
+        dtype: typing.Numeric,
+    ) Error!SsaTensor {
         var vec_ty: mlir.TextBuffer(128) = .{};
         try writeVectorType(&vec_ty, shape_value, dtype);
-        const result = try builder.genericOp("cute.undef", &.{}, &.{}, &.{}, &.{mlir.Type.raw(vec_ty.slice())});
+        const result = try builder.genericOp(
+            "cute.undef",
+            &.{},
+            &.{},
+            &.{},
+            &.{mlir.Type.raw(vec_ty.slice())},
+        );
         return SsaTensor.init(result, shape_value, dtype);
     }
 
-    pub fn fullLike(builder: anytype, source: SsaTensor, scalar_operand: mlir.Operand, dtype: ?typing.Numeric) Error!SsaTensor {
-        return SsaTensor.full(builder, source.shape_value, dtype orelse source.dtype, scalar_operand);
+    pub fn fullLike(
+        builder: anytype,
+        source: SsaTensor,
+        scalar_operand: mlir.Operand,
+        dtype: ?typing.Numeric,
+    ) Error!SsaTensor {
+        return SsaTensor.full(
+            builder,
+            source.shape_value,
+            dtype orelse source.dtype,
+            scalar_operand,
+        );
     }
 
-    pub fn emptyLike(builder: anytype, source: SsaTensor, dtype: ?typing.Numeric) Error!SsaTensor {
+    pub fn emptyLike(
+        builder: anytype,
+        source: SsaTensor,
+        dtype: ?typing.Numeric,
+    ) Error!SsaTensor {
         return SsaTensor.empty(builder, source.shape_value, dtype orelse source.dtype);
     }
 
@@ -390,27 +528,52 @@ pub const SsaTensor = struct {
         return self.castTo(builder, typing.Int8);
     }
 
-    pub fn zeros(builder: anytype, shape_value: Tree, dtype: typing.Numeric) Error!SsaTensor {
-        const zero = if (dtype.isFloat()) try builder.constantF(0.0, mlir.Type.raw(dtype.mlir_type)) else try builder.constantI(0, mlir.Type.raw(dtype.mlir_type));
+    pub fn zeros(
+        builder: anytype,
+        shape_value: Tree,
+        dtype: typing.Numeric,
+    ) Error!SsaTensor {
+        const zero = if (dtype.isFloat()) try builder.constantF(
+            0.0,
+            mlir.Type.raw(dtype.mlir_type),
+        ) else try builder.constantI(0, mlir.Type.raw(dtype.mlir_type));
         return SsaTensor.full(builder, shape_value, dtype, .{ .value = zero });
     }
 
-    pub fn ones(builder: anytype, shape_value: Tree, dtype: typing.Numeric) Error!SsaTensor {
-        const one = if (dtype.isFloat()) try builder.constantF(1.0, mlir.Type.raw(dtype.mlir_type)) else try builder.constantI(1, mlir.Type.raw(dtype.mlir_type));
+    pub fn ones(
+        builder: anytype,
+        shape_value: Tree,
+        dtype: typing.Numeric,
+    ) Error!SsaTensor {
+        const one = if (dtype.isFloat()) try builder.constantF(
+            1.0,
+            mlir.Type.raw(dtype.mlir_type),
+        ) else try builder.constantI(1, mlir.Type.raw(dtype.mlir_type));
         return SsaTensor.full(builder, shape_value, dtype, .{ .value = one });
     }
 
     pub fn reshape(self: SsaTensor, builder: anytype, new_shape: Tree) Error!SsaTensor {
-        if (try self.shape_value.product() != try new_shape.product()) return Error.InvalidTensorShape;
+        if (try self.shape_value.product() != try new_shape.product())
+            return Error.InvalidTensorShape;
         var old_ty: mlir.TextBuffer(128) = .{};
         var new_ty: mlir.TextBuffer(128) = .{};
         try self.vectorType(&old_ty);
         try writeVectorType(&new_ty, new_shape, self.dtype);
-        const result = try builder.genericOp("vector.shape_cast", &.{.{ .value = self.value }}, &.{}, &.{mlir.Type.raw(old_ty.slice())}, &.{mlir.Type.raw(new_ty.slice())});
+        const result = try builder.genericOp(
+            "vector.shape_cast",
+            &.{.{ .value = self.value }},
+            &.{},
+            &.{mlir.Type.raw(old_ty.slice())},
+            &.{mlir.Type.raw(new_ty.slice())},
+        );
         return SsaTensor.init(result, new_shape, self.dtype);
     }
 
-    pub fn bitcast(self: SsaTensor, builder: anytype, target: typing.Numeric) Error!SsaTensor {
+    pub fn bitcast(
+        self: SsaTensor,
+        builder: anytype,
+        target: typing.Numeric,
+    ) Error!SsaTensor {
         if (sameNumeric(self.dtype, target)) return self;
         const bits = (try self.shape_value.product()) * self.dtype.width;
         if (bits % target.width != 0) return Error.InvalidTensorShape;
@@ -420,43 +583,86 @@ pub const SsaTensor = struct {
         var new_ty: mlir.TextBuffer(128) = .{};
         try self.vectorType(&old_ty);
         try writeVectorType(&new_ty, new_shape, target);
-        const result = try builder.genericOp("vector.bitcast", &.{.{ .value = self.value }}, &.{}, &.{mlir.Type.raw(old_ty.slice())}, &.{mlir.Type.raw(new_ty.slice())});
+        const result = try builder.genericOp(
+            "vector.bitcast",
+            &.{.{ .value = self.value }},
+            &.{},
+            &.{mlir.Type.raw(old_ty.slice())},
+            &.{mlir.Type.raw(new_ty.slice())},
+        );
         return SsaTensor.init(result, new_shape, target);
     }
 
-    pub fn castTo(self: SsaTensor, builder: anytype, target: typing.Numeric) Error!SsaTensor {
+    pub fn castTo(
+        self: SsaTensor,
+        builder: anytype,
+        target: typing.Numeric,
+    ) Error!SsaTensor {
         if (sameNumeric(self.dtype, target)) return self;
         var old_ty: mlir.TextBuffer(128) = .{};
         var new_ty: mlir.TextBuffer(128) = .{};
         try self.vectorType(&old_ty);
         try writeVectorType(&new_ty, self.shape_value, target);
         const op_name = conversionOp(self.dtype, target);
-        const result = try builder.genericOp(op_name, &.{.{ .value = self.value }}, &.{}, &.{mlir.Type.raw(old_ty.slice())}, &.{mlir.Type.raw(new_ty.slice())});
+        const result = try builder.genericOp(
+            op_name,
+            &.{.{ .value = self.value }},
+            &.{},
+            &.{mlir.Type.raw(old_ty.slice())},
+            &.{mlir.Type.raw(new_ty.slice())},
+        );
         return SsaTensor.init(result, self.shape_value, target);
     }
 
-    pub fn binary(self: SsaTensor, builder: anytype, op: BinaryOp, rhs: SsaTensor) Error!SsaTensor {
+    pub fn binary(
+        self: SsaTensor,
+        builder: anytype,
+        op: BinaryOp,
+        rhs: SsaTensor,
+    ) Error!SsaTensor {
         const result_shape = try inferBroadcastShape(self.shape_value, rhs.shape_value);
-        const lhs_b = if (self.shape_value.equals(&result_shape)) self else try self.broadcastTo(builder, result_shape);
+        const lhs_b = if (self.shape_value.equals(&result_shape)) self else try self.broadcastTo(
+            builder,
+            result_shape,
+        );
         const rhs_casted = try rhs.castTo(builder, lhs_b.dtype);
-        const rhs_b = if (rhs_casted.shape_value.equals(&result_shape)) rhs_casted else try rhs_casted.broadcastTo(builder, result_shape);
+        const rhs_b = if (rhs_casted.shape_value.equals(&result_shape)) rhs_casted else try rhs_casted.broadcastTo(
+            builder,
+            result_shape,
+        );
         var vec_ty: mlir.TextBuffer(128) = .{};
         try lhs_b.vectorType(&vec_ty);
         const result_dtype = op.resultType(lhs_b.dtype);
         var result_ty: mlir.TextBuffer(128) = .{};
         try writeVectorType(&result_ty, result_shape, result_dtype);
-        const value = try builder.genericOp(op.mlirName(lhs_b.dtype), &.{ .{ .value = lhs_b.value }, .{ .value = rhs_b.value } }, op.attrs(lhs_b.dtype), &.{ mlir.Type.raw(vec_ty.slice()), mlir.Type.raw(vec_ty.slice()) }, &.{mlir.Type.raw(result_ty.slice())});
+        const value = try builder.genericOp(
+            op.mlirName(lhs_b.dtype),
+            &.{ .{ .value = lhs_b.value }, .{ .value = rhs_b.value } },
+            op.attrs(lhs_b.dtype),
+            &.{ mlir.Type.raw(vec_ty.slice()), mlir.Type.raw(vec_ty.slice()) },
+            &.{mlir.Type.raw(result_ty.slice())},
+        );
         return SsaTensor.init(value, result_shape, result_dtype);
     }
 
     pub fn unary(self: SsaTensor, builder: anytype, op: UnaryOp) Error!SsaTensor {
         var vec_ty: mlir.TextBuffer(128) = .{};
         try self.vectorType(&vec_ty);
-        const value = try builder.genericOp(op.mlirName(self.dtype), &.{.{ .value = self.value }}, &.{}, &.{mlir.Type.raw(vec_ty.slice())}, &.{mlir.Type.raw(vec_ty.slice())});
+        const value = try builder.genericOp(
+            op.mlirName(self.dtype),
+            &.{.{ .value = self.value }},
+            &.{},
+            &.{mlir.Type.raw(vec_ty.slice())},
+            &.{mlir.Type.raw(vec_ty.slice())},
+        );
         return SsaTensor.init(value, self.shape_value, self.dtype);
     }
 
-    pub fn broadcastTo(self: SsaTensor, builder: anytype, shape_value: Tree) Error!SsaTensor {
+    pub fn broadcastTo(
+        self: SsaTensor,
+        builder: anytype,
+        shape_value: Tree,
+    ) Error!SsaTensor {
         if (self.shape_value.equals(&shape_value)) return self;
         const checked = try inferBroadcastShape(self.shape_value, shape_value);
         if (!checked.equals(&shape_value)) return Error.BroadcastMismatch;
@@ -464,7 +670,12 @@ pub const SsaTensor = struct {
         var result_ty: mlir.TextBuffer(128) = .{};
         try writeVectorType(&result_ty, shape_value, self.dtype);
         if (src == 1) {
-            const value = try mlir.vector.broadcast(builder, .{ .value = self.value }, mlir.Type.raw(self.dtype.mlir_type), mlir.Type.raw(result_ty.slice()));
+            const value = try mlir.vector.broadcast(
+                builder,
+                .{ .value = self.value },
+                mlir.Type.raw(self.dtype.mlir_type),
+                mlir.Type.raw(result_ty.slice()),
+            );
             return SsaTensor.init(value, shape_value, self.dtype);
         }
         var src_ty: mlir.TextBuffer(128) = .{};
@@ -479,28 +690,66 @@ pub const SsaTensor = struct {
         return SsaTensor.init(value, shape_value, self.dtype);
     }
 
-    pub fn where_(builder: anytype, cond: SsaTensor, if_value: SsaTensor, else_value: SsaTensor) Error!SsaTensor {
-        const result_shape = try inferBroadcastShape(if_value.shape_value, else_value.shape_value);
-        const c = if (cond.shape_value.equals(&result_shape)) cond else try cond.broadcastTo(builder, result_shape);
-        const a = if (if_value.shape_value.equals(&result_shape)) if_value else try if_value.broadcastTo(builder, result_shape);
-        var b = if (else_value.shape_value.equals(&result_shape)) else_value else try else_value.broadcastTo(builder, result_shape);
+    pub fn where_(
+        builder: anytype,
+        cond: SsaTensor,
+        if_value: SsaTensor,
+        else_value: SsaTensor,
+    ) Error!SsaTensor {
+        const result_shape = try inferBroadcastShape(
+            if_value.shape_value,
+            else_value.shape_value,
+        );
+        const c = if (cond.shape_value.equals(&result_shape)) cond else try cond.broadcastTo(
+            builder,
+            result_shape,
+        );
+        const a = if (if_value.shape_value.equals(&result_shape)) if_value else try if_value.broadcastTo(
+            builder,
+            result_shape,
+        );
+        var b = if (else_value.shape_value.equals(&result_shape)) else_value else try else_value.broadcastTo(
+            builder,
+            result_shape,
+        );
         b = try b.castTo(builder, a.dtype);
         var data_ty: mlir.TextBuffer(128) = .{};
         var pred_ty: mlir.TextBuffer(128) = .{};
         try writeVectorType(&data_ty, result_shape, a.dtype);
         try writeVectorType(&pred_ty, result_shape, typing.Boolean);
-        const value = try builder.genericOp("arith.select", &.{ .{ .value = c.value }, .{ .value = a.value }, .{ .value = b.value } }, &.{}, &.{ mlir.Type.raw(pred_ty.slice()), mlir.Type.raw(data_ty.slice()), mlir.Type.raw(data_ty.slice()) }, &.{mlir.Type.raw(data_ty.slice())});
+        const value = try builder.genericOp(
+            "arith.select",
+            &.{ .{ .value = c.value }, .{ .value = a.value }, .{ .value = b.value } },
+            &.{},
+            &.{
+                mlir.Type.raw(pred_ty.slice()),
+                mlir.Type.raw(data_ty.slice()),
+                mlir.Type.raw(data_ty.slice()),
+            },
+            &.{mlir.Type.raw(data_ty.slice())},
+        );
         return SsaTensor.init(value, result_shape, a.dtype);
     }
 
     pub fn reduceAll(self: SsaTensor, builder: anytype, op: ReduceOp) Error!SsaValue {
         var vec_ty: mlir.TextBuffer(128) = .{};
         try self.vectorType(&vec_ty);
-        const value = try builder.genericOp(op.mlirName(self.dtype), &.{.{ .value = self.value }}, &.{}, &.{mlir.Type.raw(vec_ty.slice())}, &.{mlir.Type.raw(self.dtype.mlir_type)});
+        const value = try builder.genericOp(
+            op.mlirName(self.dtype),
+            &.{.{ .value = self.value }},
+            &.{},
+            &.{mlir.Type.raw(vec_ty.slice())},
+            &.{mlir.Type.raw(self.dtype.mlir_type)},
+        );
         return SsaValue.init(value, self.dtype);
     }
 
-    pub fn reduceProfile(self: SsaTensor, builder: anytype, op: ReduceOp, profile: *const Selector) Error!ReduceResult {
+    pub fn reduceProfile(
+        self: SsaTensor,
+        builder: anytype,
+        op: ReduceOp,
+        profile: *const Selector,
+    ) Error!ReduceResult {
         const stats = try selectorStats(profile);
         if (stats.fixed == 0) return .{ .tensor = self };
         try validateSelectorAgainstShape(&self.shape_value, profile);
@@ -514,19 +763,33 @@ pub const SsaTensor = struct {
         const value = try builder.genericOp(
             "vector.multi_reduction",
             &.{.{ .value = self.value }},
-            &.{ .{ .key = "kind", .value = op.attributeValue(self.dtype) }, .{ .key = "dims", .value = dims_attr.slice() } },
+            &.{
+                .{ .key = "kind", .value = op.attributeValue(self.dtype) },
+                .{ .key = "dims", .value = dims_attr.slice() },
+            },
             &.{mlir.Type.raw(in_ty.slice())},
             &.{mlir.Type.raw(out_ty.slice())},
         );
         return .{ .tensor = try SsaTensor.init(value, result_shape, self.dtype) };
     }
 
-    pub fn extract(self: SsaTensor, builder: anytype, linear_index: usize) Error!SsaValue {
-        if (linear_index >= try self.shape_value.product()) return Error.CoordinateOutOfBounds;
+    pub fn extract(
+        self: SsaTensor,
+        builder: anytype,
+        linear_index: usize,
+    ) Error!SsaValue {
+        if (linear_index >= try self.shape_value.product())
+            return Error.CoordinateOutOfBounds;
         var vec_ty: mlir.TextBuffer(128) = .{};
         try self.vectorType(&vec_ty);
         const idx = try builder.constantIndex(@intCast(linear_index));
-        const value = try builder.genericOp("vector.extractelement", &.{ .{ .value = self.value }, .{ .value = idx } }, &.{}, &.{ mlir.Type.raw(vec_ty.slice()), mlir.Type.index() }, &.{mlir.Type.raw(self.dtype.mlir_type)});
+        const value = try builder.genericOp(
+            "vector.extractelement",
+            &.{ .{ .value = self.value }, .{ .value = idx } },
+            &.{},
+            &.{ mlir.Type.raw(vec_ty.slice()), mlir.Type.index() },
+            &.{mlir.Type.raw(self.dtype.mlir_type)},
+        );
         return SsaValue.init(value, self.dtype);
     }
 
@@ -535,7 +798,11 @@ pub const SsaTensor = struct {
         return self.extract(builder, @intCast(index));
     }
 
-    pub fn access(self: SsaTensor, builder: anytype, selector: *const Selector) Error!SsaAccess {
+    pub fn access(
+        self: SsaTensor,
+        builder: anytype,
+        selector: *const Selector,
+    ) Error!SsaAccess {
         try validateSelectorAgainstShape(&self.shape_value, selector);
         const stats = try selectorStats(selector);
         if (stats.kept == 0) {
@@ -557,7 +824,11 @@ pub const SsaTensor = struct {
         const raw_slice = try builder.genericOp(
             "vector.extract_strided_slice",
             &.{.{ .value = row_value }},
-            &.{ .{ .key = "offsets", .value = offsets.slice() }, .{ .key = "sizes", .value = sizes.slice() }, .{ .key = "strides", .value = strides.slice() } },
+            &.{
+                .{ .key = "offsets", .value = offsets.slice() },
+                .{ .key = "sizes", .value = sizes.slice() },
+                .{ .key = "strides", .value = strides.slice() },
+            },
             &.{mlir.Type.raw(src_row_ty.slice())},
             &.{mlir.Type.raw(result_row_ty.slice())},
         );
@@ -566,32 +837,72 @@ pub const SsaTensor = struct {
         const slice_value = if (std.mem.eql(u8, result_row_ty.slice(), final_row_ty.slice()))
             raw_slice
         else
-            try builder.genericOp("vector.shape_cast", &.{.{ .value = raw_slice }}, &.{}, &.{mlir.Type.raw(result_row_ty.slice())}, &.{mlir.Type.raw(final_row_ty.slice())});
-        const col_slice = try fromVector(builder, slice_value, self.dtype, result_shape, .row_major);
+            try builder.genericOp(
+                "vector.shape_cast",
+                &.{.{ .value = raw_slice }},
+                &.{},
+                &.{mlir.Type.raw(result_row_ty.slice())},
+                &.{mlir.Type.raw(final_row_ty.slice())},
+            );
+        const col_slice = try fromVector(
+            builder,
+            slice_value,
+            self.dtype,
+            result_shape,
+            .row_major,
+        );
         return .{ .tensor = col_slice };
     }
 
-    pub fn withElement(self: SsaTensor, builder: anytype, coord: Tree, scalar_value: SsaValue) Error!SsaTensor {
+    pub fn withElement(
+        self: SsaTensor,
+        builder: anytype,
+        coord: Tree,
+        scalar_value: SsaValue,
+    ) Error!SsaTensor {
         const index = try columnMajorIndex(self.shape_value, coord);
-        return self.insert(builder, @intCast(index), try scalar_value.castTo(builder, self.dtype));
+        return self.insert(
+            builder,
+            @intCast(index),
+            try scalar_value.castTo(builder, self.dtype),
+        );
     }
 
-    pub fn insert(self: SsaTensor, builder: anytype, linear_index: usize, scalar_value: SsaValue) Error!SsaTensor {
-        if (linear_index >= try self.shape_value.product()) return Error.CoordinateOutOfBounds;
+    pub fn insert(
+        self: SsaTensor,
+        builder: anytype,
+        linear_index: usize,
+        scalar_value: SsaValue,
+    ) Error!SsaTensor {
+        if (linear_index >= try self.shape_value.product())
+            return Error.CoordinateOutOfBounds;
         var vec_ty: mlir.TextBuffer(128) = .{};
         try self.vectorType(&vec_ty);
         const idx = try builder.constantIndex(@intCast(linear_index));
         const value = try builder.genericOp(
             "vector.insertelement",
-            &.{ .{ .value = scalar_value.value }, .{ .value = self.value }, .{ .value = idx } },
+            &.{
+                .{ .value = scalar_value.value },
+                .{ .value = self.value },
+                .{ .value = idx },
+            },
             &.{},
-            &.{ mlir.Type.raw(self.dtype.mlir_type), mlir.Type.raw(vec_ty.slice()), mlir.Type.index() },
+            &.{
+                mlir.Type.raw(self.dtype.mlir_type),
+                mlir.Type.raw(vec_ty.slice()),
+                mlir.Type.index(),
+            },
             &.{mlir.Type.raw(vec_ty.slice())},
         );
         return SsaTensor.init(value, self.shape_value, self.dtype);
     }
 
-    pub fn withSlice(self: SsaTensor, builder: anytype, selector: *const Selector, replacement: SsaTensor) Error!SsaTensor {
+    pub fn withSlice(
+        self: SsaTensor,
+        builder: anytype,
+        selector: *const Selector,
+        replacement: SsaTensor,
+    ) Error!SsaTensor {
         try validateSelectorAgainstShape(&self.shape_value, selector);
         const result_shape = try layout_algebra.sliceTree(&self.shape_value, selector);
         try expectSameShape(result_shape, replacement.shape_value);
@@ -608,21 +919,34 @@ pub const SsaTensor = struct {
         const value = try builder.genericOp(
             "vector.insert_strided_slice",
             &.{ .{ .value = src_row }, .{ .value = dst_row } },
-            &.{ .{ .key = "offsets", .value = offsets.slice() }, .{ .key = "strides", .value = strides.slice() } },
+            &.{
+                .{ .key = "offsets", .value = offsets.slice() },
+                .{ .key = "strides", .value = strides.slice() },
+            },
             &.{ mlir.Type.raw(src_row_ty.slice()), mlir.Type.raw(dst_row_ty.slice()) },
             &.{mlir.Type.raw(dst_row_ty.slice())},
         );
         return fromVector(builder, value, self.dtype, self.shape_value, .row_major);
     }
 
-    pub fn toVector(self: SsaTensor, builder: anytype, order: VectorOrder) Error!mlir.Value {
+    pub fn toVector(
+        self: SsaTensor,
+        builder: anytype,
+        order: VectorOrder,
+    ) Error!mlir.Value {
         switch (order) {
             .column_major => return self.value,
             .row_major => return columnToRowMajor(builder, self),
         }
     }
 
-    pub fn fromVector(builder: anytype, value: mlir.Value, dtype: typing.Numeric, shape_value: Tree, source_order: VectorOrder) Error!SsaTensor {
+    pub fn fromVector(
+        builder: anytype,
+        value: mlir.Value,
+        dtype: typing.Numeric,
+        shape_value: Tree,
+        source_order: VectorOrder,
+    ) Error!SsaTensor {
         const tmp = try SsaTensor.init(value, shape_value, dtype);
         switch (source_order) {
             .column_major => return tmp,
@@ -702,7 +1026,12 @@ pub const SsaTensor = struct {
         return self.unary(builder, .abs);
     }
 
-    pub fn reduceAllWithInit(self: SsaTensor, builder: anytype, op: ReduceOp, initial: SsaValue) Error!SsaValue {
+    pub fn reduceAllWithInit(
+        self: SsaTensor,
+        builder: anytype,
+        op: ReduceOp,
+        initial: SsaValue,
+    ) Error!SsaValue {
         const casted_init = try initial.castTo(builder, self.dtype);
         var vec_ty: mlir.TextBuffer(128) = .{};
         try self.vectorType(&vec_ty);
@@ -716,11 +1045,21 @@ pub const SsaTensor = struct {
         return SsaValue.init(value, self.dtype);
     }
 
-    pub fn reduceProfileWithInit(self: SsaTensor, builder: anytype, op: ReduceOp, profile: *const Selector, initial: SsaTensor) Error!ReduceResult {
+    pub fn reduceProfileWithInit(
+        self: SsaTensor,
+        builder: anytype,
+        op: ReduceOp,
+        profile: *const Selector,
+        initial: SsaTensor,
+    ) Error!ReduceResult {
         const stats = try selectorStats(profile);
         if (stats.fixed == 0) return .{ .tensor = self };
         try validateSelectorAgainstShape(&self.shape_value, profile);
-        if (stats.kept == 0) return .{ .scalar = try self.reduceAllWithInit(builder, op, try initial.scalar()) };
+        if (stats.kept == 0) return .{ .scalar = try self.reduceAllWithInit(
+            builder,
+            op,
+            try initial.scalar(),
+        ) };
         const result_shape = try layout_algebra.sliceTree(&self.shape_value, profile);
         try expectSameShape(result_shape, initial.shape_value);
         const casted_init = try initial.castTo(builder, self.dtype);
@@ -732,7 +1071,10 @@ pub const SsaTensor = struct {
         const value = try builder.genericOp(
             "vector.multi_reduction",
             &.{ .{ .value = self.value }, .{ .value = casted_init.value } },
-            &.{ .{ .key = "kind", .value = op.attributeValue(self.dtype) }, .{ .key = "dims", .value = dims_attr.slice() } },
+            &.{
+                .{ .key = "kind", .value = op.attributeValue(self.dtype) },
+                .{ .key = "dims", .value = dims_attr.slice() },
+            },
             &.{ mlir.Type.raw(in_ty.slice()), mlir.Type.raw(out_ty.slice()) },
             &.{mlir.Type.raw(out_ty.slice())},
         );
@@ -857,17 +1199,37 @@ pub const GatherScatterPlan = struct {
     vectorized: bool,
 };
 
-pub fn validateGather(input: TensorMeta, mode: usize, index: SsaTensor) Error!GatherScatterPlan {
+pub fn validateGather(
+    input: TensorMeta,
+    mode: usize,
+    index: SsaTensor,
+) Error!GatherScatterPlan {
     try validateGatherScatterStatic(input, mode, index, null);
-    return .{ .mode = mode, .rank = input.rank(), .vectorized = try canUseVectorGatherScatter(input, mode) };
+    return .{ .mode = mode, .rank = input.rank(), .vectorized = try canUseVectorGatherScatter(
+        input,
+        mode,
+    ) };
 }
 
-pub fn validateScatter(output: TensorMeta, mode: usize, index: SsaTensor, data: SsaTensor) Error!GatherScatterPlan {
+pub fn validateScatter(
+    output: TensorMeta,
+    mode: usize,
+    index: SsaTensor,
+    data: SsaTensor,
+) Error!GatherScatterPlan {
     try validateGatherScatterStatic(output, mode, index, data);
-    return .{ .mode = mode, .rank = output.rank(), .vectorized = try canUseVectorGatherScatter(output, mode) };
+    return .{ .mode = mode, .rank = output.rank(), .vectorized = try canUseVectorGatherScatter(
+        output,
+        mode,
+    ) };
 }
 
-pub fn emitGather(builder: anytype, input: TensorValue, mode: usize, index: SsaTensor) Error!SsaTensor {
+pub fn emitGather(
+    builder: anytype,
+    input: TensorValue,
+    mode: usize,
+    index: SsaTensor,
+) Error!SsaTensor {
     _ = try validateGather(input.meta, mode, index);
     var input_ty: mlir.TextBuffer(512) = .{};
     var idx_ty: mlir.TextBuffer(128) = .{};
@@ -886,7 +1248,13 @@ pub fn emitGather(builder: anytype, input: TensorValue, mode: usize, index: SsaT
     return SsaTensor.init(value, index.shape_value, input.meta.dtype);
 }
 
-pub fn emitScatter(builder: anytype, output: TensorValue, mode: usize, index: SsaTensor, data: SsaTensor) Error!void {
+pub fn emitScatter(
+    builder: anytype,
+    output: TensorValue,
+    mode: usize,
+    index: SsaTensor,
+    data: SsaTensor,
+) Error!void {
     _ = try validateScatter(output.meta, mode, index, data);
     var out_ty: mlir.TextBuffer(512) = .{};
     var idx_ty: mlir.TextBuffer(128) = .{};
@@ -897,42 +1265,91 @@ pub fn emitScatter(builder: anytype, output: TensorValue, mode: usize, index: Ss
     const mode_attr = try modeAttr(mode);
     try builder.operationNoResult(.{
         .name = "cute.scatter",
-        .operands = &.{ .{ .value = output.value }, .{ .value = index.value }, .{ .value = data.value } },
+        .operands = &.{
+            .{ .value = output.value },
+            .{ .value = index.value },
+            .{ .value = data.value },
+        },
         .attrs = &.{.{ .key = "mode", .value = mode_attr.slice() }},
-        .operand_types = &.{ mlir.Type.raw(out_ty.slice()), mlir.Type.raw(idx_ty.slice()), mlir.Type.raw(data_ty.slice()) },
+        .operand_types = &.{
+            mlir.Type.raw(out_ty.slice()),
+            mlir.Type.raw(idx_ty.slice()),
+            mlir.Type.raw(data_ty.slice()),
+        },
         .result_types = &.{},
     });
 }
 
-pub fn makePointerTensor(pointer: runtime.Pointer, layout_value: Layout) Error!TensorMeta {
-    return TensorMeta.init(.{ .pointer = pointer }, layout_value, pointer.dtype, pointer.memspace);
+pub fn makePointerTensor(
+    pointer: runtime.Pointer,
+    layout_value: Layout,
+) Error!TensorMeta {
+    return TensorMeta.init(
+        .{ .pointer = pointer },
+        layout_value,
+        pointer.dtype,
+        pointer.memspace,
+    );
 }
 
 pub fn makeIdentityTensor(shape: Tree) Error!TensorMeta {
-    return TensorMeta.init(.{ .identity = {} }, try Layout.makeCompact(shape), typing.Int32, .generic);
+    return TensorMeta.init(
+        .{ .identity = {} },
+        try Layout.makeCompact(shape),
+        typing.Int32,
+        .generic,
+    );
 }
 
 pub fn makeFragment(dtype: typing.Numeric, shape: Tree) Error!TensorMeta {
-    return TensorMeta.init(.{ .fragment = {} }, try Layout.makeCompact(shape), dtype, .generic);
+    return TensorMeta.init(
+        .{ .fragment = {} },
+        try Layout.makeCompact(shape),
+        dtype,
+        .generic,
+    );
 }
 
 pub fn makeRmemTensor(dtype: typing.Numeric, shape: Tree) Error!TensorMeta {
-    return TensorMeta.init(.{ .rmem = {} }, try Layout.makeCompact(shape), dtype, .generic);
+    return TensorMeta.init(
+        .{ .rmem = {} },
+        try Layout.makeCompact(shape),
+        dtype,
+        .generic,
+    );
 }
 
-pub fn full(builder: anytype, shape_value: Tree, dtype: typing.Numeric, scalar_operand: mlir.Operand) Error!SsaTensor {
+pub fn full(
+    builder: anytype,
+    shape_value: Tree,
+    dtype: typing.Numeric,
+    scalar_operand: mlir.Operand,
+) Error!SsaTensor {
     return SsaTensor.full(builder, shape_value, dtype, scalar_operand);
 }
 
-pub fn fullLike(builder: anytype, source: SsaTensor, scalar_operand: mlir.Operand, dtype: ?typing.Numeric) Error!SsaTensor {
+pub fn fullLike(
+    builder: anytype,
+    source: SsaTensor,
+    scalar_operand: mlir.Operand,
+    dtype: ?typing.Numeric,
+) Error!SsaTensor {
     return SsaTensor.fullLike(builder, source, scalar_operand, dtype);
 }
 
-pub fn empty(builder: anytype, shape_value: Tree, dtype: typing.Numeric) Error!SsaTensor {
+pub fn empty(
+    builder: anytype,
+    shape_value: Tree,
+    dtype: typing.Numeric,
+) Error!SsaTensor {
     return SsaTensor.empty(builder, shape_value, dtype);
 }
 
-pub fn emptyLike(builder: anytype, source: SsaTensor, dtype: ?typing.Numeric) Error!SsaTensor {
+pub fn emptyLike(
+    builder: anytype,
+    source: SsaTensor,
+    dtype: ?typing.Numeric,
+) Error!SsaTensor {
     return SsaTensor.emptyLike(builder, source, dtype);
 }
 
@@ -944,11 +1361,20 @@ pub fn onesLike(builder: anytype, source: SsaTensor) Error!SsaTensor {
     return SsaTensor.ones(builder, source.shape_value, source.dtype);
 }
 
-pub fn where(builder: anytype, cond: SsaTensor, if_value: SsaTensor, else_value: SsaTensor) Error!SsaTensor {
+pub fn where(
+    builder: anytype,
+    cond: SsaTensor,
+    if_value: SsaTensor,
+    else_value: SsaTensor,
+) Error!SsaTensor {
     return SsaTensor.where_(builder, cond, if_value, else_value);
 }
 
-pub fn writeVectorType(out: anytype, shape_value: Tree, dtype: typing.Numeric) Error!void {
+pub fn writeVectorType(
+    out: anytype,
+    shape_value: Tree,
+    dtype: typing.Numeric,
+) Error!void {
     try out.append("vector<");
     try out.appendUnsigned(@intCast(try shape_value.product()));
     try out.append("x");
@@ -956,7 +1382,11 @@ pub fn writeVectorType(out: anytype, shape_value: Tree, dtype: typing.Numeric) E
     try out.append(">");
 }
 
-pub fn writeRowMajorVectorType(out: anytype, shape_value: Tree, dtype: typing.Numeric) Error!void {
+pub fn writeRowMajorVectorType(
+    out: anytype,
+    shape_value: Tree,
+    dtype: typing.Numeric,
+) Error!void {
     const flat = try shape_value.flattenLeaves();
     try out.append("vector<");
     for (flat.slice(), 0..) |extent, i| {
@@ -1006,11 +1436,17 @@ fn selectorToCoordSub(out: *Tree, selector: *const Selector, id: u16) Error!u16 
         .tuple => |span| {
             var child_ids: [layout.max_children]u16 = undefined;
             if (span.len > layout.max_children) return Error.OutOfCapacity;
-            for (0..span.len) |i| child_ids[i] = try selectorToCoordSub(out, selector, selector.children.at(span.start + i));
+            for (0..span.len) |i| child_ids[i] = try selectorToCoordSub(
+                out,
+                selector,
+                selector.children.at(span.start + i),
+            );
             const child_start = out.children.len;
             for (child_ids[0..span.len]) |child_id| try out.children.append(child_id);
             const index = out.nodes.len;
-            try out.nodes.append(.{ .tuple = .{ .start = child_start, .len = span.len } });
+            try out.nodes.append(.{
+                .tuple = .{ .start = child_start, .len = span.len },
+            });
             return @intCast(index);
         },
     }
@@ -1035,14 +1471,29 @@ const VectorSliceSpec = struct {
     }
 };
 
-fn vectorSliceSpec(shape_value: *const Tree, selector: *const Selector) Error!VectorSliceSpec {
+fn vectorSliceSpec(
+    shape_value: *const Tree,
+    selector: *const Selector,
+) Error!VectorSliceSpec {
     var spec = VectorSliceSpec{ .sizes_tree = undefined };
-    try collectVectorSliceSpec(shape_value, shape_value.root, selector, selector.root, &spec);
+    try collectVectorSliceSpec(
+        shape_value,
+        shape_value.root,
+        selector,
+        selector.root,
+        &spec,
+    );
     spec.sizes_tree = try Tree.fromProfileAndLeaves(shape_value, spec.sizes.slice());
     return spec;
 }
 
-fn collectVectorSliceSpec(shape_value: *const Tree, shape_id: u16, selector: *const Selector, selector_id: u16, spec: *VectorSliceSpec) Error!void {
+fn collectVectorSliceSpec(
+    shape_value: *const Tree,
+    shape_id: u16,
+    selector: *const Selector,
+    selector_id: u16,
+    spec: *VectorSliceSpec,
+) Error!void {
     switch (selector.nodes.at(selector_id)) {
         .leaf => |leaf| {
             const extent = switch (shape_value.nodes.at(shape_id)) {
@@ -1051,7 +1502,8 @@ fn collectVectorSliceSpec(shape_value: *const Tree, shape_id: u16, selector: *co
             };
             switch (leaf) {
                 .fixed => |value| {
-                    if (value < 0 or value >= extent) return Error.CoordinateOutOfBounds;
+                    if (value < 0 or value >= extent)
+                        return Error.CoordinateOutOfBounds;
                     try spec.offsets.append(value);
                     try spec.sizes.append(1);
                     try spec.strides.append(1);
@@ -1069,7 +1521,13 @@ fn collectVectorSliceSpec(shape_value: *const Tree, shape_id: u16, selector: *co
                 .leaf => return Error.ProfileMismatch,
             };
             if (shape_span.len != sel_span.len) return Error.ProfileMismatch;
-            for (0..sel_span.len) |i| try collectVectorSliceSpec(shape_value, shape_value.children.at(shape_span.start + i), selector, selector.children.at(sel_span.start + i), spec);
+            for (0..sel_span.len) |i| try collectVectorSliceSpec(
+                shape_value,
+                shape_value.children.at(shape_span.start + i),
+                selector,
+                selector.children.at(sel_span.start + i),
+                spec,
+            );
         },
     }
 }
@@ -1105,7 +1563,12 @@ fn rowToColumnMajor(builder: anytype, src: SsaTensor) Error!SsaTensor {
     return SsaTensor.init(value, src.shape_value, src.dtype);
 }
 
-fn reorderVector(builder: anytype, src: SsaTensor, from: VectorOrder, to: VectorOrder) Error!mlir.Value {
+fn reorderVector(
+    builder: anytype,
+    src: SsaTensor,
+    from: VectorOrder,
+    to: VectorOrder,
+) Error!mlir.Value {
     if (from == to) return src.value;
     const count_u = try src.shape_value.product();
     if (count_u > layout.max_leaves * layout.max_leaves) return Error.OutOfCapacity;
@@ -1113,7 +1576,10 @@ fn reorderVector(builder: anytype, src: SsaTensor, from: VectorOrder, to: Vector
     var perm_buf: [layout.max_leaves * layout.max_leaves]usize = undefined;
     for (0..count) |out_i| {
         const out_coord = switch (to) {
-            .column_major => try coordFromFlatIndexColumn(src.shape_value, @intCast(out_i)),
+            .column_major => try coordFromFlatIndexColumn(
+                src.shape_value,
+                @intCast(out_i),
+            ),
             .row_major => try coordFromFlatIndexRow(src.shape_value, @intCast(out_i)),
         };
         const in_index = switch (from) {
@@ -1140,10 +1606,22 @@ fn reorderVector(builder: anytype, src: SsaTensor, from: VectorOrder, to: Vector
         &.{mlir.Type.raw(flat_ty.slice())},
     );
     if (to == .row_major and !std.mem.eql(u8, flat_ty.slice(), result_ty.slice())) {
-        return builder.genericOp("vector.shape_cast", &.{.{ .value = shuffled }}, &.{}, &.{mlir.Type.raw(flat_ty.slice())}, &.{mlir.Type.raw(result_ty.slice())});
+        return builder.genericOp(
+            "vector.shape_cast",
+            &.{.{ .value = shuffled }},
+            &.{},
+            &.{mlir.Type.raw(flat_ty.slice())},
+            &.{mlir.Type.raw(result_ty.slice())},
+        );
     }
     if (to == .column_major and !std.mem.eql(u8, flat_ty.slice(), result_ty.slice())) {
-        return builder.genericOp("vector.shape_cast", &.{.{ .value = shuffled }}, &.{}, &.{mlir.Type.raw(flat_ty.slice())}, &.{mlir.Type.raw(result_ty.slice())});
+        return builder.genericOp(
+            "vector.shape_cast",
+            &.{.{ .value = shuffled }},
+            &.{},
+            &.{mlir.Type.raw(flat_ty.slice())},
+            &.{mlir.Type.raw(result_ty.slice())},
+        );
     }
     return shuffled;
 }
@@ -1173,25 +1651,46 @@ fn selectorStats(selector: *const Selector) Error!struct { kept: usize, fixed: u
     return .{ .kept = kept, .fixed = fixed };
 }
 
-fn selectorStatsSub(selector: *const Selector, id: u16, kept: *usize, fixed: *usize) Error!void {
+fn selectorStatsSub(
+    selector: *const Selector,
+    id: u16,
+    kept: *usize,
+    fixed: *usize,
+) Error!void {
     switch (selector.nodes.at(id)) {
         .leaf => |leaf| switch (leaf) {
             .keep => kept.* += 1,
             .fixed => fixed.* += 1,
         },
-        .tuple => |span| for (0..span.len) |i| try selectorStatsSub(selector, selector.children.at(span.start + i), kept, fixed),
+        .tuple => |span| for (0..span.len) |i| try selectorStatsSub(
+            selector,
+            selector.children.at(span.start + i),
+            kept,
+            fixed,
+        ),
     }
 }
 
-fn validateSelectorAgainstLayout(l: *const Layout, selector: *const Selector) Error!void {
+fn validateSelectorAgainstLayout(
+    l: *const Layout,
+    selector: *const Selector,
+) Error!void {
     try validateSelectorAgainstShape(&l.shape, selector);
 }
 
-fn validateSelectorAgainstShape(shape: *const Tree, selector: *const Selector) Error!void {
+fn validateSelectorAgainstShape(
+    shape: *const Tree,
+    selector: *const Selector,
+) Error!void {
     try validateSelectorShapeSub(shape, shape.root, selector, selector.root);
 }
 
-fn validateSelectorShapeSub(shape: *const Tree, shape_id: u16, selector: *const Selector, selector_id: u16) Error!void {
+fn validateSelectorShapeSub(
+    shape: *const Tree,
+    shape_id: u16,
+    selector: *const Selector,
+    selector_id: u16,
+) Error!void {
     switch (selector.nodes.at(selector_id)) {
         .leaf => |leaf| switch (leaf) {
             .keep => {},
@@ -1209,7 +1708,12 @@ fn validateSelectorShapeSub(shape: *const Tree, shape_id: u16, selector: *const 
                 .leaf => return Error.ProfileMismatch,
             };
             if (shape_span.len != sel_span.len) return Error.ProfileMismatch;
-            for (0..sel_span.len) |i| try validateSelectorShapeSub(shape, shape.children.at(shape_span.start + i), selector, selector.children.at(sel_span.start + i));
+            for (0..sel_span.len) |i| try validateSelectorShapeSub(
+                shape,
+                shape.children.at(shape_span.start + i),
+                selector,
+                selector.children.at(sel_span.start + i),
+            );
         },
     }
 }
@@ -1283,10 +1787,14 @@ fn sameNumeric(a: typing.Numeric, b: typing.Numeric) bool {
 }
 
 fn conversionOp(src: typing.Numeric, dst: typing.Numeric) []const u8 {
-    if (src.isFloat() and dst.isFloat()) return if (dst.width >= src.width) "arith.extf" else "arith.truncf";
-    if (src.isFloat() and dst.isInteger()) return if (dst.kind == .unsigned_int or dst.kind == .boolean) "arith.fptoui" else "arith.fptosi";
-    if (src.isInteger() and dst.isFloat()) return if (src.kind == .unsigned_int or src.kind == .boolean) "arith.uitofp" else "arith.sitofp";
-    if (dst.width >= src.width) return if (src.kind == .unsigned_int or src.kind == .boolean) "arith.extui" else "arith.extsi";
+    if (src.isFloat() and dst.isFloat())
+        return if (dst.width >= src.width) "arith.extf" else "arith.truncf";
+    if (src.isFloat() and dst.isInteger())
+        return if (dst.kind == .unsigned_int or dst.kind == .boolean) "arith.fptoui" else "arith.fptosi";
+    if (src.isInteger() and dst.isFloat())
+        return if (src.kind == .unsigned_int or src.kind == .boolean) "arith.uitofp" else "arith.sitofp";
+    if (dst.width >= src.width)
+        return if (src.kind == .unsigned_int or src.kind == .boolean) "arith.extui" else "arith.extsi";
     return "arith.trunci";
 }
 
@@ -1300,7 +1808,13 @@ fn reductionDimsAttribute(selector: *const Selector) Error!mlir.TextBuffer(128) 
     return dims;
 }
 
-fn reductionDimsAttributeSub(selector: *const Selector, id: u16, out: *mlir.TextBuffer(128), leaf_index: *usize, first: *bool) Error!void {
+fn reductionDimsAttributeSub(
+    selector: *const Selector,
+    id: u16,
+    out: *mlir.TextBuffer(128),
+    leaf_index: *usize,
+    first: *bool,
+) Error!void {
     switch (selector.nodes.at(id)) {
         .leaf => |leaf| {
             switch (leaf) {
@@ -1313,7 +1827,13 @@ fn reductionDimsAttributeSub(selector: *const Selector, id: u16, out: *mlir.Text
             }
             leaf_index.* += 1;
         },
-        .tuple => |span| for (0..span.len) |i| try reductionDimsAttributeSub(selector, selector.children.at(span.start + i), out, leaf_index, first),
+        .tuple => |span| for (0..span.len) |i| try reductionDimsAttributeSub(
+            selector,
+            selector.children.at(span.start + i),
+            out,
+            leaf_index,
+            first,
+        ),
     }
 }
 
@@ -1324,7 +1844,12 @@ fn modeAttr(mode: usize) Error!mlir.TextBuffer(32) {
     return out;
 }
 
-fn validateGatherScatterStatic(base: TensorMeta, mode: usize, index: SsaTensor, data: ?SsaTensor) Error!void {
+fn validateGatherScatterStatic(
+    base: TensorMeta,
+    mode: usize,
+    index: SsaTensor,
+    data: ?SsaTensor,
+) Error!void {
     const n_modes = base.rank();
     if (mode >= n_modes) return Error.InvalidGatherScatterMode;
     if (index.shape_value.rank() != n_modes) return Error.RankMismatch;
@@ -1332,7 +1857,8 @@ fn validateGatherScatterStatic(base: TensorMeta, mode: usize, index: SsaTensor, 
     const base_shape = try base.layout_value.shape.flattenLeaves();
     const idx_shape = try index.shape_value.flattenLeaves();
     for (0..n_modes) |i| {
-        if (i != mode and idx_shape.at(i) > base_shape.at(i)) return Error.InvalidTensorShape;
+        if (i != mode and idx_shape.at(i) > base_shape.at(i))
+            return Error.InvalidTensorShape;
     }
     if (!index.dtype.isInteger()) return Error.InvalidElementType;
 }
@@ -1371,14 +1897,36 @@ pub fn makeTensor(input: MakeTensorInput, layout_value: Layout) Error!TensorMeta
     };
 }
 
-pub fn emitMakeTensor(builder: anytype, input: MakeTensorInput, layout_value: Layout) Error!TensorBuild {
+pub fn emitMakeTensor(
+    builder: anytype,
+    input: MakeTensorInput,
+    layout_value: Layout,
+) Error!TensorBuild {
     const meta = try makeTensor(input, layout_value);
     var type_buf: mlir.TextBuffer(512) = .{};
     try meta.tensorTypeText(&type_buf);
     const result_value = switch (input) {
-        .pointer => try builder.genericOp("cute.make_tensor", &.{.{ .value = mlir.Value.arg(0) }}, &.{}, &.{mlir.Type.raw("!cute.ptr")}, &.{mlir.Type.raw(type_buf.slice())}),
-        .identity_scalar, .identity_tuple => try builder.genericOp("cute.make_coord_tensor", &.{}, &.{}, &.{}, &.{mlir.Type.raw(type_buf.slice())}),
-        .mlir_value => |v| try builder.genericOp("cute.make_tensor", &.{.{ .value = v.value }}, &.{}, &.{mlir.Type.raw(v.dtype.mlir_type)}, &.{mlir.Type.raw(type_buf.slice())}),
+        .pointer => try builder.genericOp(
+            "cute.make_tensor",
+            &.{.{ .value = mlir.Value.arg(0) }},
+            &.{},
+            &.{mlir.Type.raw("!cute.ptr")},
+            &.{mlir.Type.raw(type_buf.slice())},
+        ),
+        .identity_scalar, .identity_tuple => try builder.genericOp(
+            "cute.make_coord_tensor",
+            &.{},
+            &.{},
+            &.{},
+            &.{mlir.Type.raw(type_buf.slice())},
+        ),
+        .mlir_value => |v| try builder.genericOp(
+            "cute.make_tensor",
+            &.{.{ .value = v.value }},
+            &.{},
+            &.{mlir.Type.raw(v.dtype.mlir_type)},
+            &.{mlir.Type.raw(type_buf.slice())},
+        ),
     };
     return .{ .meta = meta, .value = try TensorValue.initFromMeta(meta, result_value) };
 }
@@ -1390,13 +1938,19 @@ pub fn makeIdentityIteratorTensor(base: Tree, layout_value: Layout) Error!Tensor
     return TensorMeta.init(.{ .identity = {} }, layout_value, typing.Int32, .generic);
 }
 
-pub fn makeRmemTensorFromLayout(layout_value: Layout, dtype: typing.Numeric) Error!TensorMeta {
+pub fn makeRmemTensorFromLayout(
+    layout_value: Layout,
+    dtype: typing.Numeric,
+) Error!TensorMeta {
     var meta = try TensorMeta.init(.{ .rmem = {} }, layout_value, dtype, .generic);
     if (meta.dtype.kind == .boolean) meta.dtype = typing.Boolean;
     return meta;
 }
 
-pub fn makeRmemTensorLike(src: TensorLikeSource, dtype: ?typing.Numeric) Error!TensorMeta {
+pub fn makeRmemTensorLike(
+    src: TensorLikeSource,
+    dtype: ?typing.Numeric,
+) Error!TensorMeta {
     const shape_value = switch (src) {
         .meta => |m| m.layout_value.shape,
         .ssa => |s| s.shape_value,
@@ -1408,10 +1962,16 @@ pub fn makeRmemTensorLike(src: TensorLikeSource, dtype: ?typing.Numeric) Error!T
         .ssa => |s| s.dtype,
         else => typing.Float32,
     };
-    return makeRmemTensorFromLayout(try Layout.makeCompact(shape_value), dtype orelse source_dtype);
+    return makeRmemTensorFromLayout(
+        try Layout.makeCompact(shape_value),
+        dtype orelse source_dtype,
+    );
 }
 
-pub fn makeFragmentLike(src: TensorLikeSource, dtype: ?typing.Numeric) Error!TensorMeta {
+pub fn makeFragmentLike(
+    src: TensorLikeSource,
+    dtype: ?typing.Numeric,
+) Error!TensorMeta {
     // Fragment is kept as a distinct engine so later MMA lowering can
     // distinguish it from general rmem allocation.
     const shape_value = switch (src) {
@@ -1425,18 +1985,35 @@ pub fn makeFragmentLike(src: TensorLikeSource, dtype: ?typing.Numeric) Error!Ten
         .ssa => |s| s.dtype,
         else => typing.Float32,
     };
-    return TensorMeta.init(.{ .fragment = {} }, try Layout.makeCompact(shape_value), dtype orelse source_dtype, .generic);
+    return TensorMeta.init(
+        .{ .fragment = {} },
+        try Layout.makeCompact(shape_value),
+        dtype orelse source_dtype,
+        .generic,
+    );
 }
 
-pub fn makeTensorSsa(value: mlir.Value, shape_value: Tree, dtype: typing.Numeric) Error!SsaTensor {
+pub fn makeTensorSsa(
+    value: mlir.Value,
+    shape_value: Tree,
+    dtype: typing.Numeric,
+) Error!SsaTensor {
     return SsaTensor.init(value, shape_value, dtype);
 }
 
-pub fn makeFragmentLikeSsa(builder: anytype, src: SsaTensor, dtype: ?typing.Numeric) Error!SsaTensor {
+pub fn makeFragmentLikeSsa(
+    builder: anytype,
+    src: SsaTensor,
+    dtype: ?typing.Numeric,
+) Error!SsaTensor {
     return SsaTensor.empty(builder, src.shape_value, dtype orelse src.dtype);
 }
 
-pub fn makeRmemTensorLikeSsa(builder: anytype, src: SsaTensor, dtype: ?typing.Numeric) Error!SsaTensor {
+pub fn makeRmemTensorLikeSsa(
+    builder: anytype,
+    src: SsaTensor,
+    dtype: ?typing.Numeric,
+) Error!SsaTensor {
     return SsaTensor.empty(builder, src.shape_value, dtype orelse src.dtype);
 }
 
@@ -1464,16 +2041,31 @@ pub fn all(builder: anytype, src: SsaTensor) Error!SsaValue {
     return src.reduceAll(builder, .all);
 }
 
-pub fn reduce(builder: anytype, src: SsaTensor, op: ReduceOp, profile: ?*const Selector, init: ?SsaTensor) Error!ReduceResult {
+pub fn reduce(
+    builder: anytype,
+    src: SsaTensor,
+    op: ReduceOp,
+    profile: ?*const Selector,
+    init: ?SsaTensor,
+) Error!ReduceResult {
     if (profile) |p| {
         if (init) |i| return src.reduceProfileWithInit(builder, op, p, i);
         return src.reduceProfile(builder, op, p);
     }
-    if (init) |i| return .{ .scalar = try src.reduceAllWithInit(builder, op, try i.scalar()) };
+    if (init) |i| return .{ .scalar = try src.reduceAllWithInit(
+        builder,
+        op,
+        try i.scalar(),
+    ) };
     return .{ .scalar = try src.reduceAll(builder, op) };
 }
 
-pub fn emitGatherOptimized(builder: anytype, input: TensorValue, mode: usize, index: SsaTensor) Error!SsaTensor {
+pub fn emitGatherOptimized(
+    builder: anytype,
+    input: TensorValue,
+    mode: usize,
+    index: SsaTensor,
+) Error!SsaTensor {
     const plan = try validateGather(input.meta, mode, index);
     if (!plan.vectorized) return emitGather(builder, input, mode, index);
 
@@ -1483,19 +2075,47 @@ pub fn emitGatherOptimized(builder: anytype, input: TensorValue, mode: usize, in
     try index.vectorType(&idx_ty);
     try writeVectorType(&out_ty, index.shape_value, input.meta.dtype);
     try writeVectorType(&mask_ty, index.shape_value, typing.Boolean);
-    const mask = try builder.genericOp("vector.constant_mask", &.{}, &.{.{ .key = "dim_sizes", .value = "all" }}, &.{}, &.{mlir.Type.raw(mask_ty.slice())});
-    const pass = try builder.genericOp("llvm.mlir.poison", &.{}, &.{}, &.{}, &.{mlir.Type.raw(out_ty.slice())});
+    const mask = try builder.genericOp(
+        "vector.constant_mask",
+        &.{},
+        &.{.{ .key = "dim_sizes", .value = "all" }},
+        &.{},
+        &.{mlir.Type.raw(mask_ty.slice())},
+    );
+    const pass = try builder.genericOp(
+        "llvm.mlir.poison",
+        &.{},
+        &.{},
+        &.{},
+        &.{mlir.Type.raw(out_ty.slice())},
+    );
     const value = try builder.genericOp(
         "vector.gather",
-        &.{ .{ .value = input.value }, .{ .value = index.value }, .{ .value = mask }, .{ .value = pass } },
+        &.{
+            .{ .value = input.value },
+            .{ .value = index.value },
+            .{ .value = mask },
+            .{ .value = pass },
+        },
         &.{.{ .key = "alignment", .value = "1 : i64" }},
-        &.{ input.type_(), mlir.Type.raw(idx_ty.slice()), mlir.Type.raw(mask_ty.slice()), mlir.Type.raw(out_ty.slice()) },
+        &.{
+            input.type_(),
+            mlir.Type.raw(idx_ty.slice()),
+            mlir.Type.raw(mask_ty.slice()),
+            mlir.Type.raw(out_ty.slice()),
+        },
         &.{mlir.Type.raw(out_ty.slice())},
     );
     return SsaTensor.init(value, index.shape_value, input.meta.dtype);
 }
 
-pub fn emitScatterOptimized(builder: anytype, output: TensorValue, mode: usize, index: SsaTensor, data: SsaTensor) Error!void {
+pub fn emitScatterOptimized(
+    builder: anytype,
+    output: TensorValue,
+    mode: usize,
+    index: SsaTensor,
+    data: SsaTensor,
+) Error!void {
     const plan = try validateScatter(output.meta, mode, index, data);
     if (!plan.vectorized) return emitScatter(builder, output, mode, index, data);
 
@@ -1505,12 +2125,28 @@ pub fn emitScatterOptimized(builder: anytype, output: TensorValue, mode: usize, 
     try index.vectorType(&idx_ty);
     try data.vectorType(&data_ty);
     try writeVectorType(&mask_ty, index.shape_value, typing.Boolean);
-    const mask = try builder.genericOp("vector.constant_mask", &.{}, &.{.{ .key = "dim_sizes", .value = "all" }}, &.{}, &.{mlir.Type.raw(mask_ty.slice())});
+    const mask = try builder.genericOp(
+        "vector.constant_mask",
+        &.{},
+        &.{.{ .key = "dim_sizes", .value = "all" }},
+        &.{},
+        &.{mlir.Type.raw(mask_ty.slice())},
+    );
     try builder.operationNoResult(.{
         .name = "vector.scatter",
-        .operands = &.{ .{ .value = output.value }, .{ .value = index.value }, .{ .value = mask }, .{ .value = data.value } },
+        .operands = &.{
+            .{ .value = output.value },
+            .{ .value = index.value },
+            .{ .value = mask },
+            .{ .value = data.value },
+        },
         .attrs = &.{.{ .key = "alignment", .value = "1 : i64" }},
-        .operand_types = &.{ output.type_(), mlir.Type.raw(idx_ty.slice()), mlir.Type.raw(mask_ty.slice()), mlir.Type.raw(data_ty.slice()) },
+        .operand_types = &.{
+            output.type_(),
+            mlir.Type.raw(idx_ty.slice()),
+            mlir.Type.raw(mask_ty.slice()),
+            mlir.Type.raw(data_ty.slice()),
+        },
         .result_types = &.{},
     });
 }
@@ -1541,8 +2177,15 @@ test "tensor_ssa: tensor metadata selector access offsets pointer slices" {
 
     const slice_sel = Selector.fromComptime(.{ 2, keep });
     const sub = (try meta.access(&slice_sel)).tensor;
-    try std.testing.expectEqual(@as(usize, 0x1000 + 10 * 4), sub.engine.pointer.address);
-    try std.testing.expectEqualSlices(Scalar, &.{5}, (try sub.layout_value.shape.flattenLeaves()).slice());
+    try std.testing.expectEqual(
+        @as(usize, 0x1000 + 10 * 4),
+        sub.engine.pointer.address,
+    );
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{5},
+        (try sub.layout_value.shape.flattenLeaves()).slice(),
+    );
 }
 
 test "tensor_ssa: TensorValue emits scalar load and vector store" {
@@ -1550,7 +2193,11 @@ test "tensor_ssa: TensorValue emits scalar load and vector store" {
     const lay = layout.makeLayout(.{ 4, 4 }, .{ 4, 1 });
     const ptr = try runtime.Pointer.init(0x2000, typing.Float32, .gmem, null);
     const meta = try makePointerTensor(ptr, lay);
-    const tv = TensorValue.init(meta, mlir.Value.arg(0), "!cute.memref<ptr<f32, gmem, align=4>, layout<shape=(4,4), stride=(4,1)>>");
+    const tv = TensorValue.init(
+        meta,
+        mlir.Value.arg(0),
+        "!cute.memref<ptr<f32, gmem, align=4>, layout<shape=(4,4), stride=(4,1)>>",
+    );
     const sel = Selector.fromComptime(.{ 1, 2 });
     const access_value = try tv.access(&b, &sel);
     switch (access_value) {
@@ -1558,7 +2205,12 @@ test "tensor_ssa: TensorValue emits scalar load and vector store" {
         .tensor => return Error.InvalidTensorAccess,
     }
     const zero = try b.constantF(0.0, mlir.Type.f(32));
-    const data = try SsaTensor.full(&b, meta.layout_value.shape, typing.Float32, .{ .value = zero });
+    const data = try SsaTensor.full(
+        &b,
+        meta.layout_value.shape,
+        typing.Float32,
+        .{ .value = zero },
+    );
     try tv.store(&b, data, null);
     try std.testing.expect(std.mem.indexOf(u8, b.slice(), "cute.memref.load") != null);
     try std.testing.expect(std.mem.indexOf(u8, b.slice(), "cute.memref.store_vec") != null);
@@ -1576,8 +2228,14 @@ test "tensor_ssa: masked vector memory operations fail explicitly" {
     const data = try SsaTensor.full(&b, shape, typing.Float32, .{ .value = zero });
     const mask = try SsaTensor.full(&b, shape, typing.Boolean, .{ .value = flag });
 
-    try std.testing.expectError(Error.UnsupportedMaskedMemoryOperation, tv.load(&b, mask, data));
-    try std.testing.expectError(Error.UnsupportedMaskedMemoryOperation, tv.store(&b, data, mask));
+    try std.testing.expectError(
+        Error.UnsupportedMaskedMemoryOperation,
+        tv.load(&b, mask, data),
+    );
+    try std.testing.expectError(
+        Error.UnsupportedMaskedMemoryOperation,
+        tv.store(&b, data, mask),
+    );
 }
 
 test "tensor_ssa: SSA tensor arithmetic cast reshape bitcast where reduce" {
@@ -1586,7 +2244,12 @@ test "tensor_ssa: SSA tensor arithmetic cast reshape bitcast where reduce" {
     const zero = try b.constantI(0, mlir.Type.i(32));
     const one = try b.constantI(1, mlir.Type.i(32));
     const lhs = try SsaTensor.full(&b, shape, typing.Int32, .{ .value = zero });
-    const rhs = try SsaTensor.full(&b, Tree.fromComptime(.{1}), typing.Int32, .{ .value = one });
+    const rhs = try SsaTensor.full(
+        &b,
+        Tree.fromComptime(.{1}),
+        typing.Int32,
+        .{ .value = one },
+    );
     const sum = try lhs.binary(&b, .add, rhs);
     const cmp = try sum.binary(&b, .gt, lhs);
     _ = try SsaTensor.where_(&b, cmp, sum, lhs);
@@ -1606,7 +2269,11 @@ test "tensor_ssa: profile reduction emits multi reduction and preserves kept sha
     const prof = Selector.fromComptime(.{ keep, 0 });
     const reduced = try src.reduceProfile(&b, .add, &prof);
     const out = reduced.tensor;
-    try std.testing.expectEqualSlices(Scalar, &.{4}, (try out.shape_value.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{4},
+        (try out.shape_value.flattenLeaves()).slice(),
+    );
     try std.testing.expect(std.mem.indexOf(u8, b.slice(), "vector.multi_reduction") != null);
 }
 
@@ -1615,13 +2282,25 @@ test "tensor_ssa: gather scatter validation and emission" {
     const lay = layout.makeLayout(.{ 8, 4 }, .{ 1, 8 });
     const ptr = try runtime.Pointer.init(0x4000, typing.Float32, .gmem, null);
     const meta = try makePointerTensor(ptr, lay);
-    const tv = TensorValue.init(meta, mlir.Value.arg(0), "!cute.memref<ptr<f32, gmem, align=4>, layout<shape=(8,4), stride=(1,8)>>");
+    const tv = TensorValue.init(
+        meta,
+        mlir.Value.arg(0),
+        "!cute.memref<ptr<f32, gmem, align=4>, layout<shape=(8,4), stride=(1,8)>>",
+    );
     const idx_zero = try b.constantI(0, mlir.Type.i(32));
-    const index = try SsaTensor.full(&b, Tree.fromComptime(.{ 8, 4 }), typing.Int32, .{ .value = idx_zero });
+    const index = try SsaTensor.full(
+        &b,
+        Tree.fromComptime(.{ 8, 4 }),
+        typing.Int32,
+        .{ .value = idx_zero },
+    );
     const gathered = try emitGather(&b, tv, 0, index);
     try emitScatter(&b, tv, 0, index, gathered);
     try std.testing.expect((try validateGather(meta, 0, index)).vectorized);
-    try std.testing.expectError(Error.InvalidGatherScatterMode, validateGather(meta, 2, index));
+    try std.testing.expectError(
+        Error.InvalidGatherScatterMode,
+        validateGather(meta, 2, index),
+    );
     try std.testing.expect(std.mem.indexOf(u8, b.slice(), "cute.gather") != null);
     try std.testing.expect(std.mem.indexOf(u8, b.slice(), "cute.scatter") != null);
 }
@@ -1650,7 +2329,11 @@ test "tensor_ssa+: TensorSSA slicing and slice insertion emit strided vector ops
         .tensor => |t| t,
         .element => return Error.InvalidVectorSlice,
     };
-    try std.testing.expectEqualSlices(Scalar, &.{5}, (try sub.shape_value.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{5},
+        (try sub.shape_value.flattenLeaves()).slice(),
+    );
     _ = try src.withSlice(&b, &sel, sub);
     try std.testing.expect(std.mem.indexOf(u8, b.slice(), "vector.extract_strided_slice") != null);
     try std.testing.expect(std.mem.indexOf(u8, b.slice(), "vector.insert_strided_slice") != null);
@@ -1660,12 +2343,34 @@ test "tensor_ssa+: TensorSSA element replacement and rank broadcast" {
     var b: mlir.Builder(8192) = .{};
     const zero = try b.constantI(0, mlir.Type.i(32));
     const one = try b.constantI(1, mlir.Type.i(32));
-    const a = try SsaTensor.full(&b, Tree.fromComptime(.{ 2, 1 }), typing.Int32, .{ .value = zero });
-    const c = try SsaTensor.full(&b, Tree.fromComptime(.{ 1, 3 }), typing.Int32, .{ .value = one });
+    const a = try SsaTensor.full(
+        &b,
+        Tree.fromComptime(.{ 2, 1 }),
+        typing.Int32,
+        .{ .value = zero },
+    );
+    const c = try SsaTensor.full(
+        &b,
+        Tree.fromComptime(.{ 1, 3 }),
+        typing.Int32,
+        .{ .value = one },
+    );
     const sum = try a.binary(&b, .add, c);
-    try std.testing.expectEqualSlices(Scalar, &.{ 2, 3 }, (try sum.shape_value.flattenLeaves()).slice());
-    const replaced = try sum.withElement(&b, Tree.fromComptime(.{ 1, 2 }), SsaValue.init(one, typing.Int32));
-    try std.testing.expectEqualSlices(Scalar, &.{ 2, 3 }, (try replaced.shape_value.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 2, 3 },
+        (try sum.shape_value.flattenLeaves()).slice(),
+    );
+    const replaced = try sum.withElement(
+        &b,
+        Tree.fromComptime(.{ 1, 2 }),
+        SsaValue.init(one, typing.Int32),
+    );
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 2, 3 },
+        (try replaced.shape_value.flattenLeaves()).slice(),
+    );
     try std.testing.expect(std.mem.indexOf(u8, b.slice(), "vector.insertelement") != null);
 }
 
@@ -1674,7 +2379,11 @@ test "tensor_ssa+: boolean vector load store uses i8 memory representation" {
     const lay = layout.makeLayout(.{32}, .{1});
     const ptr = try runtime.Pointer.init(0x8000, typing.Boolean, .gmem, null);
     const meta = try makePointerTensor(ptr, lay);
-    const tv = TensorValue.init(meta, mlir.Value.arg(0), "!cute.memref<ptr<i8, gmem, align=1>, layout<shape=32, stride=1>>");
+    const tv = TensorValue.init(
+        meta,
+        mlir.Value.arg(0),
+        "!cute.memref<ptr<i8, gmem, align=1>, layout<shape=32, stride=1>>",
+    );
     const data = try tv.load(&b, null, null);
     try std.testing.expectEqual(typing.NumericKind.boolean, data.dtype.kind);
     try tv.store(&b, data, null);
@@ -1685,7 +2394,12 @@ test "tensor_ssa+: boolean vector load store uses i8 memory representation" {
 test "tensor_ssa+: full_like empty_like and bool ir_value_int8 helpers" {
     var b: mlir.Builder(8192) = .{};
     const flag = try b.constantI(1, mlir.Type.i(1));
-    const src = try SsaTensor.full(&b, Tree.fromComptime(.{4}), typing.Boolean, .{ .value = flag });
+    const src = try SsaTensor.full(
+        &b,
+        Tree.fromComptime(.{4}),
+        typing.Boolean,
+        .{ .value = flag },
+    );
     _ = try src.irValueInt8(&b);
     _ = try fullLike(&b, src, .{ .value = flag }, null);
     _ = try emptyLike(&b, src, typing.Int8);
@@ -1701,9 +2415,20 @@ test "tensor_ssa finish: make_tensor variants and tensor-like constructors" {
     try std.testing.expectEqual(typing.NumericKind.float, ptr_meta.dtype.kind);
     const id_meta = try makeTensor(.{ .identity_scalar = 7 }, lay);
     try std.testing.expectEqual(typing.NumericKind.signed_int, id_meta.dtype.kind);
-    const mlir_meta = try makeTensor(.{ .mlir_value = .{ .value = mlir.Value.arg(1), .dtype = typing.Int32, .memspace = .smem } }, lay);
+    const mlir_meta = try makeTensor(
+        .{
+            .mlir_value = .{ .value = mlir.Value.arg(1), .dtype = typing.Int32, .memspace = .smem },
+        },
+        lay,
+    );
     try std.testing.expectEqual(typing.AddressSpace.smem, mlir_meta.memspace);
-    _ = try emitMakeTensor(&b, .{ .mlir_value = .{ .value = mlir.Value.arg(1), .dtype = typing.Int32, .memspace = .smem } }, lay);
+    _ = try emitMakeTensor(
+        &b,
+        .{
+            .mlir_value = .{ .value = mlir.Value.arg(1), .dtype = typing.Int32, .memspace = .smem },
+        },
+        lay,
+    );
 
     const ssa = try SsaTensor.empty(&b, Tree.fromComptime(.{ 2, 3 }), typing.Float32);
     const rmem_like = try makeRmemTensorLike(.{ .ssa = ssa }, typing.Float16);
@@ -1719,7 +2444,12 @@ test "tensor_ssa finish: make_tensor variants and tensor-like constructors" {
 test "tensor_ssa finish: unsigned arithmetic and conversion lower with unsigned ops" {
     var b: mlir.Builder(8192) = .{};
     const z = try b.constantI(0, mlir.Type.i(32));
-    const a = try SsaTensor.full(&b, Tree.fromComptime(.{4}), typing.Uint32, .{ .value = z });
+    const a = try SsaTensor.full(
+        &b,
+        Tree.fromComptime(.{4}),
+        typing.Uint32,
+        .{ .value = z },
+    );
     const b2 = try SsaTensor.ones(&b, Tree.fromComptime(.{4}), typing.Uint32);
     _ = try a.div(&b, b2);
     _ = try a.mod(&b, b2);
@@ -1739,11 +2469,20 @@ test "tensor_ssa finish: reductions support explicit scalar and profile initiali
     const src = try SsaTensor.full(&b, shape, typing.Float32, .{ .value = one });
     const scalar_init = SsaValue.init(zero, typing.Float32);
     _ = try src.reduceAllWithInit(&b, .add, scalar_init);
-    const init_tensor = try SsaTensor.full(&b, Tree.fromComptime(.{2}), typing.Float32, .{ .value = zero });
+    const init_tensor = try SsaTensor.full(
+        &b,
+        Tree.fromComptime(.{2}),
+        typing.Float32,
+        .{ .value = zero },
+    );
     const prof = Selector.fromComptime(.{ keep, 0 });
     const reduced = try reduce(&b, src, .max, &prof, init_tensor);
     switch (reduced) {
-        .tensor => |t| try std.testing.expectEqualSlices(Scalar, &.{2}, (try t.shape_value.flattenLeaves()).slice()),
+        .tensor => |t| try std.testing.expectEqualSlices(
+            Scalar,
+            &.{2},
+            (try t.shape_value.flattenLeaves()).slice(),
+        ),
         .scalar => return Error.InvalidReductionProfile,
     }
     try std.testing.expect(std.mem.indexOf(u8, b.slice(), "vector.multi_reduction") != null);
@@ -1754,9 +2493,18 @@ test "tensor_ssa finish: optimized vector gather scatter paths are available" {
     const lay = layout.makeLayout(.{ 8, 2 }, .{ 1, 8 });
     const ptr = try runtime.Pointer.init(0xa000, typing.Float32, .gmem, null);
     const meta = try makePointerTensor(ptr, lay);
-    const tv = TensorValue.init(meta, mlir.Value.arg(0), "!cute.memref<ptr<f32, gmem, align=4>, layout<shape=(8,2), stride=(1,8)>>");
+    const tv = TensorValue.init(
+        meta,
+        mlir.Value.arg(0),
+        "!cute.memref<ptr<f32, gmem, align=4>, layout<shape=(8,2), stride=(1,8)>>",
+    );
     const idx_zero = try b.constantI(0, mlir.Type.i(32));
-    const index = try SsaTensor.full(&b, Tree.fromComptime(.{ 8, 2 }), typing.Int32, .{ .value = idx_zero });
+    const index = try SsaTensor.full(
+        &b,
+        Tree.fromComptime(.{ 8, 2 }),
+        typing.Int32,
+        .{ .value = idx_zero },
+    );
     const gathered = try emitGatherOptimized(&b, tv, 0, index);
     try emitScatterOptimized(&b, tv, 0, index, gathered);
     try std.testing.expect(std.mem.indexOf(u8, b.slice(), "vector.gather") != null);
@@ -1766,7 +2514,12 @@ test "tensor_ssa finish: optimized vector gather scatter paths are available" {
 test "tensor_ssa finish: public convenience wrappers cover unary/binary/any/all" {
     var b: mlir.Builder(16384) = .{};
     const one = try b.constantI(1, mlir.Type.i(32));
-    const a = try SsaTensor.full(&b, Tree.fromComptime(.{2}), typing.Int32, .{ .value = one });
+    const a = try SsaTensor.full(
+        &b,
+        Tree.fromComptime(.{2}),
+        typing.Int32,
+        .{ .value = one },
+    );
     const b2 = try SsaTensor.ones(&b, Tree.fromComptime(.{2}), typing.Int32);
     _ = try a.add(&b, b2);
     _ = try a.sub(&b, b2);

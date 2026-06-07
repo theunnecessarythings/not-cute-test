@@ -11,7 +11,11 @@ pub const JitArgument = struct {
     kind: JitArgumentKind,
     mlir_type: mlir.Type,
 
-    pub fn init(name: []const u8, kind: JitArgumentKind, mlir_type: mlir.Type) Error!JitArgument {
+    pub fn init(
+        name: []const u8,
+        kind: JitArgumentKind,
+        mlir_type: mlir.Type,
+    ) Error!JitArgument {
         try mlir.validateSymbol(name);
         return .{ .name = name, .kind = kind, .mlir_type = mlir_type };
     }
@@ -72,7 +76,11 @@ pub const JitExecutor = struct {
         return .{ .signature = signature, .artifact = artifact };
     }
 
-    pub fn prepareLaunch(self: JitExecutor, module: runtime.BinaryModule, config: runtime.LaunchConfig) Error!runtime.LaunchRecord {
+    pub fn prepareLaunch(
+        self: JitExecutor,
+        module: runtime.BinaryModule,
+        config: runtime.LaunchConfig,
+    ) Error!runtime.LaunchRecord {
         const fnc = try runtime.KernelFunction.init(module, self.artifact.entry);
         return runtime.recordLaunch(fnc, config, self.signature.runtimeArgCount());
     }
@@ -84,9 +92,16 @@ pub const JitArgAdapterRegistry = struct {
 
     pub const Entry = struct { type_name: []const u8, adapter_name: []const u8 };
 
-    pub fn register(self: *JitArgAdapterRegistry, type_name: []const u8, adapter_name: []const u8) Error!void {
+    pub fn register(
+        self: *JitArgAdapterRegistry,
+        type_name: []const u8,
+        adapter_name: []const u8,
+    ) Error!void {
         if (self.len >= self.entries.len) return Error.TooManySpecializations;
-        self.entries[self.len] = .{ .type_name = type_name, .adapter_name = adapter_name };
+        self.entries[self.len] = .{
+            .type_name = type_name,
+            .adapter_name = adapter_name,
+        };
         self.len += 1;
     }
 
@@ -112,8 +127,20 @@ test "jit: signature cache key and launch preparation" {
     try sig.writeCacheKey(&key);
     try std.testing.expect(std.mem.indexOf(u8, key.slice(), "M:constexpr") != null);
 
-    const art: KernelArtifact = .{ .mlir_path = "kernel.mlir", .cubin_path = "kernel.cubin", .entry = "kernel" };
+    const art: KernelArtifact = .{
+        .mlir_path = "kernel.mlir",
+        .cubin_path = "kernel.cubin",
+        .entry = "kernel",
+    };
     const exec = JitExecutor.init(sig, art);
-    const rec = try exec.prepareLaunch(try runtime.BinaryModule.init("kernel.cubin", .cubin), try runtime.LaunchConfig.init(try runtime.Dim3.init(1, 1, 1), try runtime.Dim3.init(128, 1, 1), 0, .{}));
+    const rec = try exec.prepareLaunch(
+        try runtime.BinaryModule.init("kernel.cubin", .cubin),
+        try runtime.LaunchConfig.init(
+            try runtime.Dim3.init(1, 1, 1),
+            try runtime.Dim3.init(128, 1, 1),
+            0,
+            .{},
+        ),
+    );
     try std.testing.expectEqual(@as(usize, 1), rec.argument_count);
 }

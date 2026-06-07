@@ -54,7 +54,8 @@ pub const CompileOptions = struct {
 
     pub fn validate(self: CompileOptions) Error!void {
         if (self.opt_level > 3) return Error.InvalidCompileOption;
-        if (self.arch.len == 0 or self.function_name.len == 0) return Error.InvalidCompileOption;
+        if (self.arch.len == 0 or self.function_name.len == 0)
+            return Error.InvalidCompileOption;
         try mlir.validateSymbol(self.function_name);
     }
 
@@ -94,7 +95,11 @@ pub const CompileOptions = struct {
         }
     }
 
-    pub fn writePipeline(self: CompileOptions, flavor: CompileFlavor, out: anytype) Error!void {
+    pub fn writePipeline(
+        self: CompileOptions,
+        flavor: CompileFlavor,
+        out: anytype,
+    ) Error!void {
         var opts: mlir.TextBuffer(1024) = .{};
         try self.writeCuteDslOptionString(&opts);
         switch (flavor) {
@@ -171,7 +176,11 @@ pub const CompilePlan = struct {
         try out.append(self.input_mlir);
     }
 
-    pub fn writeCacheKey(self: CompilePlan, signature: *const jit.JitSignature, out: anytype) Error!void {
+    pub fn writeCacheKey(
+        self: CompilePlan,
+        signature: *const jit.JitSignature,
+        out: anytype,
+    ) Error!void {
         try out.append("tool=");
         try out.append(self.tools.cute_opt);
         try out.append(";flavor=");
@@ -186,7 +195,10 @@ pub const CompilePlan = struct {
         try signature.writeCacheKey(out);
     }
 
-    pub fn hashCacheKey(self: CompilePlan, signature: *const jit.JitSignature) Error!u64 {
+    pub fn hashCacheKey(
+        self: CompilePlan,
+        signature: *const jit.JitSignature,
+    ) Error!u64 {
         var buf: mlir.TextBuffer(4096) = .{};
         try self.writeCacheKey(signature, &buf);
         return std.hash.Wyhash.hash(0, buf.slice());
@@ -258,7 +270,11 @@ pub const PackedArg = struct {
         return .{ .name = name, .kind = .stream, .stream = s };
     }
 
-    pub fn scalarBytes(name: []const u8, kind: PackedArgKind, bytes: []const u8) Error!PackedArg {
+    pub fn scalarBytes(
+        name: []const u8,
+        kind: PackedArgKind,
+        bytes: []const u8,
+    ) Error!PackedArg {
         try mlir.validateSymbol(name);
         if (bytes.len == 0) return Error.InvalidPackedArgument;
         return .{ .name = name, .kind = kind, .bytes = bytes };
@@ -313,7 +329,10 @@ pub const LaunchPlan = struct {
     args: ArgPack,
 
     pub fn prepareRecord(self: LaunchPlan) Error!runtime.LaunchRecord {
-        const k = try runtime.KernelFunction.init(self.module, self.symbols.function_name);
+        const k = try runtime.KernelFunction.init(
+            self.module,
+            self.symbols.function_name,
+        );
         return runtime.recordLaunch(k, self.config, self.args.runtimeSlotCount());
     }
 
@@ -380,8 +399,15 @@ pub const CudaDriverAbi = struct {
     pub const cuGetErrorString = "cuGetErrorString";
 };
 
-pub fn writeAotHeader(out: anytype, symbols: RuntimeSymbols, args: []const export_.CArgument) Error!void {
-    var cfg = try export_.WrapperConfig.init(symbols.function_name, symbols.function_name);
+pub fn writeAotHeader(
+    out: anytype,
+    symbols: RuntimeSymbols,
+    args: []const export_.CArgument,
+) Error!void {
+    var cfg = try export_.WrapperConfig.init(
+        symbols.function_name,
+        symbols.function_name,
+    );
     cfg.extern_c = true;
     try export_.writeCompleteHeader(out, cfg, args);
 }
@@ -392,7 +418,11 @@ pub fn writeCInterfaceDeclaration(out: anytype, symbols: RuntimeSymbols) Error!v
     try out.append("(void **args);\n");
 }
 
-pub fn writeCInterfaceWrapperSource(out: anytype, symbols: RuntimeSymbols, args: []const export_.CArgument) Error!void {
+pub fn writeCInterfaceWrapperSource(
+    out: anytype,
+    symbols: RuntimeSymbols,
+    args: []const export_.CArgument,
+) Error!void {
     try out.append("#include <stdint.h>\n#include <stdbool.h>\n\n");
     try writeCInterfaceDeclaration(out, symbols);
     try out.append("int ");
@@ -428,7 +458,12 @@ pub fn sourceFindingCuteOptSummary(out: anytype) Error!void {
 }
 
 test "runtime_plan: CuteDSL-style compile option and pipeline strings" {
-    const opts: CompileOptions = .{ .function_name = "gemm", .arch = "sm_100", .keep_ptx = true, .preserve_line_info = true };
+    const opts: CompileOptions = .{
+        .function_name = "gemm",
+        .arch = "sm_100",
+        .keep_ptx = true,
+        .preserve_line_info = true,
+    };
     var p: mlir.TextBuffer(2048) = .{};
     try opts.writePipeline(.cutlass_dsl, &p);
     try std.testing.expect(std.mem.indexOf(u8, p.slice(), "cute-to-nvvm") != null);
@@ -440,7 +475,11 @@ test "runtime_plan: CuteDSL-style compile option and pipeline strings" {
 test "runtime_plan: compile command and cache key are deterministic" {
     var sig: jit.JitSignature = .{};
     try sig.append(try jit.JitArgument.init("A", .pointer, mlir.Type.raw("!cute.ptr")));
-    const plan: CompilePlan = .{ .options = .{ .function_name = "kernel" }, .input_mlir = "kernel.mlir", .output_cubin = "kernel.cubin" };
+    const plan: CompilePlan = .{
+        .options = .{ .function_name = "kernel" },
+        .input_mlir = "kernel.mlir",
+        .output_cubin = "kernel.cubin",
+    };
     var cmd: mlir.TextBuffer(4096) = .{};
     try plan.writeCuteOptCommand(&cmd);
     try std.testing.expect(std.mem.startsWith(u8, cmd.slice(), "cute-opt --pass-pipeline="));
@@ -457,18 +496,31 @@ test "runtime_plan: MLIR runtime symbol names mirror upstream convention" {
     try std.testing.expectEqualStrings("_mlir_gemm_cuda_init", out.slice());
     out.clear();
     try syms.writeCInterface(&out);
-    try std.testing.expectEqualStrings("_mlir_gemm__mlir_ciface_cutlass_host_func", out.slice());
+    try std.testing.expectEqualStrings(
+        "_mlir_gemm__mlir_ciface_cutlass_host_func",
+        out.slice(),
+    );
 }
 
 test "runtime_plan: packed arguments prepare a launch record" {
-    const ptr = try runtime.Pointer.init(0x1000, @import("typing.zig").Float32, .gmem, null);
+    const ptr = try runtime.Pointer.init(
+        0x1000,
+        @import("typing.zig").Float32,
+        .gmem,
+        null,
+    );
     var args: ArgPack = .{};
     try args.append(try PackedArg.ptr("A", ptr));
     try args.append(try PackedArg.streamArg("stream", .{}));
     const lp: LaunchPlan = .{
         .symbols = try RuntimeSymbols.init("gemm", "kernel_main"),
         .module = try runtime.BinaryModule.init("gemm.cubin", .cubin),
-        .config = try runtime.LaunchConfig.init(try runtime.Dim3.init(2, 1, 1), try runtime.Dim3.init(128, 1, 1), 0, .{}),
+        .config = try runtime.LaunchConfig.init(
+            try runtime.Dim3.init(2, 1, 1),
+            try runtime.Dim3.init(128, 1, 1),
+            0,
+            .{},
+        ),
         .args = args,
     };
     const rec = try lp.prepareRecord();

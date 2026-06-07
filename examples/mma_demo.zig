@@ -8,10 +8,30 @@ pub fn main() !void {
     const b_layout = cute.layout.makeCompactLayout(.{ 1, 1 });
     const c_layout = cute.layout.makeCompactLayout(.{ 1, 1 });
 
-    const a_meta = try cute.tensor_ssa.TensorMeta.init(.{ .mlir_value = cute.mlir_text.Value.arg(0) }, a_layout, cute.typing.Float32, .generic);
-    const b_meta = try cute.tensor_ssa.TensorMeta.init(.{ .mlir_value = cute.mlir_text.Value.arg(1) }, b_layout, cute.typing.Float32, .generic);
-    const c_meta = try cute.tensor_ssa.TensorMeta.init(.{ .mlir_value = cute.mlir_text.Value.arg(2) }, c_layout, cute.typing.Float32, .generic);
-    const d_meta = try cute.tensor_ssa.TensorMeta.init(.{ .mlir_value = cute.mlir_text.Value.arg(3) }, c_layout, cute.typing.Float32, .generic);
+    const a_meta = try cute.tensor_ssa.TensorMeta.init(
+        .{ .mlir_value = cute.mlir_text.Value.arg(0) },
+        a_layout,
+        cute.typing.Float32,
+        .generic,
+    );
+    const b_meta = try cute.tensor_ssa.TensorMeta.init(
+        .{ .mlir_value = cute.mlir_text.Value.arg(1) },
+        b_layout,
+        cute.typing.Float32,
+        .generic,
+    );
+    const c_meta = try cute.tensor_ssa.TensorMeta.init(
+        .{ .mlir_value = cute.mlir_text.Value.arg(2) },
+        c_layout,
+        cute.typing.Float32,
+        .generic,
+    );
+    const d_meta = try cute.tensor_ssa.TensorMeta.init(
+        .{ .mlir_value = cute.mlir_text.Value.arg(3) },
+        c_layout,
+        cute.typing.Float32,
+        .generic,
+    );
 
     var a_type: cute.mlir_text.TextBuffer(512) = .{};
     var b_type: cute.mlir_text.TextBuffer(512) = .{};
@@ -31,10 +51,26 @@ pub fn main() !void {
         },
         null,
     );
-    const a = cute.tensor_ssa.TensorValue.init(a_meta, cute.mlir_text.Value.arg(0), a_type.slice());
-    const b = cute.tensor_ssa.TensorValue.init(b_meta, cute.mlir_text.Value.arg(1), b_type.slice());
-    const c = cute.tensor_ssa.TensorValue.init(c_meta, cute.mlir_text.Value.arg(2), c_type.slice());
-    const d = cute.tensor_ssa.TensorValue.init(d_meta, cute.mlir_text.Value.arg(3), c_type.slice());
+    const a = cute.tensor_ssa.TensorValue.init(
+        a_meta,
+        cute.mlir_text.Value.arg(0),
+        a_type.slice(),
+    );
+    const b = cute.tensor_ssa.TensorValue.init(
+        b_meta,
+        cute.mlir_text.Value.arg(1),
+        b_type.slice(),
+    );
+    const c = cute.tensor_ssa.TensorValue.init(
+        c_meta,
+        cute.mlir_text.Value.arg(2),
+        c_type.slice(),
+    );
+    const d = cute.tensor_ssa.TensorValue.init(
+        d_meta,
+        cute.mlir_text.Value.arg(3),
+        c_type.slice(),
+    );
     const plan = try cute.copy_mma.lowerMmaAtom(&builder, atom, d, a, b, c);
     try builder.ret(&.{}, &.{});
     try builder.endFunc();

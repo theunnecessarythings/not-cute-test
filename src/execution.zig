@@ -29,7 +29,8 @@ pub const ArtifactSet = struct {
     manifest_path: ?[]const u8 = null,
 
     pub fn validate(self: ArtifactSet) Error!void {
-        if (self.mlir_path.len == 0 or self.cubin_path.len == 0) return Error.MissingArtifact;
+        if (self.mlir_path.len == 0 or self.cubin_path.len == 0)
+            return Error.MissingArtifact;
     }
 };
 
@@ -40,11 +41,18 @@ pub const KernelBinding = struct {
 
     pub fn init(prefix: []const u8, function_name: []const u8) Error!KernelBinding {
         _ = try runtime_plan.RuntimeSymbols.init(prefix, function_name);
-        return .{ .prefix = prefix, .public_name = function_name, .entry_symbol = function_name };
+        return .{
+            .prefix = prefix,
+            .public_name = function_name,
+            .entry_symbol = function_name,
+        };
     }
 
     pub fn writeCInterfaceSymbol(self: KernelBinding, out: anytype) Error!void {
-        const symbols = try runtime_plan.RuntimeSymbols.init(self.prefix, self.public_name);
+        const symbols = try runtime_plan.RuntimeSymbols.init(
+            self.prefix,
+            self.public_name,
+        );
         try symbols.writeCInterface(out);
     }
 };
@@ -104,31 +112,58 @@ pub const ExecutionResult = struct {
 
 pub fn runDry(executable: ExecutableKernel) Error!ExecutionResult {
     const report = try executable.dryRun();
-    return .{ .mode = .dry_run, .launched = false, .argument_slots = report.argument_slots, .message = "validated without launching CUDA" };
+    return .{
+        .mode = .dry_run,
+        .launched = false,
+        .argument_slots = report.argument_slots,
+        .message = "validated without launching CUDA",
+    };
 }
 
-pub fn launchWithCudaDriver(allocator: std.mem.Allocator, executable: ExecutableKernel, args: *cuda.LaunchArguments) Error!ExecutionResult {
+pub fn launchWithCudaDriver(
+    allocator: std.mem.Allocator,
+    executable: ExecutableKernel,
+    args: *cuda.LaunchArguments,
+) Error!ExecutionResult {
     try executable.validate();
     trace("CUDA: opening driver and creating context...\n");
-    var session = try cuda.ManagedSession.open(executable.compile_plan.tools.cuda_driver_library, 0);
+    var session = try cuda.ManagedSession.open(
+        executable.compile_plan.tools.cuda_driver_library,
+        0,
+    );
     defer session.close();
     trace("CUDA: loading module...\n");
     const module = try session.loadModule(allocator, executable.artifacts.cubin_path);
     defer cuda.unloadModule(session.driver.symbols, module) catch {};
     trace("CUDA: resolving kernel symbol...\n");
-    const function = try session.loadFunction(allocator, module, executable.binding.entry_symbol);
+    const function = try session.loadFunction(
+        allocator,
+        module,
+        executable.binding.entry_symbol,
+    );
     trace("CUDA: launching kernel...\n");
     try session.launch(function, executable.launch_plan.config, args);
     trace("CUDA: synchronizing stream...\n");
     try cuda.synchronizeStream(session.driver.symbols, session.stream);
     trace("CUDA: launch complete.\n");
-    return .{ .mode = .cuda_driver, .launched = true, .argument_slots = args.len, .message = "launched via CUDA driver" };
+    return .{
+        .mode = .cuda_driver,
+        .launched = true,
+        .argument_slots = args.len,
+        .message = "launched via CUDA driver",
+    };
 }
 
-pub fn launchCopyWithCudaDriver(allocator: std.mem.Allocator, executable: ExecutableKernel) Error!ExecutionResult {
+pub fn launchCopyWithCudaDriver(
+    allocator: std.mem.Allocator,
+    executable: ExecutableKernel,
+) Error!ExecutionResult {
     try executable.validate();
     trace("CUDA: opening driver and creating context...\n");
-    var session = try cuda.ManagedSession.open(executable.compile_plan.tools.cuda_driver_library, 0);
+    var session = try cuda.ManagedSession.open(
+        executable.compile_plan.tools.cuda_driver_library,
+        0,
+    );
     defer session.close();
 
     const src = try cuda.allocateDevice(session.driver.symbols, @sizeOf(f32));
@@ -143,7 +178,11 @@ pub fn launchCopyWithCudaDriver(allocator: std.mem.Allocator, executable: Execut
     const module = try session.loadModule(allocator, executable.artifacts.cubin_path);
     defer cuda.unloadModule(session.driver.symbols, module) catch {};
     trace("CUDA: resolving kernel symbol...\n");
-    const function = try session.loadFunction(allocator, module, executable.binding.entry_symbol);
+    const function = try session.loadFunction(
+        allocator,
+        module,
+        executable.binding.entry_symbol,
+    );
 
     var src_ptr = src.ptr;
     var dst_ptr = dst.ptr;
@@ -158,19 +197,40 @@ pub fn launchCopyWithCudaDriver(allocator: std.mem.Allocator, executable: Execut
     trace("CUDA: synchronizing stream...\n");
     try cuda.synchronizeStream(session.driver.symbols, session.stream);
     trace("CUDA: launch complete.\n");
-    return .{ .mode = .cuda_driver, .launched = true, .argument_slots = args.len, .message = "launched via CUDA driver" };
+    return .{
+        .mode = .cuda_driver,
+        .launched = true,
+        .argument_slots = args.len,
+        .message = "launched via CUDA driver",
+    };
 }
 
-pub fn writeExecutionCWrapper(out: anytype, executable: ExecutableKernel, args: []const export_.CArgument) Error!void {
+pub fn writeExecutionCWrapper(
+    out: anytype,
+    executable: ExecutableKernel,
+    args: []const export_.CArgument,
+) Error!void {
     try executable.validate();
     try out.append("// Generated by not-cute execution wiring.\n");
     try cuda.writeCDriverDeclarations(out);
     try out.append("\n");
-    try runtime_plan.writeCInterfaceWrapperSource(out, executable.launch_plan.symbols, args);
+    try runtime_plan.writeCInterfaceWrapperSource(
+        out,
+        executable.launch_plan.symbols,
+        args,
+    );
 }
 
-pub fn makeExecutableKernel(plan: *const runtime_plan.CompilePlan, launch: *const runtime_plan.LaunchPlan, mlir_path: []const u8, cubin_path: []const u8) Error!ExecutableKernel {
-    const binding = try KernelBinding.init(launch.symbols.prefix, launch.symbols.function_name);
+pub fn makeExecutableKernel(
+    plan: *const runtime_plan.CompilePlan,
+    launch: *const runtime_plan.LaunchPlan,
+    mlir_path: []const u8,
+    cubin_path: []const u8,
+) Error!ExecutableKernel {
+    const binding = try KernelBinding.init(
+        launch.symbols.prefix,
+        launch.symbols.function_name,
+    );
     return .{
         .compile_plan = plan,
         .launch_plan = launch,
@@ -201,7 +261,12 @@ pub fn writeBuildRunbook(out: anytype, executable: ExecutableKernel) Error!void 
 test "execution: executable kernel manifest includes compile and launch wiring" {
     var args: runtime_plan.ArgPack = .{};
     try args.append(try runtime_plan.PackedArg.scalarBytes("alpha", .scalar_u64, "12345678"));
-    const cfg = try runtime.LaunchConfig.init(try runtime.Dim3.init(1, 1, 1), try runtime.Dim3.init(128, 1, 1), 0, runtime.Stream.default());
+    const cfg = try runtime.LaunchConfig.init(
+        try runtime.Dim3.init(1, 1, 1),
+        try runtime.Dim3.init(128, 1, 1),
+        0,
+        runtime.Stream.default(),
+    );
     const symbols = try runtime_plan.RuntimeSymbols.init("notcute", "kernel");
     const launch: runtime_plan.LaunchPlan = .{
         .symbols = symbols,
@@ -209,8 +274,17 @@ test "execution: executable kernel manifest includes compile and launch wiring" 
         .config = cfg,
         .args = args,
     };
-    const compile: runtime_plan.CompilePlan = .{ .options = .{ .function_name = "kernel" }, .input_mlir = "kernel.mlir", .output_cubin = "kernel.cubin" };
-    const exe = try makeExecutableKernel(&compile, &launch, "kernel.mlir", "kernel.cubin");
+    const compile: runtime_plan.CompilePlan = .{
+        .options = .{ .function_name = "kernel" },
+        .input_mlir = "kernel.mlir",
+        .output_cubin = "kernel.cubin",
+    };
+    const exe = try makeExecutableKernel(
+        &compile,
+        &launch,
+        "kernel.mlir",
+        "kernel.cubin",
+    );
     const res = try runDry(exe);
     try std.testing.expectEqual(@as(usize, 1), res.argument_slots);
     var out: mlir.TextBuffer(4096) = .{};
@@ -220,7 +294,12 @@ test "execution: executable kernel manifest includes compile and launch wiring" 
 }
 
 test "execution: runbook documents CUDA driver launch sequence" {
-    const cfg = try runtime.LaunchConfig.init(try runtime.Dim3.init(2, 1, 1), try runtime.Dim3.init(64, 1, 1), 0, runtime.Stream.default());
+    const cfg = try runtime.LaunchConfig.init(
+        try runtime.Dim3.init(2, 1, 1),
+        try runtime.Dim3.init(64, 1, 1),
+        0,
+        runtime.Stream.default(),
+    );
     const symbols = try runtime_plan.RuntimeSymbols.init("demo", "copy_kernel");
     const launch: runtime_plan.LaunchPlan = .{
         .symbols = symbols,
@@ -228,7 +307,11 @@ test "execution: runbook documents CUDA driver launch sequence" {
         .config = cfg,
         .args = .{},
     };
-    const compile: runtime_plan.CompilePlan = .{ .options = .{ .function_name = "copy_kernel" }, .input_mlir = "copy.mlir", .output_cubin = "copy.cubin" };
+    const compile: runtime_plan.CompilePlan = .{
+        .options = .{ .function_name = "copy_kernel" },
+        .input_mlir = "copy.mlir",
+        .output_cubin = "copy.cubin",
+    };
     const exe = try makeExecutableKernel(&compile, &launch, "copy.mlir", "copy.cubin");
     var out: mlir.TextBuffer(2048) = .{};
     try writeBuildRunbook(&out, exe);

@@ -58,8 +58,6 @@ The repository exposes cohesive library modules. The current source layout is or
 
 - `core.zig`: integrated source-named static core API compatibility layer.
 - `src/arch_atoms.zig` — source-named nvgpu/arch copy and MMA constructors.
-- `src/arch_manifest.zig` — generated upstream architecture inventory.
-- `src/arch_validation.zig` — typed architecture operation validation.
 ## Newly integrated source-name API modules
 
 - `arch_nvvm.zig` — NVVM wrapper intrinsic emission.
@@ -68,13 +66,12 @@ The repository exposes cohesive library modules. The current source layout is or
 - `runtime_cuda.zig` — CUDA runtime descriptor layer.
 - `compiler_api.zig` — compile option/plan compatibility layer.
 - `tree_utils.zig` — PyTree/tree utility compatibility layer.
-- `nvgpu_aliases.zig` — source-derived nvgpu operation aliases.
 - `cute_compat.zig` — remaining integrated `cutlass.cute.*` compatibility names.
 
 ## Latest integrated pipeline/API/architecture pass
 
 The library includes `compile_pipeline.zig`, `semantics.zig`, and
-`arch_validation.zig`. These add CUTLASS bridge artifact planning, deeper
+`arch_catalog.zig`. These add CUTLASS bridge artifact planning, deeper
 shape/stride/coordinate semantics, and stricter architecture operation
 validation for cp.async/TMA/WGMMA/tcgen05-style descriptors. See
 `docs/PIPELINE_API_ARCH_IMPLEMENTATION.md`.

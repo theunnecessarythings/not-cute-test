@@ -63,10 +63,13 @@ pub const KernelOptions = struct {
     grid_z: u32 = 1,
 
     pub fn validate(self: KernelOptions) Error!void {
-        if (self.name.len == 0 or self.element.len == 0) return Error.InvalidKernelBuilder;
+        if (self.name.len == 0 or self.element.len == 0)
+            return Error.InvalidKernelBuilder;
         try mlir.validateSymbol(self.name);
-        if (self.vector_width == 0 or self.tile_m == 0 or self.tile_n == 0 or self.tile_k == 0) return Error.InvalidKernelShape;
-        if (self.alignment == 0 or self.block_threads == 0 or self.grid_x == 0 or self.grid_y == 0 or self.grid_z == 0) return Error.InvalidKernelShape;
+        if (self.vector_width == 0 or self.tile_m == 0 or self.tile_n == 0 or self.tile_k == 0)
+            return Error.InvalidKernelShape;
+        if (self.alignment == 0 or self.block_threads == 0 or self.grid_x == 0 or self.grid_y == 0 or self.grid_z == 0)
+            return Error.InvalidKernelShape;
         switch (self.kind) {
             .sm80_gemm => if (self.arch != .sm80) return Error.InvalidKernelArchitecture,
             .sm90_tma_wgmma => if (self.arch != .sm90) return Error.InvalidKernelArchitecture,
@@ -85,12 +88,24 @@ pub const KernelOptions = struct {
         );
     }
 
-    pub fn compileRequest(self: KernelOptions, input_mlir: []const u8, work_dir: []const u8) Error!compile_pipeline.CompileRequest {
+    pub fn compileRequest(
+        self: KernelOptions,
+        input_mlir: []const u8,
+        work_dir: []const u8,
+    ) Error!compile_pipeline.CompileRequest {
         try self.validate();
-        return compile_pipeline.defaultKernelCompileRequest(input_mlir, work_dir, self.name, self.arch.compileArch());
+        return compile_pipeline.defaultKernelCompileRequest(
+            input_mlir,
+            work_dir,
+            self.name,
+            self.arch.compileArch(),
+        );
     }
 
-    pub fn launchPlan(self: KernelOptions, cubin_path: []const u8) Error!runtime_plan.LaunchPlan {
+    pub fn launchPlan(
+        self: KernelOptions,
+        cubin_path: []const u8,
+    ) Error!runtime_plan.LaunchPlan {
         const cfg = try self.launchConfig();
         const symbols = try runtime_plan.RuntimeSymbols.init("notcute", self.name);
         return .{
@@ -109,10 +124,14 @@ pub const KernelModule = struct {
     pub fn validate(self: KernelModule) Error!void {
         try self.options.validate();
         if (self.mlir_text.len == 0) return Error.InvalidKernelBuilder;
-        if (std.mem.indexOf(u8, self.mlir_text, "gpu.module") == null) return Error.InvalidKernelBuilder;
-        if (std.mem.indexOf(u8, self.mlir_text, "gpu.func @") == null) return Error.InvalidKernelBuilder;
-        if (std.mem.indexOf(u8, self.mlir_text, "gpu.return") == null) return Error.InvalidKernelBuilder;
-        if (std.mem.indexOf(u8, self.mlir_text, "!cute.tensor") != null) return Error.InvalidKernelBuilder;
+        if (std.mem.indexOf(u8, self.mlir_text, "gpu.module") == null)
+            return Error.InvalidKernelBuilder;
+        if (std.mem.indexOf(u8, self.mlir_text, "gpu.func @") == null)
+            return Error.InvalidKernelBuilder;
+        if (std.mem.indexOf(u8, self.mlir_text, "gpu.return") == null)
+            return Error.InvalidKernelBuilder;
+        if (std.mem.indexOf(u8, self.mlir_text, "!cute.tensor") != null)
+            return Error.InvalidKernelBuilder;
     }
 };
 
@@ -134,7 +153,11 @@ pub fn writeKernelModule(out: anytype, options: KernelOptions) Error!void {
 pub fn writeCopyKernel(out: anytype, options: KernelOptions) Error!void {
     try options.validate();
     try writeHeader(out, options);
-    try writeGpuKernelStart(out, options, "(%src: !memref_scalar, %dst: !memref_scalar, %coord: !coord_zero)");
+    try writeGpuKernelStart(
+        out,
+        options,
+        "(%src: !memref_scalar, %dst: !memref_scalar, %coord: !coord_zero)",
+    );
     try out.append("      %v = cute.memref.load(%src, %coord) : (!memref_scalar, !coord_zero) -> ");
     try out.append(options.element);
     try out.append("\n");
@@ -170,7 +193,11 @@ pub fn writeTiledCopyKernel(out: anytype, options: KernelOptions) Error!void {
     try out.append("!memref_partition = !cute.memref<");
     try out.append(options.element);
     try out.append(", gmem, \"((1,1),1,1):((0,0),0,0)\">\n");
-    try writeGpuKernelStart(out, options, "(%src: !memref_tile, %dst: !memref_tile, %coord: !coord_zero)");
+    try writeGpuKernelStart(
+        out,
+        options,
+        "(%src: !memref_tile, %dst: !memref_tile, %coord: !coord_zero)",
+    );
     try out.append("      %atom = cute.make_atom() : () -> !cute_nvgpu.atom.universal_copy<");
     try out.append(options.element);
     try out.append(", 32 b>\n");
@@ -192,7 +219,11 @@ pub fn writeGemmMainloop(out: anytype, options: KernelOptions) Error!void {
 pub fn writeEpilogueKernel(out: anytype, options: KernelOptions) Error!void {
     try options.validate();
     try writeHeader(out, options);
-    try writeGpuKernelStart(out, options, "(%acc: !memref_vec, %bias: !memref_vec, %dst: !memref_vec)");
+    try writeGpuKernelStart(
+        out,
+        options,
+        "(%acc: !memref_vec, %bias: !memref_vec, %dst: !memref_vec)",
+    );
     try out.append("      %a = cute.memref.load_vec(%acc) : (!memref_vec) -> vector<");
     try out.appendUnsigned(options.vector_width);
     try out.append("x");
@@ -217,18 +248,38 @@ pub fn writeEpilogueKernel(out: anytype, options: KernelOptions) Error!void {
 }
 
 pub fn writeSm80GemmKernel(out: anytype, options: KernelOptions) Error!void {
-    try writeMmaLikeKernel(out, options, "SM80 GEMM builder: cp.async plus warp MMA ready skeleton", "sm80_universal_fma");
+    try writeMmaLikeKernel(
+        out,
+        options,
+        "SM80 GEMM builder: cp.async plus warp MMA ready skeleton",
+        "sm80_universal_fma",
+    );
 }
 
 pub fn writeSm90TmaWgmmaKernel(out: anytype, options: KernelOptions) Error!void {
-    try writeMmaLikeKernel(out, options, "SM90 TMA/WGMMA builder: TMA descriptors plus WGMMA ready skeleton", "sm90_wgmma");
+    try writeMmaLikeKernel(
+        out,
+        options,
+        "SM90 TMA/WGMMA builder: TMA descriptors plus WGMMA ready skeleton",
+        "sm90_wgmma",
+    );
 }
 
 pub fn writeSm100Tcgen05Kernel(out: anytype, options: KernelOptions) Error!void {
-    try writeMmaLikeKernel(out, options, "SM100 tcgen05 builder: tensor memory and tcgen05 ready skeleton", "sm100_tcgen05");
+    try writeMmaLikeKernel(
+        out,
+        options,
+        "SM100 tcgen05 builder: tensor memory and tcgen05 ready skeleton",
+        "sm100_tcgen05",
+    );
 }
 
-fn writeMmaLikeKernel(out: anytype, options: KernelOptions, label: []const u8, flavor: []const u8) Error!void {
+fn writeMmaLikeKernel(
+    out: anytype,
+    options: KernelOptions,
+    label: []const u8,
+    flavor: []const u8,
+) Error!void {
     try options.validate();
     try writeHeader(out, options);
     try out.append("// ");
@@ -239,7 +290,11 @@ fn writeMmaLikeKernel(out: anytype, options: KernelOptions, label: []const u8, f
     try out.append("\n");
     try out.append("!mma_f32 = !cute.tiled_mma<!cute_nvgpu.atom.universal_fma<1x1x1, (f32, f32) -> f32 >, atom_layout_MNK = <\"(1,1,1):(1,1,1)\">>\n");
     try out.append("!frag = !cute.memref<f32, gmem, \"(1,1,1):(0,0,0)\">\n");
-    try writeGpuKernelStart(out, options, "(%a_in: !memref_tile, %b_in: !memref_tile, %c_in: !memref_tile, %d_out: !memref_tile, %coord: !coord_zero)");
+    try writeGpuKernelStart(
+        out,
+        options,
+        "(%a_in: !memref_tile, %b_in: !memref_tile, %c_in: !memref_tile, %d_out: !memref_tile, %coord: !coord_zero)",
+    );
     try out.append("      %atom = cute.make_atom() : () -> !cute_nvgpu.atom.universal_fma<1x1x1, (f32, f32) -> f32 >\n");
     try out.append("      %tiled = cute.make_tiled_mma(%atom) : !mma_f32\n");
     try out.append("      %a = cute.tiled.mma.partition A(%tiled, %a_in, %coord) : (!mma_f32, !memref_tile, !coord_zero) -> !frag\n");
@@ -274,7 +329,11 @@ fn writeHeader(out: anytype, options: KernelOptions) Error!void {
     try out.append(", gmem, \"(1,1):(1,1)\">\n");
 }
 
-fn writeGpuKernelStart(out: anytype, options: KernelOptions, signature: []const u8) Error!void {
+fn writeGpuKernelStart(
+    out: anytype,
+    options: KernelOptions,
+    signature: []const u8,
+) Error!void {
     try out.append("module {\n");
     try out.append("  gpu.module @notcute_kernels {\n");
     try out.append("    gpu.func @");
@@ -318,9 +377,21 @@ pub fn defaultOptions(kind: KernelKind) KernelOptions {
         .mma_microkernel => .{ .name = "mma_microkernel", .kind = .mma_microkernel },
         .gemm_mainloop => .{ .name = "gemm_mainloop", .kind = .gemm_mainloop },
         .epilogue => .{ .name = "epilogue_kernel", .kind = .epilogue },
-        .sm80_gemm => .{ .name = "sm80_gemm_kernel", .kind = .sm80_gemm, .arch = .sm80 },
-        .sm90_tma_wgmma => .{ .name = "sm90_tma_wgmma_kernel", .kind = .sm90_tma_wgmma, .arch = .sm90 },
-        .sm100_tcgen05 => .{ .name = "sm100_tcgen05_kernel", .kind = .sm100_tcgen05, .arch = .sm100 },
+        .sm80_gemm => .{
+            .name = "sm80_gemm_kernel",
+            .kind = .sm80_gemm,
+            .arch = .sm80,
+        },
+        .sm90_tma_wgmma => .{
+            .name = "sm90_tma_wgmma_kernel",
+            .kind = .sm90_tma_wgmma,
+            .arch = .sm90,
+        },
+        .sm100_tcgen05 => .{
+            .name = "sm100_tcgen05_kernel",
+            .kind = .sm100_tcgen05,
+            .arch = .sm100,
+        },
     };
 }
 
@@ -341,12 +412,18 @@ test "kernel_builders: tiled copy kernel is compile-request ready" {
     var out: mlir.TextBuffer(20000) = .{};
     try writeKernelModule(&out, opts);
     try std.testing.expect(std.mem.indexOf(u8, out.slice(), "cute.copy(%tiled") != null);
-    const req = try opts.compileRequest("tiled_copy.mlir", "zig-cache/not-cute-artifacts/tiled_copy");
+    const req = try opts.compileRequest(
+        "tiled_copy.mlir",
+        "zig-cache/not-cute-artifacts/tiled_copy",
+    );
     var cmd: mlir.TextBuffer(4096) = .{};
     try compile_pipeline.bridgeCompileCommandText(.{}, req, &cmd);
     try std.testing.expect(std.mem.indexOf(u8, cmd.slice(), "compile-artifact") != null);
 }
 
 test "kernel_builders: architecture-specific builders reject mismatched arch" {
-    try std.testing.expectError(Error.InvalidKernelArchitecture, (KernelOptions{ .name = "bad", .kind = .sm80_gemm, .arch = .sm90 }).validate());
+    try std.testing.expectError(
+        Error.InvalidKernelArchitecture,
+        (KernelOptions{ .name = "bad", .kind = .sm80_gemm, .arch = .sm90 }).validate(),
+    );
 }

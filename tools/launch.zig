@@ -60,7 +60,12 @@ fn run(init: std.process.Init.Minimal) !void {
         .output_cubin = cubin_path,
     };
 
-    const exe = try execution.makeExecutableKernel(&compile, &launch, "dummy.mlir", cubin_path);
+    const exe = try execution.makeExecutableKernel(
+        &compile,
+        &launch,
+        "dummy.mlir",
+        cubin_path,
+    );
 
     stderr("Attempting CUDA kernel launch...\n");
 

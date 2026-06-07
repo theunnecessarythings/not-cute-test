@@ -22,14 +22,29 @@ pub const Pointer = struct {
     memspace: typing.AddressSpace = .generic,
     assumed_align: usize = 1,
 
-    pub fn init(address: usize, dtype: typing.Numeric, memspace: typing.AddressSpace, assumed_align: ?usize) Error!Pointer {
+    pub fn init(
+        address: usize,
+        dtype: typing.Numeric,
+        memspace: typing.AddressSpace,
+        assumed_align: ?usize,
+    ) Error!Pointer {
         const alignment = assumed_align orelse dtype.bytes();
         if (alignment == 0 or address % alignment != 0) return Error.MisalignedPointer;
-        return .{ .address = address, .dtype = dtype, .memspace = memspace, .assumed_align = alignment };
+        return .{
+            .address = address,
+            .dtype = dtype,
+            .memspace = memspace,
+            .assumed_align = alignment,
+        };
     }
 
     pub fn nullptr(dtype: typing.Numeric, memspace: typing.AddressSpace) Pointer {
-        return .{ .address = 0, .dtype = dtype, .memspace = memspace, .assumed_align = dtype.bytes() };
+        return .{
+            .address = 0,
+            .dtype = dtype,
+            .memspace = memspace,
+            .assumed_align = dtype.bytes(),
+        };
     }
 
     pub fn sizeInBytes(_: Pointer) usize {
@@ -44,8 +59,16 @@ pub const Pointer = struct {
         else
             self.address - @as(usize, @intCast(-delta));
         const offset_bytes: usize = if (delta >= 0) @intCast(delta) else @intCast(-delta);
-        const alignment = gcd(self.assumed_align, if (offset_bytes == 0) self.assumed_align else offset_bytes);
-        return .{ .address = new_addr, .dtype = self.dtype, .memspace = self.memspace, .assumed_align = alignment };
+        const alignment = gcd(
+            self.assumed_align,
+            if (offset_bytes == 0) self.assumed_align else offset_bytes,
+        );
+        return .{
+            .address = new_addr,
+            .dtype = self.dtype,
+            .memspace = self.memspace,
+            .assumed_align = alignment,
+        };
     }
 
     pub fn sub(self: Pointer, offset_elements: isize) Pointer {
@@ -70,7 +93,11 @@ pub const Pointer = struct {
     pub fn writeRepr(self: Pointer, out: anytype) Error!void {
         try out.append("Ptr<0x");
         var tmp: [32]u8 = undefined;
-        const printed = std.fmt.bufPrint(&tmp, "{x:0>16}", .{self.address}) catch unreachable;
+        const printed = std.fmt.bufPrint(
+            &tmp,
+            "{x:0>16}",
+            .{self.address},
+        ) catch unreachable;
         try out.append(printed);
         try out.append("@");
         try out.append(self.memspace.mlirName());
@@ -113,7 +140,11 @@ pub const TensorDescriptor = struct {
     dynamic_strides: DynamicMask = .{},
     use_32bit_stride: bool = false,
 
-    pub fn init(pointer: Pointer, shape: layout.Tree, stride: layout.Tree) Error!TensorDescriptor {
+    pub fn init(
+        pointer: Pointer,
+        shape: layout.Tree,
+        stride: layout.Tree,
+    ) Error!TensorDescriptor {
         if (!shape.sameProfile(&stride)) return Error.InvalidTensorDescriptor;
         try shape.assertPositive();
         return .{ .pointer = pointer, .shape = shape, .stride = stride };
@@ -142,17 +173,22 @@ pub const TensorDescriptor = struct {
         return @intCast(bytes);
     }
 
-    pub fn markLayoutDynamic(self: *TensorDescriptor, leading_dim: ?usize) Error!void {
+    pub fn markLayoutDynamic(self: *TensorDescriptor, leadingDim: ?usize) Error!void {
         const leaves = try self.stride.flattenLeaves();
-        if (leading_dim) |dim| {
-            if (dim >= leaves.len or leaves.at(dim) != 1) return Error.InvalidTensorDescriptor;
+        if (leadingDim) |dim| {
+            if (dim >= leaves.len or leaves.at(dim) != 1)
+                return Error.InvalidTensorDescriptor;
         }
         for (0..leaves.len) |i| {
-            if (leading_dim == null or i != leading_dim.?) try self.dynamic_strides.mark(i);
+            if (leadingDim == null or i != leadingDim.?) try self.dynamic_strides.mark(i);
         }
     }
 
-    pub fn markCompactShapeDynamic(self: *TensorDescriptor, mode: usize, divisibility: u64) Error!void {
+    pub fn markCompactShapeDynamic(
+        self: *TensorDescriptor,
+        mode: usize,
+        divisibility: u64,
+    ) Error!void {
         if (divisibility == 0) return Error.InvalidDynamicMask;
         const leaves = try self.shape.flattenLeaves();
         if (mode >= leaves.len) return Error.InvalidDynamicMask;
@@ -161,7 +197,13 @@ pub const TensorDescriptor = struct {
     }
 
     pub fn typedTensor(self: TensorDescriptor) Error!typing.TypedTensor {
-        return typing.TypedTensor.init(self.pointer.dtype, self.shape, self.stride, self.pointer.memspace, self.pointer.assumed_align);
+        return typing.TypedTensor.init(
+            self.pointer.dtype,
+            self.shape,
+            self.stride,
+            self.pointer.memspace,
+            self.pointer.assumed_align,
+        );
     }
 
     pub fn writeMlirType(self: TensorDescriptor, out: anytype) Error!void {
@@ -186,19 +228,48 @@ pub const FakeTensor = struct {
     dynamic_shapes: DynamicMask = .{},
     dynamic_strides: DynamicMask = .{},
 
-    pub fn compact(dtype: typing.Numeric, shape: layout.Tree, memspace: typing.AddressSpace, assumed_align: ?usize) Error!FakeTensor {
+    pub fn compact(
+        dtype: typing.Numeric,
+        shape: layout.Tree,
+        memspace: typing.AddressSpace,
+        assumed_align: ?usize,
+    ) Error!FakeTensor {
         const compact_layout = try layout.Layout.makeCompact(shape);
-        return init(dtype, compact_layout.shape, compact_layout.stride, memspace, assumed_align);
+        return init(
+            dtype,
+            compact_layout.shape,
+            compact_layout.stride,
+            memspace,
+            assumed_align,
+        );
     }
 
-    pub fn init(dtype: typing.Numeric, shape: layout.Tree, stride: layout.Tree, memspace: typing.AddressSpace, assumed_align: ?usize) Error!FakeTensor {
+    pub fn init(
+        dtype: typing.Numeric,
+        shape: layout.Tree,
+        stride: layout.Tree,
+        memspace: typing.AddressSpace,
+        assumed_align: ?usize,
+    ) Error!FakeTensor {
         if (!shape.sameProfile(&stride)) return Error.ProfileMismatch;
         try shape.assertPositive();
-        return .{ .dtype = dtype, .shape = shape, .stride = stride, .memspace = memspace, .assumed_align = assumed_align orelse dtype.bytes() };
+        return .{
+            .dtype = dtype,
+            .shape = shape,
+            .stride = stride,
+            .memspace = memspace,
+            .assumed_align = assumed_align orelse dtype.bytes(),
+        };
     }
 
     pub fn typedTensor(self: FakeTensor) Error!typing.TypedTensor {
-        return typing.TypedTensor.init(self.dtype, self.shape, self.stride, self.memspace, self.assumed_align);
+        return typing.TypedTensor.init(
+            self.dtype,
+            self.shape,
+            self.stride,
+            self.memspace,
+            self.assumed_align,
+        );
     }
 
     pub fn sizeInBytes(self: FakeTensor) Error!usize {
@@ -271,9 +342,19 @@ pub const LaunchConfig = struct {
     dynamic_smem_bytes: usize = 0,
     stream: Stream = .{},
 
-    pub fn init(grid: Dim3, block: Dim3, dynamic_smem_bytes: usize, stream: Stream) Error!LaunchConfig {
+    pub fn init(
+        grid: Dim3,
+        block: Dim3,
+        dynamic_smem_bytes: usize,
+        stream: Stream,
+    ) Error!LaunchConfig {
         if (grid.volume() == 0 or block.volume() == 0) return Error.InvalidLaunchShape;
-        return .{ .grid = grid, .block = block, .dynamic_smem_bytes = dynamic_smem_bytes, .stream = stream };
+        return .{
+            .grid = grid,
+            .block = block,
+            .dynamic_smem_bytes = dynamic_smem_bytes,
+            .stream = stream,
+        };
     }
 };
 
@@ -281,7 +362,10 @@ pub const BinaryModule = struct {
     image_path: []const u8,
     format: enum { cubin, fatbin, ptx, object } = .cubin,
 
-    pub fn init(image_path: []const u8, format: @FieldType(BinaryModule, "format")) Error!BinaryModule {
+    pub fn init(
+        image_path: []const u8,
+        format: @FieldType(BinaryModule, "format"),
+    ) Error!BinaryModule {
         if (image_path.len == 0) return Error.InvalidLibraryPath;
         return .{ .image_path = image_path, .format = format };
     }
@@ -303,19 +387,39 @@ pub const LaunchRecord = struct {
     argument_count: usize,
 };
 
-pub fn makePtr(address: usize, dtype: typing.Numeric, memspace: typing.AddressSpace, assumed_align: ?usize) Error!Pointer {
+pub fn makePtr(
+    address: usize,
+    dtype: typing.Numeric,
+    memspace: typing.AddressSpace,
+    assumed_align: ?usize,
+) Error!Pointer {
     return Pointer.init(address, dtype, memspace, assumed_align);
 }
 
-pub fn makeFakeCompactTensor(dtype: typing.Numeric, shape: layout.Tree, memspace: typing.AddressSpace, assumed_align: ?usize) Error!FakeTensor {
+pub fn makeFakeCompactTensor(
+    dtype: typing.Numeric,
+    shape: layout.Tree,
+    memspace: typing.AddressSpace,
+    assumed_align: ?usize,
+) Error!FakeTensor {
     return FakeTensor.compact(dtype, shape, memspace, assumed_align);
 }
 
-pub fn makeFakeTensor(dtype: typing.Numeric, shape: layout.Tree, stride: layout.Tree, memspace: typing.AddressSpace, assumed_align: ?usize) Error!FakeTensor {
+pub fn makeFakeTensor(
+    dtype: typing.Numeric,
+    shape: layout.Tree,
+    stride: layout.Tree,
+    memspace: typing.AddressSpace,
+    assumed_align: ?usize,
+) Error!FakeTensor {
     return FakeTensor.init(dtype, shape, stride, memspace, assumed_align);
 }
 
-pub fn recordLaunch(kernel: KernelFunction, config: LaunchConfig, argument_count: usize) LaunchRecord {
+pub fn recordLaunch(
+    kernel: KernelFunction,
+    config: LaunchConfig,
+    argument_count: usize,
+) LaunchRecord {
     return .{ .kernel = kernel, .config = config, .argument_count = argument_count };
 }
 
@@ -336,7 +440,10 @@ test "runtime: pointer alignment and pointer arithmetic" {
     const q = p.add(3);
     try std.testing.expectEqual(@as(usize, 0x100c), q.address);
     try std.testing.expectEqual(@as(usize, 4), q.assumed_align);
-    try std.testing.expectError(Error.MisalignedPointer, Pointer.init(0x1002, typing.Float32, .gmem, 4));
+    try std.testing.expectError(
+        Error.MisalignedPointer,
+        Pointer.init(0x1002, typing.Float32, .gmem, 4),
+    );
 }
 
 test "runtime: fake tensor and descriptor MLIR type" {
@@ -352,7 +459,12 @@ test "runtime: fake tensor and descriptor MLIR type" {
 test "runtime: launch record is validated" {
     const module = try BinaryModule.init("kernel.cubin", .cubin);
     const k = try KernelFunction.init(module, "kernel_main");
-    const cfg = try LaunchConfig.init(try Dim3.init(2, 1, 1), try Dim3.init(128, 1, 1), 4096, .{});
+    const cfg = try LaunchConfig.init(
+        try Dim3.init(2, 1, 1),
+        try Dim3.init(128, 1, 1),
+        4096,
+        .{},
+    );
     const rec = recordLaunch(k, cfg, 3);
     try std.testing.expectEqual(@as(usize, 3), rec.argument_count);
     try std.testing.expectEqual(@as(u64, 128), rec.config.block.volume());

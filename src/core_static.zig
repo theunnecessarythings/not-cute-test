@@ -145,7 +145,11 @@ fn divExactOrCeil(a: Scalar, b: Scalar) Scalar {
 }
 
 pub fn ceilDiv(input: *const Tree, tiler: *const Tree) Error!Tree {
-    const padded_tiler = if (input.rank() >= tiler.rank()) try append(tiler, 1, input.rank()) else return Error.RankMismatch;
+    const padded_tiler = if (input.rank() >= tiler.rank()) try append(
+        tiler,
+        1,
+        input.rank(),
+    ) else return Error.RankMismatch;
     if (!input.sameProfile(&padded_tiler)) return Error.ProfileMismatch;
     return tuple.zipLeaves(input, &padded_tiler, ceilDivScalar);
 }
@@ -156,7 +160,11 @@ fn ceilDivScalar(a: Scalar, b: Scalar) Scalar {
 }
 
 pub fn roundUp(a: *const Tree, b: *const Tree) Error!Tree {
-    const padded_b = if (a.rank() >= b.rank()) try append(b, 1, a.rank()) else return Error.RankMismatch;
+    const padded_b = if (a.rank() >= b.rank()) try append(
+        b,
+        1,
+        a.rank(),
+    ) else return Error.RankMismatch;
     if (!a.sameProfile(&padded_b)) return Error.ProfileMismatch;
     return tuple.zipLeaves(a, &padded_b, roundUpScalar);
 }
@@ -204,7 +212,11 @@ pub fn makeOrderedLayout(shape: Tree, order: []const usize) Error!Layout {
         if (idx >= flat_shape.len or seen[idx]) return Error.InvalidSelection;
         seen[idx] = true;
         strides.set(idx, stride_value);
-        stride_value = std.math.mul(Scalar, stride_value, flat_shape.at(idx)) catch return Error.Overflow;
+        stride_value = std.math.mul(
+            Scalar,
+            stride_value,
+            flat_shape.at(idx),
+        ) catch return Error.Overflow;
     }
     return Layout.init(shape, try Tree.fromProfileAndLeaves(&shape, strides.slice()));
 }
@@ -280,7 +292,11 @@ test "core_static: get select append prepend flatten" {
     try std.testing.expectEqualSlices(Scalar, &.{3}, (try got.flattenLeaves()).slice());
 
     const sel = try select(&t, &.{ 2, 0 });
-    try std.testing.expectEqualSlices(Scalar, &.{ 5, 2 }, (try sel.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 5, 2 },
+        (try sel.flattenLeaves()).slice(),
+    );
 
     const flat = try flatten(&t);
     try std.testing.expectEqual(@as(usize, 4), flat.rank());
@@ -290,17 +306,32 @@ test "core_static: shape math" {
     const a = Tree.fromComptime(.{ 10, 6 });
     const b = Tree.fromComptime(.{ 3, 4 });
     const c = try ceilDiv(&a, &b);
-    try std.testing.expectEqualSlices(Scalar, &.{ 4, 2 }, (try c.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 4, 2 },
+        (try c.flattenLeaves()).slice(),
+    );
     const r = try roundUp(&a, &b);
-    try std.testing.expectEqualSlices(Scalar, &.{ 12, 8 }, (try r.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 12, 8 },
+        (try r.flattenLeaves()).slice(),
+    );
 }
 
 test "core_static: ordered layout and filter zeros" {
     const shape = Tree.fromComptime(.{ 2, 3, 4 });
     const ordered = try makeOrderedLayout(shape, &.{ 2, 1, 0 });
-    try std.testing.expectEqual(@as(Scalar, 1 * 12 + 2 * 4 + 3), try ordered.crd2idxFlat(&.{ 1, 2, 3 }));
+    try std.testing.expectEqual(
+        @as(Scalar, 1 * 12 + 2 * 4 + 3),
+        try ordered.crd2idxFlat(&.{ 1, 2, 3 }),
+    );
 
     const with_zero = layout.makeLayout(.{ 2, 3, 4 }, .{ 12, 0, 1 });
     const filtered = try filterZeros(&with_zero);
-    try std.testing.expectEqualSlices(Scalar, &.{ 2, 4 }, (try filtered.shape.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 2, 4 },
+        (try filtered.shape.flattenLeaves()).slice(),
+    );
 }

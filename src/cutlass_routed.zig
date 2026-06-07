@@ -23,13 +23,19 @@ pub const RoutedFixture = struct {
     mlir_text: []const u8,
 
     pub fn validate(self: RoutedFixture) Error!void {
-        if (self.name.len == 0 or self.mlir_text.len == 0) return Error.InvalidRoutedFixture;
+        if (self.name.len == 0 or self.mlir_text.len == 0)
+            return Error.InvalidRoutedFixture;
         try mlir_harness.validateGeneratedMlir(self.mlir_text);
-        if (std.mem.indexOf(u8, self.mlir_text, "!cute.tensor") != null) return Error.InvalidRoutedFixture;
-        if (std.mem.indexOf(u8, self.mlir_text, "cute.memref_load") != null) return Error.InvalidRoutedFixture;
-        if (std.mem.indexOf(u8, self.mlir_text, "cute.memref_store") != null) return Error.InvalidRoutedFixture;
-        if (std.mem.indexOf(u8, self.mlir_text, "cute.tiled_copy_") != null) return Error.InvalidRoutedFixture;
-        if (std.mem.indexOf(u8, self.mlir_text, "cute.tiled_mma_") != null) return Error.InvalidRoutedFixture;
+        if (std.mem.indexOf(u8, self.mlir_text, "!cute.tensor") != null)
+            return Error.InvalidRoutedFixture;
+        if (std.mem.indexOf(u8, self.mlir_text, "cute.memref_load") != null)
+            return Error.InvalidRoutedFixture;
+        if (std.mem.indexOf(u8, self.mlir_text, "cute.memref_store") != null)
+            return Error.InvalidRoutedFixture;
+        if (std.mem.indexOf(u8, self.mlir_text, "cute.tiled_copy_") != null)
+            return Error.InvalidRoutedFixture;
+        if (std.mem.indexOf(u8, self.mlir_text, "cute.tiled_mma_") != null)
+            return Error.InvalidRoutedFixture;
     }
 };
 
@@ -67,9 +73,21 @@ pub const mma_atom_fixture =
 ;
 
 pub const routed_fixtures = [_]RoutedFixture{
-    .{ .name = "cutlass_routed_tensor_vector", .kind = .tensor_vector, .mlir_text = tensor_vector_fixture },
-    .{ .name = "cutlass_routed_copy_atom", .kind = .copy_atom, .mlir_text = copy_atom_fixture },
-    .{ .name = "cutlass_routed_mma_atom", .kind = .mma_atom, .mlir_text = mma_atom_fixture },
+    .{
+        .name = "cutlass_routed_tensor_vector",
+        .kind = .tensor_vector,
+        .mlir_text = tensor_vector_fixture,
+    },
+    .{
+        .name = "cutlass_routed_copy_atom",
+        .kind = .copy_atom,
+        .mlir_text = copy_atom_fixture,
+    },
+    .{
+        .name = "cutlass_routed_mma_atom",
+        .kind = .mma_atom,
+        .mlir_text = mma_atom_fixture,
+    },
 };
 
 pub fn fixtureByName(name: []const u8) ?RoutedFixture {
@@ -82,12 +100,25 @@ pub fn fixtureByName(name: []const u8) ?RoutedFixture {
 pub fn emitTensorVectorModule(out: anytype) Error!void {
     var builder: mlir.Builder(4096) = .{};
     const layout_value = try layout.Layout.makeCompact(layout.Tree.fromComptime(.{4}));
-    const meta = try tensor_ssa.TensorMeta.init(.{ .mlir_value = mlir.Value.arg(0) }, layout_value, typing.Float32, .gmem);
+    const meta = try tensor_ssa.TensorMeta.init(
+        .{ .mlir_value = mlir.Value.arg(0) },
+        layout_value,
+        typing.Float32,
+        .gmem,
+    );
     var memref_ty_buf: mlir.TextBuffer(512) = .{};
     try meta.cutlassTensorTypeText(&memref_ty_buf);
     try builder.beginModule();
-    try builder.beginFunc("routed_tensor_vector", &.{mlir.Type.raw(memref_ty_buf.slice())}, null);
-    const tv = tensor_ssa.TensorValue.init(meta, mlir.Value.arg(0), memref_ty_buf.slice());
+    try builder.beginFunc(
+        "routed_tensor_vector",
+        &.{mlir.Type.raw(memref_ty_buf.slice())},
+        null,
+    );
+    const tv = tensor_ssa.TensorValue.init(
+        meta,
+        mlir.Value.arg(0),
+        memref_ty_buf.slice(),
+    );
     const loaded = try tv.load(&builder, null, null);
     try tv.store(&builder, loaded, null);
     try builder.ret(&.{}, &.{});
@@ -102,21 +133,52 @@ fn makeCopyAtom() Error!atom.CopyAtom {
     const tv = layout.makeCompactLayout(.{ 1, 1 });
     var tr: atom.Trait = .{ .name = "routed_copy_trait", .thr_id = thr };
     tr = tr.withCopyLayouts(tv, tv);
-    const desc = atom.OpDescriptor.copyTyped("CopyUniversalOp", "generic", "simt.sync.copy", typing.Float32, .gmem, .gmem, 32, &.{});
+    const desc = atom.OpDescriptor.copyTyped(
+        "CopyUniversalOp",
+        "generic",
+        "simt.sync.copy",
+        typing.Float32,
+        .gmem,
+        .gmem,
+        32,
+        &.{},
+    );
     return atom.makeCopyAtom(desc, tr);
 }
 
 pub fn emitCopyAtomModule(out: anytype) Error!void {
     var builder: mlir.Builder(4096) = .{};
     const layout_value = try layout.Layout.makeCompact(layout.Tree.fromComptime(.{1}));
-    const src_meta = try tensor_ssa.TensorMeta.init(.{ .mlir_value = mlir.Value.arg(0) }, layout_value, typing.Float32, .gmem);
-    const dst_meta = try tensor_ssa.TensorMeta.init(.{ .mlir_value = mlir.Value.arg(1) }, layout_value, typing.Float32, .gmem);
+    const src_meta = try tensor_ssa.TensorMeta.init(
+        .{ .mlir_value = mlir.Value.arg(0) },
+        layout_value,
+        typing.Float32,
+        .gmem,
+    );
+    const dst_meta = try tensor_ssa.TensorMeta.init(
+        .{ .mlir_value = mlir.Value.arg(1) },
+        layout_value,
+        typing.Float32,
+        .gmem,
+    );
     var ty_buf: mlir.TextBuffer(512) = .{};
     try src_meta.cutlassTensorTypeText(&ty_buf);
     try builder.beginModule();
-    try builder.beginFunc("routed_copy_atom", &.{ mlir.Type.raw(ty_buf.slice()), mlir.Type.raw(ty_buf.slice()) }, null);
-    const src = tensor_ssa.TensorValue.init(src_meta, mlir.Value.arg(0), ty_buf.slice());
-    const dst = tensor_ssa.TensorValue.init(dst_meta, mlir.Value.arg(1), ty_buf.slice());
+    try builder.beginFunc(
+        "routed_copy_atom",
+        &.{ mlir.Type.raw(ty_buf.slice()), mlir.Type.raw(ty_buf.slice()) },
+        null,
+    );
+    const src = tensor_ssa.TensorValue.init(
+        src_meta,
+        mlir.Value.arg(0),
+        ty_buf.slice(),
+    );
+    const dst = tensor_ssa.TensorValue.init(
+        dst_meta,
+        mlir.Value.arg(1),
+        ty_buf.slice(),
+    );
     _ = try copy_mma.lowerCopyAtom(&builder, try makeCopyAtom(), src, dst, null);
     try builder.ret(&.{}, &.{});
     try builder.endFunc();
@@ -128,19 +190,55 @@ pub fn emitCopyAtomModule(out: anytype) Error!void {
 pub fn emitMmaAtomModule(out: anytype) Error!void {
     var builder: mlir.Builder(8192) = .{};
     const layout_value = try layout.Layout.makeCompact(layout.Tree.fromComptime(.{1}));
-    const meta_a = try tensor_ssa.TensorMeta.init(.{ .mlir_value = mlir.Value.arg(0) }, layout_value, typing.Float32, .generic);
-    const meta_b = try tensor_ssa.TensorMeta.init(.{ .mlir_value = mlir.Value.arg(1) }, layout_value, typing.Float32, .generic);
-    const meta_c = try tensor_ssa.TensorMeta.init(.{ .mlir_value = mlir.Value.arg(2) }, layout_value, typing.Float32, .generic);
-    const meta_d = try tensor_ssa.TensorMeta.init(.{ .mlir_value = mlir.Value.arg(3) }, layout_value, typing.Float32, .generic);
+    const meta_a = try tensor_ssa.TensorMeta.init(
+        .{ .mlir_value = mlir.Value.arg(0) },
+        layout_value,
+        typing.Float32,
+        .generic,
+    );
+    const meta_b = try tensor_ssa.TensorMeta.init(
+        .{ .mlir_value = mlir.Value.arg(1) },
+        layout_value,
+        typing.Float32,
+        .generic,
+    );
+    const meta_c = try tensor_ssa.TensorMeta.init(
+        .{ .mlir_value = mlir.Value.arg(2) },
+        layout_value,
+        typing.Float32,
+        .generic,
+    );
+    const meta_d = try tensor_ssa.TensorMeta.init(
+        .{ .mlir_value = mlir.Value.arg(3) },
+        layout_value,
+        typing.Float32,
+        .generic,
+    );
     var ty_buf: mlir.TextBuffer(512) = .{};
     try meta_a.cutlassTensorTypeText(&ty_buf);
     try builder.beginModule();
-    try builder.beginFunc("routed_mma_atom", &.{ mlir.Type.raw(ty_buf.slice()), mlir.Type.raw(ty_buf.slice()), mlir.Type.raw(ty_buf.slice()), mlir.Type.raw(ty_buf.slice()) }, null);
+    try builder.beginFunc(
+        "routed_mma_atom",
+        &.{
+            mlir.Type.raw(ty_buf.slice()),
+            mlir.Type.raw(ty_buf.slice()),
+            mlir.Type.raw(ty_buf.slice()),
+            mlir.Type.raw(ty_buf.slice()),
+        },
+        null,
+    );
     const a = tensor_ssa.TensorValue.init(meta_a, mlir.Value.arg(0), ty_buf.slice());
     const b = tensor_ssa.TensorValue.init(meta_b, mlir.Value.arg(1), ty_buf.slice());
     const c = tensor_ssa.TensorValue.init(meta_c, mlir.Value.arg(2), ty_buf.slice());
     const d = tensor_ssa.TensorValue.init(meta_d, mlir.Value.arg(3), ty_buf.slice());
-    _ = try copy_mma.lowerMmaAtom(&builder, try nvgpu.universalMma(typing.Float32), d, a, b, c);
+    _ = try copy_mma.lowerMmaAtom(
+        &builder,
+        try nvgpu.universalMma(typing.Float32),
+        d,
+        a,
+        b,
+        c,
+    );
     try builder.ret(&.{}, &.{});
     try builder.endFunc();
     try builder.endModule();
@@ -149,14 +247,20 @@ pub fn emitMmaAtomModule(out: anytype) Error!void {
 }
 
 pub fn emitByName(name: []const u8, out: anytype) Error!void {
-    if (std.mem.eql(u8, name, "cutlass_routed_tensor_vector")) return emitTensorVectorModule(out);
-    if (std.mem.eql(u8, name, "cutlass_routed_copy_atom")) return emitCopyAtomModule(out);
+    if (std.mem.eql(u8, name, "cutlass_routed_tensor_vector"))
+        return emitTensorVectorModule(out);
+    if (std.mem.eql(u8, name, "cutlass_routed_copy_atom"))
+        return emitCopyAtomModule(out);
     if (std.mem.eql(u8, name, "cutlass_routed_mma_atom")) return emitMmaAtomModule(out);
     return Error.InvalidRoutedFixture;
 }
 
 pub fn writeAllGenerated(out: anytype) Error!void {
-    inline for (.{ "cutlass_routed_tensor_vector", "cutlass_routed_copy_atom", "cutlass_routed_mma_atom" }) |name| {
+    inline for (.{
+        "cutlass_routed_tensor_vector",
+        "cutlass_routed_copy_atom",
+        "cutlass_routed_mma_atom",
+    }) |name| {
         try out.append("// ----- ");
         try out.append(name);
         try out.append(" -----\n");

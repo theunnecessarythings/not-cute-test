@@ -52,7 +52,11 @@ pub const FinMorphism = struct {
         var result: SmallVec(usize) = .{};
         try result.appendSlice(self.map.slice());
         for (beta.map.slice()) |value| try result.append(if (value == 0) 0 else value + self.codomain);
-        return init(self.domain + beta.domain, self.codomain + beta.codomain, result.slice());
+        return init(
+            self.domain + beta.domain,
+            self.codomain + beta.codomain,
+            result.slice(),
+        );
     }
 
     pub fn imagesAreDisjoint(self: FinMorphism, beta: FinMorphism) Error!bool {
@@ -82,8 +86,13 @@ pub const TupleMorphism = struct {
     codomain: SmallVec(Scalar) = .{},
     map: FinMorphism,
 
-    pub fn init(domain: []const Scalar, codomain: []const Scalar, map: []const usize) Error!TupleMorphism {
-        if (domain.len > max_rank or codomain.len > max_rank) return Error.OutOfCapacity;
+    pub fn init(
+        domain: []const Scalar,
+        codomain: []const Scalar,
+        map: []const usize,
+    ) Error!TupleMorphism {
+        if (domain.len > max_rank or codomain.len > max_rank)
+            return Error.OutOfCapacity;
         var d: SmallVec(Scalar) = .{};
         var c: SmallVec(Scalar) = .{};
         for (domain) |x| {
@@ -96,13 +105,15 @@ pub const TupleMorphism = struct {
         }
         const fin = try FinMorphism.init(domain.len, codomain.len, map);
         for (fin.map.slice(), 0..) |value, i| {
-            if (value != 0 and domain[i] != codomain[value - 1]) return Error.InvalidMap;
+            if (value != 0 and domain[i] != codomain[value - 1])
+                return Error.InvalidMap;
         }
         return .{ .domain = d, .codomain = c, .map = fin };
     }
 
     pub fn compose(self: TupleMorphism, g: TupleMorphism) Error!TupleMorphism {
-        if (!sameScalarSlice(self.codomain.slice(), g.domain.slice())) return Error.NotComposable;
+        if (!sameScalarSlice(self.codomain.slice(), g.domain.slice()))
+            return Error.NotComposable;
         const composed = try self.map.compose(g.map);
         return init(self.domain.slice(), g.codomain.slice(), composed.map.slice());
     }
@@ -123,7 +134,8 @@ pub const TupleMorphism = struct {
         var m: SmallVec(usize) = .{};
         var prev: usize = 0;
         for (subtuple) |one_based| {
-            if (one_based == 0 or one_based > self.domain.len or one_based <= prev) return Error.InvalidSelection;
+            if (one_based == 0 or one_based > self.domain.len or one_based <= prev)
+                return Error.InvalidSelection;
             prev = one_based;
             try d.append(self.domain.at(one_based - 1));
             try m.append(self.map.map.at(one_based - 1));
@@ -136,7 +148,8 @@ pub const TupleMorphism = struct {
         var present = [_]bool{false} ** max_rank;
         var prev: usize = 0;
         for (subtuple) |one_based| {
-            if (one_based == 0 or one_based > self.codomain.len or one_based <= prev) return Error.InvalidSelection;
+            if (one_based == 0 or one_based > self.codomain.len or one_based <= prev)
+                return Error.InvalidSelection;
             prev = one_based;
             present[one_based - 1] = true;
             try c.append(self.codomain.at(one_based - 1));
@@ -171,7 +184,8 @@ pub const TupleMorphism = struct {
     }
 
     pub fn concat(self: TupleMorphism, g: TupleMorphism) Error!TupleMorphism {
-        if (!sameScalarSlice(self.codomain.slice(), g.codomain.slice())) return Error.NotComposable;
+        if (!sameScalarSlice(self.codomain.slice(), g.codomain.slice()))
+            return Error.NotComposable;
         const wedged = try self.map.wedge(g.map);
         var d: SmallVec(Scalar) = .{};
         try d.appendSlice(self.domain.slice());

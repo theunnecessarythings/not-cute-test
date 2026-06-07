@@ -54,10 +54,11 @@ pub const BenchmarkConfig = struct {
     warmup_iterations: usize = 5,
     iterations: usize = 100,
     workspace_count: usize = 1,
-    stream_sync: bool = true,
+    streamSync: bool = true,
 
     pub fn validate(self: BenchmarkConfig) Error!void {
-        if (self.iterations == 0 or self.workspace_count == 0) return Error.InvalidBenchmarkConfig;
+        if (self.iterations == 0 or self.workspace_count == 0)
+            return Error.InvalidBenchmarkConfig;
     }
 };
 
@@ -101,7 +102,8 @@ pub const TensorInitConfig = struct {
     high: f64 = 1.0,
 
     pub fn validate(self: TensorInitConfig) Error!void {
-        if (self.kind == .random_uniform and !(self.low <= self.high)) return Error.InvalidBenchmarkConfig;
+        if (self.kind == .random_uniform and !(self.low <= self.high))
+            return Error.InvalidBenchmarkConfig;
     }
 };
 
@@ -109,7 +111,11 @@ pub fn shouldUseNormalInit(cfg: TensorInitConfig) bool {
     return cfg.kind == .random_normal;
 }
 
-pub fn convertTensor(builder: anytype, source: tensor.TensorSsa, result_dtype: @TypeOf(source.dtype)) Error!tensor.TensorSsa {
+pub fn convertTensor(
+    builder: anytype,
+    source: tensor.TensorSsa,
+    result_dtype: @TypeOf(source.dtype),
+) Error!tensor.TensorSsa {
     var src_ty: mlir.TextBuffer(128) = .{};
     try source.vectorType(&src_ty);
     var dst_ty: mlir.TextBuffer(128) = .{};
@@ -118,14 +124,26 @@ pub fn convertTensor(builder: anytype, source: tensor.TensorSsa, result_dtype: @
     try dst_ty.append("x");
     try dst_ty.append(result_dtype.mlir_type);
     try dst_ty.append(">");
-    const v = try builder.genericOp("cute.testing.convert", &.{.{ .value = source.value }}, &.{}, &.{mlir.Type.raw(src_ty.slice())}, &.{mlir.Type.raw(dst_ty.slice())});
+    const v = try builder.genericOp(
+        "cute.testing.convert",
+        &.{.{ .value = source.value }},
+        &.{},
+        &.{mlir.Type.raw(src_ty.slice())},
+        &.{mlir.Type.raw(dst_ty.slice())},
+    );
     return tensor.TensorSsa.init(v, source.shape_value, result_dtype);
 }
 
 test "testing: assertion and autotune helpers" {
     try (Assertion{ .mode = .compile_time }).verify(true);
-    try std.testing.expectError(Error.AssertionFailed, (Assertion{ .mode = .runtime }).verify(false));
-    const res = try chooseBest(&.{ .{ .name = "a", .score = 2.0 }, .{ .name = "b", .score = 1.0 } });
+    try std.testing.expectError(
+        Error.AssertionFailed,
+        (Assertion{ .mode = .runtime }).verify(false),
+    );
+    const res = try chooseBest(&.{
+        .{ .name = "a", .score = 2.0 },
+        .{ .name = "b", .score = 1.0 },
+    });
     try std.testing.expectEqualStrings("b", res.best.name);
 }
 

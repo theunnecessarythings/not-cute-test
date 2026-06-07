@@ -29,7 +29,11 @@ pub fn unwrapSingleton(input: Tree) Error!Tree {
             .tuple => |span| {
                 if (span.len != 1) return current;
                 var next: Tree = .{};
-                next.root = try copySubtree(&next, &current, current.children.at(span.start));
+                next.root = try copySubtree(
+                    &next,
+                    &current,
+                    current.children.at(span.start),
+                );
                 current = next;
             },
         }
@@ -61,7 +65,11 @@ pub fn productEach(input: *const Tree) Error!Tree {
             if (span.len > layout.max_children) return Error.OutOfCapacity;
             for (0..span.len) |i| {
                 var mode_tree: Tree = .{};
-                mode_tree.root = try copySubtree(&mode_tree, input, input.children.at(span.start + i));
+                mode_tree.root = try copySubtree(
+                    &mode_tree,
+                    input,
+                    input.children.at(span.start + i),
+                );
                 const p = try mode_tree.product();
                 if (p > std.math.maxInt(Scalar)) return Error.Overflow;
                 parts[i] = try Tree.initLeaf(@intCast(p));
@@ -74,11 +82,23 @@ pub fn productEach(input: *const Tree) Error!Tree {
 /// Mirrors CuteDSL tuple.py product_like for static integer trees.
 pub fn productLike(input: *const Tree, target_profile: *const Tree) Error!Tree {
     var out: Tree = .{};
-    out.root = try productLikeSubtree(&out, input, input.root, target_profile, target_profile.root);
+    out.root = try productLikeSubtree(
+        &out,
+        input,
+        input.root,
+        target_profile,
+        target_profile.root,
+    );
     return out;
 }
 
-fn productLikeSubtree(out: *Tree, input: *const Tree, input_id: u16, profile: *const Tree, profile_id: u16) Error!u16 {
+fn productLikeSubtree(
+    out: *Tree,
+    input: *const Tree,
+    input_id: u16,
+    profile: *const Tree,
+    profile_id: u16,
+) Error!u16 {
     switch (profile.nodes.at(profile_id)) {
         .leaf => {
             var subtree: Tree = .{};
@@ -109,7 +129,9 @@ fn productLikeSubtree(out: *Tree, input: *const Tree, input_id: u16, profile: *c
             const child_start = out.children.len;
             for (child_ids[0..pspan.len]) |child_id| try out.children.append(child_id);
             const idx = out.nodes.len;
-            try out.nodes.append(.{ .tuple = .{ .start = child_start, .len = pspan.len } });
+            try out.nodes.append(.{
+                .tuple = .{ .start = child_start, .len = pspan.len },
+            });
             return @intCast(idx);
         },
     }
@@ -124,11 +146,23 @@ pub const FindResult = struct {
 };
 
 /// Source-grounded subset of tuple.py find(): static integer equality only.
-pub fn findScalar(input: *const Tree, needle: Scalar, hierarchical: bool) Error!FindResult {
+pub fn findScalar(
+    input: *const Tree,
+    needle: Scalar,
+    hierarchical: bool,
+) Error!FindResult {
     var result: FindResult = .{};
     var path: Path = .{};
     var flat_index: usize = 0;
-    try findScalarSubtree(input, input.root, needle, hierarchical, &path, &flat_index, &result);
+    try findScalarSubtree(
+        input,
+        input.root,
+        needle,
+        hierarchical,
+        &path,
+        &flat_index,
+        &result,
+    );
     return result;
 }
 
@@ -161,7 +195,15 @@ fn findScalarSubtree(
         .tuple => |span| {
             for (0..span.len) |i| {
                 try path.append(i);
-                try findScalarSubtree(input, input.children.at(span.start + i), needle, hierarchical, path, flat_index, result);
+                try findScalarSubtree(
+                    input,
+                    input.children.at(span.start + i),
+                    needle,
+                    hierarchical,
+                    path,
+                    flat_index,
+                    result,
+                );
                 path.len -= 1;
                 if (result.found) return;
             }
@@ -178,7 +220,11 @@ pub fn mapLeaves(input: *const Tree, comptime f: fn (Scalar) Scalar) Error!Tree 
 }
 
 /// Mirrors transform_leaf for two congruent static integer trees.
-pub fn zipLeaves(lhs: *const Tree, rhs: *const Tree, comptime f: fn (Scalar, Scalar) Scalar) Error!Tree {
+pub fn zipLeaves(
+    lhs: *const Tree,
+    rhs: *const Tree,
+    comptime f: fn (Scalar, Scalar) Scalar,
+) Error!Tree {
     if (!lhs.sameProfile(rhs)) return Error.ProfileMismatch;
     const lf = try lhs.flattenLeaves();
     const rf = try rhs.flattenLeaves();
@@ -259,7 +305,12 @@ pub fn isWeaklyCongruent(lhs: *const Tree, rhs: *const Tree) bool {
     return weakCongruentSubtree(lhs, lhs.root, rhs, rhs.root);
 }
 
-fn weakCongruentSubtree(lhs: *const Tree, lhs_id: u16, rhs: *const Tree, rhs_id: u16) bool {
+fn weakCongruentSubtree(
+    lhs: *const Tree,
+    lhs_id: u16,
+    rhs: *const Tree,
+    rhs_id: u16,
+) bool {
     return switch (lhs.nodes.at(lhs_id)) {
         .leaf => true,
         .tuple => |ls| switch (rhs.nodes.at(rhs_id)) {
@@ -285,11 +336,17 @@ fn copySubtree(dst: *Tree, src: *const Tree, src_id: u16) Error!u16 {
         .tuple => |span| {
             var child_ids: [layout.max_children]u16 = undefined;
             if (span.len > layout.max_children) return Error.OutOfCapacity;
-            for (0..span.len) |i| child_ids[i] = try copySubtree(dst, src, src.children.at(span.start + i));
+            for (0..span.len) |i| child_ids[i] = try copySubtree(
+                dst,
+                src,
+                src.children.at(span.start + i),
+            );
             const child_start = dst.children.len;
             for (child_ids[0..span.len]) |child_id| try dst.children.append(child_id);
             const index = dst.nodes.len;
-            try dst.nodes.append(.{ .tuple = .{ .start = child_start, .len = span.len } });
+            try dst.nodes.append(.{
+                .tuple = .{ .start = child_start, .len = span.len },
+            });
             return @intCast(index);
         },
     }
@@ -305,17 +362,29 @@ test "tuple: wrap unwrap flatten and unflatten" {
 
     const profile = Tree.fromComptime(.{ 0, .{ 0, 0 } });
     const rebuilt = try unflatten(&.{ 2, 3, 4 }, &profile);
-    try std.testing.expectEqualSlices(Scalar, &.{ 2, 3, 4 }, (try flattenToTuple(&rebuilt)).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 2, 3, 4 },
+        (try flattenToTuple(&rebuilt)).slice(),
+    );
 }
 
 test "tuple: product_each and product_like" {
     const shape = Tree.fromComptime(.{ 2, .{ 3, 4 } });
     const each = try productEach(&shape);
-    try std.testing.expectEqualSlices(Scalar, &.{ 2, 12 }, (try each.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 2, 12 },
+        (try each.flattenLeaves()).slice(),
+    );
 
     const target = Tree.fromComptime(.{ 0, 0 });
     const like = try productLike(&shape, &target);
-    try std.testing.expectEqualSlices(Scalar, &.{ 2, 12 }, (try like.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 2, 12 },
+        (try like.flattenLeaves()).slice(),
+    );
 }
 
 test "tuple: find elem_less tuple_cat repeat_like" {
@@ -329,10 +398,21 @@ test "tuple: find elem_less tuple_cat repeat_like" {
     const b = Tree.fromComptime(.{ 2, .{ 3, 4 } });
     try std.testing.expect(try elemLess(&a, &b));
 
-    const cat = try tupleCat(&.{ Tree.fromComptime(.{ 1, 2 }), Tree.fromComptime(.{3}) });
-    try std.testing.expectEqualSlices(Scalar, &.{ 1, 2, 3 }, (try cat.flattenLeaves()).slice());
+    const cat = try tupleCat(&.{
+        Tree.fromComptime(.{ 1, 2 }),
+        Tree.fromComptime(.{3}),
+    });
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 1, 2, 3 },
+        (try cat.flattenLeaves()).slice(),
+    );
 
     const repeated = try repeatLike(9, &t);
     try std.testing.expect(repeated.sameProfile(&t));
-    try std.testing.expectEqualSlices(Scalar, &.{ 9, 9, 9 }, (try repeated.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 9, 9, 9 },
+        (try repeated.flattenLeaves()).slice(),
+    );
 }

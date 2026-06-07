@@ -141,7 +141,7 @@ pub const Tree = struct {
                 return @intCast(index);
             },
             .@"struct" => |info| {
-                if (!info.is_tuple) @compileError("tree literals must be ints or tuple literals such as .{2, .{3, 4}}");
+                if (!info.is_tuple) @compileError("tree literals must be ints or tuple literals such as .{2, .{3, 4,},}");
                 var child_ids: [info.fields.len]u16 = undefined;
                 inline for (info.fields, 0..) |field, i| {
                     child_ids[i] = try self.addComptime(@field(spec, field.name));
@@ -149,7 +149,9 @@ pub const Tree = struct {
                 const child_start = self.children.len;
                 for (child_ids) |child_id| try self.children.append(child_id);
                 const index = self.nodes.len;
-                try self.nodes.append(.{ .tuple = .{ .start = child_start, .len = info.fields.len } });
+                try self.nodes.append(.{
+                    .tuple = .{ .start = child_start, .len = info.fields.len },
+                });
                 return @intCast(index);
             },
             .array => |info| {
@@ -160,7 +162,9 @@ pub const Tree = struct {
                 const child_start = self.children.len;
                 for (child_ids) |child_id| try self.children.append(child_id);
                 const index = self.nodes.len;
-                try self.nodes.append(.{ .tuple = .{ .start = child_start, .len = info.len } });
+                try self.nodes.append(.{
+                    .tuple = .{ .start = child_start, .len = info.len },
+                });
                 return @intCast(index);
             },
             else => @compileError("shape literals must contain only integer leaves"),
@@ -184,7 +188,9 @@ pub const Tree = struct {
                 const child_start = self.children.len;
                 for (child_ids[0..span.len]) |child_id| try self.children.append(child_id);
                 const index = self.nodes.len;
-                try self.nodes.append(.{ .tuple = .{ .start = child_start, .len = span.len } });
+                try self.nodes.append(.{
+                    .tuple = .{ .start = child_start, .len = span.len },
+                });
                 return @intCast(index);
             },
         }
@@ -194,7 +200,12 @@ pub const Tree = struct {
         return self.equalSubtree(self.root, other, other.root);
     }
 
-    fn equalSubtree(self: *const Self, lhs_id: u16, other: *const Self, rhs_id: u16) bool {
+    fn equalSubtree(
+        self: *const Self,
+        lhs_id: u16,
+        other: *const Self,
+        rhs_id: u16,
+    ) bool {
         const lhs = self.nodes.at(lhs_id);
         const rhs = other.nodes.at(rhs_id);
         switch (lhs) {
@@ -207,7 +218,8 @@ pub const Tree = struct {
                 .tuple => |rs| {
                     if (ls.len != rs.len) return false;
                     for (0..ls.len) |i| {
-                        if (!self.equalSubtree(self.children.at(ls.start + i), other, other.children.at(rs.start + i))) return false;
+                        if (!self.equalSubtree(self.children.at(ls.start + i), other, other.children.at(rs.start + i)))
+                            return false;
                     }
                     return true;
                 },
@@ -219,7 +231,12 @@ pub const Tree = struct {
         return self.sameProfileSubtree(self.root, other, other.root);
     }
 
-    fn sameProfileSubtree(self: *const Self, lhs_id: u16, other: *const Self, rhs_id: u16) bool {
+    fn sameProfileSubtree(
+        self: *const Self,
+        lhs_id: u16,
+        other: *const Self,
+        rhs_id: u16,
+    ) bool {
         const lhs = self.nodes.at(lhs_id);
         const rhs = other.nodes.at(rhs_id);
         switch (lhs) {
@@ -232,7 +249,8 @@ pub const Tree = struct {
                 .tuple => |rs| {
                     if (ls.len != rs.len) return false;
                     for (0..ls.len) |i| {
-                        if (!self.sameProfileSubtree(self.children.at(ls.start + i), other, other.children.at(rs.start + i))) return false;
+                        if (!self.sameProfileSubtree(self.children.at(ls.start + i), other, other.children.at(rs.start + i)))
+                            return false;
                     }
                     return true;
                 },
@@ -260,7 +278,10 @@ pub const Tree = struct {
     fn flattenInto(self: *const Self, id: u16, out: *Flat) Error!void {
         switch (self.nodes.at(id)) {
             .leaf => |value| try out.append(value),
-            .tuple => |span| for (0..span.len) |i| try self.flattenInto(self.children.at(span.start + i), out),
+            .tuple => |span| for (0..span.len) |i| try self.flattenInto(
+                self.children.at(span.start + i),
+                out,
+            ),
         }
     }
 
@@ -295,7 +316,10 @@ pub const Tree = struct {
             .leaf => 0,
             .tuple => |span| blk: {
                 var max_child: usize = 0;
-                for (0..span.len) |i| max_child = @max(max_child, self.depthSubtree(self.children.at(span.start + i)));
+                for (0..span.len) |i| max_child = @max(
+                    max_child,
+                    self.depthSubtree(self.children.at(span.start + i)),
+                );
                 break :blk max_child + 1;
             },
         };
@@ -312,10 +336,18 @@ pub const Tree = struct {
         return total;
     }
 
-    pub fn fromProfileAndLeaves(profile: *const Self, leaves: []const Scalar) Error!Self {
+    pub fn fromProfileAndLeaves(
+        profile: *const Self,
+        leaves: []const Scalar,
+    ) Error!Self {
         var out: Self = .{};
         var cursor: usize = 0;
-        out.root = try out.copyProfileReplacingLeaves(profile, profile.root, leaves, &cursor);
+        out.root = try out.copyProfileReplacingLeaves(
+            profile,
+            profile.root,
+            leaves,
+            &cursor,
+        );
         if (cursor != leaves.len) return Error.RankMismatch;
         return out;
     }
@@ -339,12 +371,19 @@ pub const Tree = struct {
                 if (span.len > max_children) return Error.OutOfCapacity;
                 var child_ids: [max_children]u16 = undefined;
                 for (0..span.len) |i| {
-                    child_ids[i] = try self.copyProfileReplacingLeaves(profile, profile.children.at(span.start + i), leaves, cursor);
+                    child_ids[i] = try self.copyProfileReplacingLeaves(
+                        profile,
+                        profile.children.at(span.start + i),
+                        leaves,
+                        cursor,
+                    );
                 }
                 const child_start = self.children.len;
                 for (child_ids[0..span.len]) |child_id| try self.children.append(child_id);
                 const index = self.nodes.len;
-                try self.nodes.append(.{ .tuple = .{ .start = child_start, .len = span.len } });
+                try self.nodes.append(.{
+                    .tuple = .{ .start = child_start, .len = span.len },
+                });
                 return @intCast(index);
             },
         }
@@ -426,14 +465,22 @@ pub const Layout = struct {
         switch (order) {
             .left => for (0..flat.len) |i| {
                 strides.set(i, stride_value);
-                stride_value = std.math.mul(Scalar, stride_value, flat.at(i)) catch return Error.Overflow;
+                stride_value = std.math.mul(
+                    Scalar,
+                    stride_value,
+                    flat.at(i),
+                ) catch return Error.Overflow;
             },
             .right => {
                 var i = flat.len;
                 while (i > 0) {
                     i -= 1;
                     strides.set(i, stride_value);
-                    stride_value = std.math.mul(Scalar, stride_value, flat.at(i)) catch return Error.Overflow;
+                    stride_value = std.math.mul(
+                        Scalar,
+                        stride_value,
+                        flat.at(i),
+                    ) catch return Error.Overflow;
                 }
             },
         }
@@ -466,18 +513,37 @@ pub const Layout = struct {
             if (extent <= 0) return Error.InvalidShape;
             const span: Unsigned = @intCast(extent - 1);
             const abs_stride = absScalar(strides.at(i));
-            const term = std.math.mul(Unsigned, span, abs_stride) catch return Error.Overflow;
-            max_index = std.math.add(Unsigned, max_index, term) catch return Error.Overflow;
+            const term = std.math.mul(
+                Unsigned,
+                span,
+                abs_stride,
+            ) catch return Error.Overflow;
+            max_index = std.math.add(
+                Unsigned,
+                max_index,
+                term,
+            ) catch return Error.Overflow;
         }
         return std.math.add(Unsigned, max_index, 1) catch return Error.Overflow;
     }
 
     pub fn crd2idx(self: *const Self, coord: Tree) Error!Scalar {
         if (!coord.sameProfile(&self.shape)) return Error.ProfileMismatch;
-        return self.crd2idxSubtree(coord.root, &coord, self.shape.root, self.stride.root);
+        return self.crd2idxSubtree(
+            coord.root,
+            &coord,
+            self.shape.root,
+            self.stride.root,
+        );
     }
 
-    fn crd2idxSubtree(self: *const Self, coord_id: u16, coord: *const Tree, shape_id: u16, stride_id: u16) Error!Scalar {
+    fn crd2idxSubtree(
+        self: *const Self,
+        coord_id: u16,
+        coord: *const Tree,
+        shape_id: u16,
+        stride_id: u16,
+    ) Error!Scalar {
         const cnode = coord.nodes.at(coord_id);
         const snode = self.shape.nodes.at(shape_id);
         const dnode = self.stride.nodes.at(stride_id);
@@ -503,7 +569,8 @@ pub const Layout = struct {
                     .tuple => |span| span,
                     .leaf => return Error.ProfileMismatch,
                 };
-                if (cspan.len != sspan.len or dspan.len != sspan.len) return Error.ProfileMismatch;
+                if (cspan.len != sspan.len or dspan.len != sspan.len)
+                    return Error.ProfileMismatch;
                 var total: Scalar = 0;
                 for (0..sspan.len) |i| {
                     const term = try self.crd2idxSubtree(
@@ -512,7 +579,11 @@ pub const Layout = struct {
                         self.shape.children.at(sspan.start + i),
                         self.stride.children.at(dspan.start + i),
                     );
-                    total = std.math.add(Scalar, total, term) catch return Error.Overflow;
+                    total = std.math.add(
+                        Scalar,
+                        total,
+                        term,
+                    ) catch return Error.Overflow;
                 }
                 return total;
             },
@@ -527,7 +598,11 @@ pub const Layout = struct {
         for (coords, 0..) |coord, i| {
             const extent = shapes.at(i);
             if (coord < 0 or coord >= extent) return Error.CoordinateOutOfBounds;
-            const term = std.math.mul(Scalar, coord, strides.at(i)) catch return Error.Overflow;
+            const term = std.math.mul(
+                Scalar,
+                coord,
+                strides.at(i),
+            ) catch return Error.Overflow;
             total = std.math.add(Scalar, total, term) catch return Error.Overflow;
         }
         return total;
@@ -537,7 +612,8 @@ pub const Layout = struct {
         if (idx < 0) return Error.CoordinateOutOfBounds;
         if (!try self.isCompact()) return Error.NotCompact;
         const cosize_value = try self.cosize();
-        if (@as(Unsigned, @intCast(idx)) >= cosize_value) return Error.CoordinateOutOfBounds;
+        if (@as(Unsigned, @intCast(idx)) >= cosize_value)
+            return Error.CoordinateOutOfBounds;
 
         const shapes = try self.shape.flattenLeaves();
         const strides = try self.stride.flattenLeaves();
@@ -578,7 +654,11 @@ pub const Layout = struct {
             used[j] = true;
             if (shapes.at(j) > 1) {
                 const extent: Unsigned = @intCast(shapes.at(j));
-                expected = std.math.mul(Unsigned, expected, extent) catch return Error.Overflow;
+                expected = std.math.mul(
+                    Unsigned,
+                    expected,
+                    extent,
+                ) catch return Error.Overflow;
             }
         }
         return expected == try self.size();
@@ -713,7 +793,10 @@ pub const ComposedLayout = struct {
         return self.a.indexFromLinear(std.math.add(Scalar, self.offset, inner) catch return Error.Overflow);
     }
 
-    pub fn crd2idxFlat(self: *const ComposedLayout, coords: []const Scalar) Error!Scalar {
+    pub fn crd2idxFlat(
+        self: *const ComposedLayout,
+        coords: []const Scalar,
+    ) Error!Scalar {
         const inner = try self.b.crd2idxFlat(coords);
         return self.a.indexFromLinear(std.math.add(Scalar, self.offset, inner) catch return Error.Overflow);
     }
@@ -735,7 +818,9 @@ pub fn composition(a: Layout, b: Layout) Error!AnyLayout {
     if (a.composeAffine(&b)) |layout| {
         return .{ .affine = layout };
     } else |err| switch (err) {
-        Error.NotRepresentableAsAffineLayout, Error.NotCompact => return .{ .composed = .{ .a = a, .offset = 0, .b = b } },
+        Error.NotRepresentableAsAffineLayout, Error.NotCompact => return .{
+            .composed = .{ .a = a, .offset = 0, .b = b },
+        },
         else => return err,
     }
 }
@@ -783,7 +868,10 @@ test "layout: compact construction and coordinate mapping" {
     const l = makeCompactLayout(.{ 2, 3, 4 });
     try std.testing.expectEqual(@as(usize, 3), l.leafCount());
     try std.testing.expectEqual(@as(Unsigned, 24), try l.size());
-    try std.testing.expectEqual(@as(Scalar, 1 + 2 * 2 + 3 * 6), try l.crd2idxFlat(&.{ 1, 2, 3 }));
+    try std.testing.expectEqual(
+        @as(Scalar, 1 + 2 * 2 + 3 * 6),
+        try l.crd2idxFlat(&.{ 1, 2, 3 }),
+    );
 }
 
 test "layout: bounded appendSlice is atomic on overflow" {
@@ -833,7 +921,10 @@ test "layout: nested compact preserves profile and leaf order" {
 test "layout: compact-right construction" {
     const shape = Tree.fromComptime(.{ 2, 3, 4 });
     const l = try Layout.makeCompactRight(shape);
-    try std.testing.expectEqual(@as(Scalar, 12 + 2 * 4 + 3), try l.crd2idxFlat(&.{ 1, 2, 3 }));
+    try std.testing.expectEqual(
+        @as(Scalar, 12 + 2 * 4 + 3),
+        try l.crd2idxFlat(&.{ 1, 2, 3 }),
+    );
     try std.testing.expect(try l.isCompact());
 }
 

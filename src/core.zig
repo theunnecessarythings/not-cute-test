@@ -43,43 +43,43 @@ pub fn E(mode: usize) Error!ScaledBasis {
     return ScaledBasis.E(mode);
 }
 
-pub fn get_divisibility(value: Scalar) Unsigned {
+pub fn getDivisibility(value: Scalar) Unsigned {
     const abs_value: Unsigned = if (value < 0) @intCast(-value) else @intCast(value);
     return if (abs_value == 0) 1 else abs_value;
 }
 
-pub fn basis_value(value: ScaledBasis) basis.Scale {
+pub fn basisValue(value: ScaledBasis) basis.Scale {
     return value.basisValue();
 }
 
-pub fn basis_get(value: ScaledBasis, tree: *const Tree) Error!Tree {
+pub fn basisGet(value: ScaledBasis, tree: *const Tree) Error!Tree {
     return basis.basisGet(value, tree);
 }
 
-pub fn is_tuple(tree: *const Tree) bool {
+pub fn isTuple(tree: *const Tree) bool {
     return switch (tree.nodes.at(tree.root)) {
         .tuple => true,
         .leaf => false,
     };
 }
 
-pub fn is_static(_: anytype) bool {
+pub fn isStatic(_: anytype) bool {
     return true;
 }
 
-pub fn is_static_tree(tree: *const Tree) bool {
+pub fn isStaticTree(tree: *const Tree) bool {
     return core_static.isStaticTree(tree);
 }
 
-pub fn is_valid_leaf(value: Scalar) bool {
+pub fn isValidLeaf(value: Scalar) bool {
     return value > 0;
 }
 
-pub fn has_underscore(_: *const Tree) bool {
+pub fn hasUnderscore(_: *const Tree) bool {
     return false;
 }
 
-pub fn has_scaled_basis(_: *const Tree) bool {
+pub fn hasScaledBasis(_: *const Tree) bool {
     return false;
 }
 
@@ -87,7 +87,7 @@ pub fn static(value: Scalar) Scalar {
     return core_static.static(value);
 }
 
-pub fn get_leaves(input: *const Tree) Error!Flat {
+pub fn getLeaves(input: *const Tree) Error!Flat {
     return input.flattenLeaves();
 }
 
@@ -99,11 +99,11 @@ pub fn rank(input: *const Tree) usize {
     return core_static.rank(input);
 }
 
-pub fn is_congruent(lhs: *const Tree, rhs: *const Tree) bool {
+pub fn isCongruent(lhs: *const Tree, rhs: *const Tree) bool {
     return core_static.isCongruent(lhs, rhs);
 }
 
-pub fn is_weakly_congruent(lhs: *const Tree, rhs: *const Tree) bool {
+pub fn isWeaklyCongruent(lhs: *const Tree, rhs: *const Tree) bool {
     return core_static.isWeaklyCongruent(lhs, rhs);
 }
 
@@ -115,11 +115,15 @@ pub fn select(input: *const Tree, modes: []const usize) Error!Tree {
     return core_static.select(input, modes);
 }
 
-pub fn group_modes(input: *const Tree, begin: isize, end: ?isize) Error!Tree {
+pub fn groupModes(input: *const Tree, begin: isize, end: ?isize) Error!Tree {
     return layout_algebra.groupModes(input, begin, end);
 }
 
-pub fn group_modes_layout(input: *const Layout, begin: isize, end: ?isize) Error!Layout {
+pub fn groupModesLayout(
+    input: *const Layout,
+    begin: isize,
+    end: ?isize,
+) Error!Layout {
     return layout_algebra.groupModesLayout(input, begin, end);
 }
 
@@ -127,7 +131,7 @@ pub fn slice_(input: *const Tree, selector: *const Selector) Error!Tree {
     return layout_algebra.sliceTree(input, selector);
 }
 
-pub fn slice_layout(input: *const Layout, selector: *const Selector) Error!Layout {
+pub fn sliceLayout(input: *const Layout, selector: *const Selector) Error!Layout {
     return layout_algebra.sliceLayout(input, selector);
 }
 
@@ -135,7 +139,7 @@ pub fn dice(input: *const Tree, selector: *const Selector) Error!Tree {
     return layout_algebra.diceTree(input, selector);
 }
 
-pub fn dice_layout(input: *const Layout, selector: *const Selector) Error!Layout {
+pub fn diceLayout(input: *const Layout, selector: *const Selector) Error!Layout {
     return layout_algebra.diceLayout(input, selector);
 }
 
@@ -147,15 +151,15 @@ pub fn append(input: *const Tree, value: Scalar, target_rank: usize) Error!Tree 
     return core_static.append(input, value, target_rank);
 }
 
-pub fn prepend_ones(input: *const Layout, up_to_rank: ?usize) Error!Layout {
+pub fn prependOnes(input: *const Layout, up_to_rank: ?usize) Error!Layout {
     return layout_algebra.prependOnesLayout(input, up_to_rank);
 }
 
-pub fn append_ones(input: *const Layout, up_to_rank: ?usize) Error!Layout {
+pub fn appendOnes(input: *const Layout, up_to_rank: ?usize) Error!Layout {
     return layout_algebra.appendOnesLayout(input, up_to_rank);
 }
 
-pub fn repeat_as_tuple(value: Tree, count: usize) Error!Tree {
+pub fn repeatAsTuple(value: Tree, count: usize) Error!Tree {
     if (count > layout.max_children) return Error.OutOfCapacity;
     var parts: [layout.max_children]Tree = undefined;
     for (0..count) |i| parts[i] = value;
@@ -163,10 +167,10 @@ pub fn repeat_as_tuple(value: Tree, count: usize) Error!Tree {
 }
 
 pub fn repeat(value: Tree, count: usize) Error!Tree {
-    return repeat_as_tuple(value, count);
+    return repeatAsTuple(value, count);
 }
 
-pub fn repeat_like(value: Tree, profile: *const Tree) Error!Tree {
+pub fn repeatLike(value: Tree, profile: *const Tree) Error!Tree {
     const leaves = try profile.flattenLeaves();
     var repeated: Flat = .{};
     const value_flat = try value.flattenLeaves();
@@ -179,7 +183,7 @@ pub fn flatten(input: *const Tree) Error!Tree {
     return core_static.flatten(input);
 }
 
-pub fn filter_zeros(input: *const Layout) Error!Layout {
+pub fn filterZeros(input: *const Layout) Error!Layout {
     return core_static.filterZeros(input);
 }
 
@@ -195,7 +199,7 @@ pub fn product(input: *const Tree) Error!Unsigned {
     return tuple.product(input);
 }
 
-pub fn inner_product(lhs: *const Tree, rhs: *const Tree) Error!Scalar {
+pub fn innerProduct(lhs: *const Tree, rhs: *const Tree) Error!Scalar {
     if (!lhs.sameProfile(rhs)) return Error.ProfileMismatch;
     const lf = try lhs.flattenLeaves();
     const rf = try rhs.flattenLeaves();
@@ -207,7 +211,7 @@ pub fn inner_product(lhs: *const Tree, rhs: *const Tree) Error!Scalar {
     return total;
 }
 
-pub fn prefix_product(input: *const Tree) Error!Tree {
+pub fn prefixProduct(input: *const Tree) Error!Tree {
     const flat = try input.flattenLeaves();
     var out: Flat = .{};
     var running: Scalar = 1;
@@ -219,15 +223,15 @@ pub fn prefix_product(input: *const Tree) Error!Tree {
     return Tree.fromProfileAndLeaves(input, out.slice());
 }
 
-pub fn shape_div(lhs: *const Tree, rhs: *const Tree) Error!Tree {
+pub fn shapeDiv(lhs: *const Tree, rhs: *const Tree) Error!Tree {
     return core_static.shapeDiv(lhs, rhs);
 }
 
-pub fn ceil_div(lhs: *const Tree, rhs: *const Tree) Error!Tree {
+pub fn ceilDiv(lhs: *const Tree, rhs: *const Tree) Error!Tree {
     return core_static.ceilDiv(lhs, rhs);
 }
 
-pub fn round_up(lhs: *const Tree, rhs: *const Tree) Error!Tree {
+pub fn roundUp(lhs: *const Tree, rhs: *const Tree) Error!Tree {
     return core_static.roundUp(lhs, rhs);
 }
 
@@ -238,43 +242,43 @@ fn minScalar(a: Scalar, b: Scalar) Scalar {
     return @min(a, b);
 }
 
-pub fn elem_less(lhs: *const Tree, rhs: *const Tree) Error!bool {
+pub fn elemLess(lhs: *const Tree, rhs: *const Tree) Error!bool {
     return tuple.elemLess(lhs, rhs);
 }
 
-pub fn elem_max(lhs: *const Tree, rhs: *const Tree) Error!Tree {
+pub fn elemMax(lhs: *const Tree, rhs: *const Tree) Error!Tree {
     return tuple.zipLeaves(lhs, rhs, maxScalar);
 }
 
-pub fn elem_min(lhs: *const Tree, rhs: *const Tree) Error!Tree {
+pub fn elemMin(lhs: *const Tree, rhs: *const Tree) Error!Tree {
     return tuple.zipLeaves(lhs, rhs, minScalar);
 }
 
-pub fn make_layout(comptime shape_spec: anytype, comptime stride_spec: anytype) Layout {
+pub fn makeLayout(comptime shape_spec: anytype, comptime stride_spec: anytype) Layout {
     return core_static.makeLayout(shape_spec, stride_spec);
 }
 
-pub fn make_identity_layout(comptime shape_spec: anytype) Layout {
+pub fn makeIdentityLayout(comptime shape_spec: anytype) Layout {
     return core_static.makeIdentityLayout(shape_spec);
 }
 
-pub fn make_ordered_layout(shape_value: Tree, order: []const usize) Error!Layout {
+pub fn makeOrderedLayout(shape_value: Tree, order: []const usize) Error!Layout {
     return core_static.makeOrderedLayout(shape_value, order);
 }
 
-pub fn make_layout_like(input: *const Layout) Error!Layout {
+pub fn makeLayoutLike(input: *const Layout) Error!Layout {
     return layout_algebra.makeLayoutLike(input);
 }
 
-pub fn compact_col_major(shape_value: Tree) Error!Layout {
+pub fn compactColMajor(shape_value: Tree) Error!Layout {
     return Layout.makeCompact(shape_value);
 }
 
-pub fn compact_row_major(shape_value: Tree) Error!Layout {
+pub fn compactRowMajor(shape_value: Tree) Error!Layout {
     return Layout.makeCompactRight(shape_value);
 }
 
-pub fn make_composed_layout(a: Layout, offset: Scalar, b: Layout) ComposedLayout {
+pub fn makeComposedLayout(a: Layout, offset: Scalar, b: Layout) ComposedLayout {
     return .{ .a = a, .offset = offset, .b = b };
 }
 
@@ -282,7 +286,7 @@ pub fn cosize(input: *const Layout) Error!Unsigned {
     return input.cosize();
 }
 
-pub fn size_in_bytes(type_bits: Unsigned, maybe_layout: ?*const Layout) Error!Unsigned {
+pub fn sizeInBytes(type_bits: Unsigned, maybe_layout: ?*const Layout) Error!Unsigned {
     return layout_algebra.sizeInBytes(type_bits, maybe_layout);
 }
 
@@ -298,17 +302,20 @@ pub fn idx2crd(input: *const Layout, idx: Scalar) Error!Tree {
     return core_static.idx2crd(input, idx);
 }
 
-pub fn increment_coord(coord: *const Tree, shape_value: *const Tree) Error!Tree {
+pub fn incrementCoord(coord: *const Tree, shape_value: *const Tree) Error!Tree {
     var c = coord.*;
     return layout_algebra.incrementCoord(&c, shape_value);
 }
 
-pub fn recast_layout(input: *const Layout, new_shape: Tree) Error!Layout {
+pub fn recastLayout(input: *const Layout, new_shape: Tree) Error!Layout {
     if ((try input.size()) != (try new_shape.product())) return Error.InvalidShape;
     return Layout.makeCompact(new_shape);
 }
 
-pub fn slice_and_offset(input: *const Layout, selector: *const Selector) Error!layout_algebra.SliceResult {
+pub fn sliceAndOffset(
+    input: *const Layout,
+    selector: *const Selector,
+) Error!layout_algebra.SliceResult {
     return layout_algebra.sliceAndOffset(input, selector);
 }
 
@@ -328,73 +335,85 @@ pub fn complement(input: *const Layout, cotarget: Unsigned) Error!Layout {
     return layout_core.complement(input, cotarget);
 }
 
-pub fn right_inverse(input: *const Layout) Error!Layout {
+pub fn rightInverse(input: *const Layout) Error!Layout {
     return layout_core.rightInverse(input);
 }
 
-pub fn left_inverse(input: *const Layout) Error!Layout {
+pub fn leftInverse(input: *const Layout) Error!Layout {
     return layout_core.leftInverse(input);
 }
 
-pub fn logical_product(block: *const Layout, tiler: *const Tree) Error!Layout {
+pub fn logicalProduct(block: *const Layout, tiler: *const Tree) Error!Layout {
     return layout_core.logicalProduct(block, tiler);
 }
 
-pub fn zipped_product(block: *const Layout, tiler: *const Tree) Error!Layout {
+pub fn zippedProduct(block: *const Layout, tiler: *const Tree) Error!Layout {
     return layout_core.zippedProduct(block, tiler);
 }
 
-pub fn tiled_product(block: *const Layout, tiler: *const Tree) Error!Layout {
+pub fn tiledProduct(block: *const Layout, tiler: *const Tree) Error!Layout {
     return layout_core.tiledProduct(block, tiler);
 }
 
-pub fn flat_product(block: *const Layout, tiler: *const Tree) Error!Layout {
+pub fn flatProduct(block: *const Layout, tiler: *const Tree) Error!Layout {
     return layout_core.flatProduct(block, tiler);
 }
 
-pub fn raked_product(block: *const Layout, tiler: *const Tree) Error!Layout {
+pub fn rakedProduct(block: *const Layout, tiler: *const Tree) Error!Layout {
     return layout_core.rakedProduct(block, tiler);
 }
 
-pub fn blocked_product(block: *const Layout, tiler: *const Tree) Error!Layout {
+pub fn blockedProduct(block: *const Layout, tiler: *const Tree) Error!Layout {
     return layout_core.blockedProduct(block, tiler);
 }
 
-pub fn logical_divide(target: *const Layout, tiler: *const Tree) Error!Layout {
+pub fn logicalDivide(target: *const Layout, tiler: *const Tree) Error!Layout {
     return layout_core.logicalDivide(target, tiler);
 }
 
-pub fn zipped_divide(target: *const Layout, tiler: *const Tree) Error!Layout {
+pub fn zippedDivide(target: *const Layout, tiler: *const Tree) Error!Layout {
     return layout_core.zippedDivide(target, tiler);
 }
 
-pub fn tiled_divide(target: *const Layout, tiler: *const Tree) Error!Layout {
+pub fn tiledDivide(target: *const Layout, tiler: *const Tree) Error!Layout {
     return layout_core.tiledDivide(target, tiler);
 }
 
-pub fn flat_divide(target: *const Layout, tiler: *const Tree) Error!Layout {
+pub fn flatDivide(target: *const Layout, tiler: *const Tree) Error!Layout {
     return layout_core.flatDivide(target, tiler);
 }
 
-pub fn max_common_layout(a: *const Layout, b: *const Layout) Error!Layout {
+pub fn maxCommonLayout(a: *const Layout, b: *const Layout) Error!Layout {
     return layout_core.maxCommonLayout(a, b);
 }
 
-pub fn max_common_vector(a: *const Layout, b: *const Layout) Error!Scalar {
+pub fn maxCommonVector(a: *const Layout, b: *const Layout) Error!Scalar {
     return layout_core.maxCommonVector(a, b);
 }
 
-pub fn tile_to_shape(atom: *const Layout, target_shape: *const Tree, order: []const usize) Error!Layout {
+pub fn tileToShape(
+    atom: *const Layout,
+    target_shape: *const Tree,
+    order: []const usize,
+) Error!Layout {
     return layout_core.tileToShape(atom, target_shape, order);
 }
 
-pub fn local_partition(target: *const Layout, tiler: *const Tree, worker_coord: *const Tree) Error!Layout {
+pub fn localPartition(
+    target: *const Layout,
+    tiler: *const Tree,
+    worker_coord: *const Tree,
+) Error!Layout {
     const divided = try layout_core.flatDivide(target, tiler);
     const selector = try selectorForWorker(worker_coord, divided.leafCount());
     return layout_algebra.sliceLayout(&divided, &selector);
 }
 
-pub fn local_tile(target: *const Layout, tiler: *const Tree, tile_coord: *const Tree) Error!Layout {
+pub fn localTile(
+    target: *const Layout,
+    tiler: *const Tree,
+    tile_coord: *const Tree,
+) Error!Layout {
     const divided = try layout_core.flatDivide(target, tiler);
     const selector = try selectorForWorker(tile_coord, divided.leafCount());
     return layout_algebra.sliceLayout(&divided, &selector);
@@ -410,23 +429,30 @@ fn selectorForWorker(coord: *const Tree, rank_value: usize) Error!Selector {
     return Selector.initTuple(parts[0..rank_value]);
 }
 
-pub fn make_layout_image_mask(lay: *const Layout, coord: []const Scalar, mode: usize) Error!u16 {
+pub fn makeLayoutImageMask(
+    lay: *const Layout,
+    coord: []const Scalar,
+    mode: usize,
+) Error!u16 {
     return layout_core.makeLayoutImageMask(lay, coord, mode);
 }
 
-pub fn leading_dim(shape_value: *const Tree, stride_value: *const Tree) Error!?usize {
+pub fn leadingDim(shape_value: *const Tree, stride_value: *const Tree) Error!?usize {
     return layout_core.leadingDim(shape_value, stride_value);
 }
 
-pub fn make_layout_tv(thr_layout: *const Layout, val_layout: *const Layout) Error!layout_core.LayoutTv {
+pub fn makeLayoutTv(
+    thr_layout: *const Layout,
+    val_layout: *const Layout,
+) Error!layout_core.LayoutTv {
     return layout_core.makeLayoutTv(thr_layout, val_layout);
 }
 
-pub fn get_nonswizzle_portion(input: *const Layout) Error!Layout {
+pub fn getNonswizzlePortion(input: *const Layout) Error!Layout {
     return input.*;
 }
 
-pub fn get_swizzle_portion(_: *const Layout) ?Swizzle {
+pub fn getSwizzlePortion(_: *const Layout) ?Swizzle {
     return null;
 }
 
@@ -447,34 +473,46 @@ pub const FastDivmodDivisor = struct {
     }
 };
 
-pub fn fast_divmod_create_divisor(divisor: u32) Error!FastDivmodDivisor {
+pub fn fastDivmodCreateDivisor(divisor: u32) Error!FastDivmodDivisor {
     return FastDivmodDivisor.init(divisor);
 }
 
 test "core API: static tree predicates and arithmetic helpers" {
     const t = Tree.fromComptime(.{ 2, .{ 3, 4 } });
-    try std.testing.expect(is_tuple(&t));
+    try std.testing.expect(isTuple(&t));
     try std.testing.expectEqual(@as(usize, 2), rank(&t));
     try std.testing.expectEqual(@as(usize, 2), depth(&t));
     try std.testing.expectEqual(@as(Unsigned, 24), try product(&t));
 
     const flat = try flatten(&t);
-    try std.testing.expectEqualSlices(Scalar, &.{ 2, 3, 4 }, (try flat.flattenLeaves()).slice());
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 2, 3, 4 },
+        (try flat.flattenLeaves()).slice(),
+    );
 
-    const p = try prefix_product(&flat);
-    try std.testing.expectEqualSlices(Scalar, &.{ 1, 2, 6 }, (try p.flattenLeaves()).slice());
+    const p = try prefixProduct(&flat);
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 1, 2, 6 },
+        (try p.flattenLeaves()).slice(),
+    );
 }
 
 test "core API: layout construction and divide/product wrappers" {
     const l = layout.makeLayout(.{ 8, 4 }, .{ 4, 1 });
     const tiler = Tree.fromComptime(.{ 2, 2 });
-    const z = try zipped_divide(&l, &tiler);
-    const back = try zipped_product(&z, &tiler);
-    try std.testing.expectEqualSlices(Scalar, &.{ 8, 4 }, (try back.shape.flattenLeaves()).slice());
+    const z = try zippedDivide(&l, &tiler);
+    const back = try zippedProduct(&z, &tiler);
+    try std.testing.expectEqualSlices(
+        Scalar,
+        &.{ 8, 4 },
+        (try back.shape.flattenLeaves()).slice(),
+    );
 
-    const cm = try compact_col_major(Tree.fromComptime(.{ 2, 3 }));
+    const cm = try compactColMajor(Tree.fromComptime(.{ 2, 3 }));
     try std.testing.expectEqual(@as(Scalar, 1 + 2 * 2), try cm.crd2idxFlat(&.{ 1, 2 }));
-    const rm = try compact_row_major(Tree.fromComptime(.{ 2, 3 }));
+    const rm = try compactRowMajor(Tree.fromComptime(.{ 2, 3 }));
     try std.testing.expectEqual(@as(Scalar, 1 * 3 + 2), try rm.crd2idxFlat(&.{ 1, 2 }));
 }
 
@@ -482,8 +520,12 @@ test "core API: local partition/tile and masks" {
     const l = layout.makeLayout(.{ 4, 4 }, .{ 4, 1 });
     const tiler = Tree.fromComptime(.{ 2, 2 });
     const worker = Tree.fromComptime(.{ 1, 0 });
-    const p = try local_partition(&l, &tiler, &worker);
+    const p = try localPartition(&l, &tiler, &worker);
     try std.testing.expect(p.leafCount() >= 1);
-    const mask = try make_layout_image_mask(&layout.makeLayout(.{ 2, 2 }, .{ 2, 1 }), &.{ 0, 0 }, 1);
+    const mask = try makeLayoutImageMask(
+        &layout.makeLayout(.{ 2, 2 }, .{ 2, 1 }),
+        &.{ 0, 0 },
+        1,
+    );
     try std.testing.expect(mask != 0);
 }
