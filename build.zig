@@ -216,6 +216,21 @@ pub fn build(b: *std.Build) void {
     const audit_step = b.step("audit", "Build and install the integration audit CLI");
     audit_step.dependOn(&install_integration_audit_cli.step);
 
+    const launch_cli_mod = b.createModule(.{
+        .root_source_file = b.path("src/launch_cli.zig"),
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+    });
+    launch_cli_mod.addOptions("build_options", build_options);
+    const launch_cli = b.addExecutable(.{
+        .name = "not-cute-launch",
+        .root_module = launch_cli_mod,
+    });
+    const install_launch_cli = b.addInstallArtifact(launch_cli, .{});
+    const launch_step = b.step("launch", "Build and install the CUDA launch CLI");
+    launch_step.dependOn(&install_launch_cli.step);
+
     const example_sources = [_][]const u8{
         "examples/layout_demo.zig",
         "examples/tensor_demo.zig",

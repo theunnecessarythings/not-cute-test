@@ -3,6 +3,10 @@ const mlir = @import("mlir_text.zig");
 const runtime = @import("runtime.zig");
 const runtime_plan = @import("runtime_plan.zig");
 const cuda = @import("cuda_driver.zig");
+
+fn trace(message: []const u8) void {
+    _ = std.os.linux.write(2, message.ptr, message.len);
+}
 const export_ = @import("export.zig");
 const jit = @import("jit.zig");
 
@@ -105,13 +109,55 @@ pub fn runDry(executable: ExecutableKernel) Error!ExecutionResult {
 
 pub fn launchWithCudaDriver(allocator: std.mem.Allocator, executable: ExecutableKernel, args: *cuda.LaunchArguments) Error!ExecutionResult {
     try executable.validate();
+    trace("CUDA: opening driver and creating context...\n");
     var session = try cuda.ManagedSession.open(executable.compile_plan.tools.cuda_driver_library, 0);
     defer session.close();
+    trace("CUDA: loading module...\n");
     const module = try session.loadModule(allocator, executable.artifacts.cubin_path);
     defer cuda.unloadModule(session.driver.symbols, module) catch {};
+    trace("CUDA: resolving kernel symbol...\n");
     const function = try session.loadFunction(allocator, module, executable.binding.entry_symbol);
+    trace("CUDA: launching kernel...\n");
     try session.launch(function, executable.launch_plan.config, args);
+    trace("CUDA: synchronizing stream...\n");
     try cuda.synchronizeStream(session.driver.symbols, session.stream);
+    trace("CUDA: launch complete.\n");
+    return .{ .mode = .cuda_driver, .launched = true, .argument_slots = args.len, .message = "launched via CUDA driver" };
+}
+
+pub fn launchCopyWithCudaDriver(allocator: std.mem.Allocator, executable: ExecutableKernel) Error!ExecutionResult {
+    try executable.validate();
+    trace("CUDA: opening driver and creating context...\n");
+    var session = try cuda.ManagedSession.open(executable.compile_plan.tools.cuda_driver_library, 0);
+    defer session.close();
+
+    const src = try cuda.allocateDevice(session.driver.symbols, @sizeOf(f32));
+    defer cuda.freeDevice(session.driver.symbols, src) catch {};
+    const dst = try cuda.allocateDevice(session.driver.symbols, @sizeOf(f32));
+    defer cuda.freeDevice(session.driver.symbols, dst) catch {};
+
+    const src_value: f32 = 1.0;
+    try cuda.memcpyHtoD(session.driver.symbols, src, std.mem.asBytes(&src_value));
+
+    trace("CUDA: loading module...\n");
+    const module = try session.loadModule(allocator, executable.artifacts.cubin_path);
+    defer cuda.unloadModule(session.driver.symbols, module) catch {};
+    trace("CUDA: resolving kernel symbol...\n");
+    const function = try session.loadFunction(allocator, module, executable.binding.entry_symbol);
+
+    var src_ptr = src.ptr;
+    var dst_ptr = dst.ptr;
+    var coordinate: i32 = 0;
+    var args: cuda.LaunchArguments = .{};
+    try args.append(try cuda.KernelArgument.init("src", @ptrCast(&src_ptr)));
+    try args.append(try cuda.KernelArgument.init("dst", @ptrCast(&dst_ptr)));
+    try args.append(try cuda.KernelArgument.init("coordinate", @ptrCast(&coordinate)));
+
+    trace("CUDA: launching kernel...\n");
+    try session.launch(function, executable.launch_plan.config, &args);
+    trace("CUDA: synchronizing stream...\n");
+    try cuda.synchronizeStream(session.driver.symbols, session.stream);
+    trace("CUDA: launch complete.\n");
     return .{ .mode = .cuda_driver, .launched = true, .argument_slots = args.len, .message = "launched via CUDA driver" };
 }
 

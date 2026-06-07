@@ -3,6 +3,7 @@ const runtime = @import("runtime.zig");
 const runtime_plan = @import("runtime_plan.zig");
 
 pub const Error = runtime.Error || runtime_plan.Error || error{
+    OutOfMemory,
     CudaDriverUnavailable,
     CudaSymbolUnavailable,
     CudaCallFailed,
@@ -357,8 +358,9 @@ pub const LaunchArguments = struct {
         self.len += 1;
     }
 
-    pub fn slice(self: *LaunchArguments) []?*anyopaque {
-        return self.slots[0..self.len];
+    pub fn kernelParams(self: *LaunchArguments) [*c]?*anyopaque {
+        if (self.len == 0) return null;
+        return self.slots[0..self.len].ptr;
     }
 };
 
@@ -374,7 +376,7 @@ pub fn launchKernel(driver: DriverSymbols, function: Function, config: runtime.L
         config.block.z,
         @intCast(config.dynamic_smem_bytes),
         stream.handle,
-        args.slice().ptr,
+        args.kernelParams(),
         null,
     ));
 }
@@ -497,9 +499,11 @@ test "cuda_driver: dry-run execution request emits launch JSON" {
 test "cuda_driver: argument pack preserves kernel parameter pointers" {
     var x: u64 = 7;
     var args: LaunchArguments = .{};
+    try std.testing.expect(args.kernelParams() == null);
     try args.append(try KernelArgument.init("x", @ptrCast(&x)));
     try std.testing.expectEqual(@as(usize, 1), args.len);
-    try std.testing.expect(args.slice()[0] != null);
+    try std.testing.expect(args.kernelParams() != null);
+    try std.testing.expect(args.slots[0] != null);
 }
 
 test "cuda_driver: C declarations include launch ABI" {
